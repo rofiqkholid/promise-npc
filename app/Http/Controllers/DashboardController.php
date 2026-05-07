@@ -26,12 +26,13 @@ class DashboardController extends Controller
         ];
 
         // 2. Nearest Events
-        $nearestEvents = NpcPart::with(['product', 'event.customerCategory'])
+        $nearestEvents = NpcPart::with(['product.vehicleModel', 'product.customer', 'event.customerCategory'])
             ->whereNotIn('status', ['CLOSED'])
             ->whereNotNull('delivery_date')
             ->orderBy('delivery_date', 'asc')
-            ->take(5)
-            ->get();
+            ->get()
+            ->unique('npc_event_id')
+            ->take(5);
 
         // --- DASHBOARD V2 CHARTS DATA ---
 

@@ -64,7 +64,7 @@
     @endif
 
     <!-- Table & Modals -->
-    <div class="p-6" x-data="{ activeModal: null, activeGlobalPhotoModal: null }">
+    <div class="p-6" x-data="{ activeModal: {{ request('open_event', 'null') }}, activeGlobalPhotoModal: null }">
         <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
@@ -271,7 +271,7 @@
                 <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
                     <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
                         <div x-show="activeModal === {{ $po->id }}"
-                            @click.away="activeModal = null"
+                            @click.away="{{ request('from_dashboard') ? "window.location.href='".route('dashboard')."'" : 'activeModal = null' }}"
                             x-transition:enter="ease-out duration-300"
                             x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
@@ -285,7 +285,7 @@
                                 <h3 class="text-base font-bold text-gray-800 dark:text-white flex items-center gap-2" id="modal-title">
                                     <i class="fa-solid fa-list-check text-blue-500"></i> Rincian Part: {{ $po->po_no }}
                                 </h3>
-                                <button type="button" @click="activeModal = null" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                <button type="button" @click="{{ request('from_dashboard') ? "window.location.href='".route('dashboard')."'" : 'activeModal = null' }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                     <i class="fa-solid fa-xmark text-xl"></i>
                                 </button>
                             </div>
@@ -504,7 +504,7 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                             
                             <!-- Footer -->
                             <div class="bg-gray-50 dark:bg-gray-800 px-6 py-3 border-t border-gray-200 dark:border-gray-700 flex flex-row-reverse">
-                                <button type="button" @click="activeModal = null" class="inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition-colors">Close</button>
+                                <button type="button" @click="{{ request('from_dashboard') ? "window.location.href='".route('dashboard')."'" : 'activeModal = null' }}" class="inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition-colors">Close</button>
                             </div>
                         </div>
                     </div>

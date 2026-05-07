@@ -78,8 +78,15 @@
                                 </a>
                                 <p class="text-[9px] text-gray-400 mt-2 italic text-right max-w-[150px] mx-auto float-right text-balance">Fill quality parameter form & pass to MGM</p>
                             @else
-                                <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed">
-                                    <i class="fa-solid fa-lock text-[8px]"></i> Already Inspected
+                                <div class="flex flex-col items-end gap-2">
+                                    <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full max-w-[150px]">
+                                        <i class="fa-solid fa-lock text-[8px]"></i> Already Inspected
+                                    </div>
+                                    @if($part->checksheet)
+                                    <a href="{{ route('checksheets.print-label', $part->id) }}" target="_blank" class="inline-flex px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
+                                        <i class="fa-solid fa-print"></i> Print QC Label
+                                    </a>
+                                    @endif
                                 </div>
                             @endif
                         </td>

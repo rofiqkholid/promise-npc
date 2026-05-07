@@ -79,26 +79,26 @@
                         <table class="w-full text-left border-collapse">
                             <thead class="sticky top-0 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 z-10">
                                 <tr>
-                                    <th class="p-2 pl-3 text-[10px] font-semibold text-slate-500 uppercase">Part No</th>
-                                    <th class="p-2 text-[10px] font-semibold text-slate-500 uppercase">Customer</th>
-                                    <th class="p-2 text-[10px] font-semibold text-slate-500 uppercase">Status</th>
-                                    <th class="p-2 pr-3 text-[10px] font-semibold text-slate-500 uppercase text-right">Delivery Date</th>
+                                    <th class="p-2 pl-3 text-[10px] font-semibold text-slate-500 uppercase">Customer</th>
+                                    <th class="p-2 text-[10px] font-semibold text-slate-500 uppercase">Model</th>
+                                    <th class="p-2 text-[10px] font-semibold text-slate-500 uppercase">Event</th>
+                                    <th class="p-2 pr-3 text-[10px] font-semibold text-slate-500 uppercase text-right">Delv Date</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
                                 @foreach($nearestEvents as $evt)
-                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors" onclick="window.location.href='{{ route('tracking.index', ['search' => $evt->event->po_no, 'open_event' => $evt->npc_event_id, 'from_dashboard' => 1]) }}'">
                                         <td class="p-2 pl-3">
-                                            <p class="text-xs font-semibold text-slate-800 dark:text-white">{{ $evt->product->part_no ?? '-' }}</p>
+                                            <p class="text-[10px] font-semibold text-slate-800 dark:text-white">{{ $evt->product->customer->code ?? '-' }}</p>
+                                        </td>
+                                        <td class="p-2">
+                                            <p class="text-[10px] text-slate-600 dark:text-slate-400">{{ $evt->product->vehicleModel->name ?? '-' }}</p>
                                         </td>
                                         <td class="p-2">
                                             <p class="text-[10px] text-slate-600 dark:text-slate-400">{{ $evt->event->customerCategory->name ?? '-' }}</p>
                                         </td>
-                                        <td class="p-2">
-                                            <span class="text-[9px] font-medium px-1.5 py-0.5 rounded-sm bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">{{ str_replace('_', ' ', $evt->status) }}</span>
-                                        </td>
                                         <td class="p-2 pr-3 text-right">
-                                            <span class="text-xs font-bold {{ \Carbon\Carbon::parse($evt->delivery_date)->isPast() ? 'text-rose-500' : 'text-slate-700 dark:text-slate-300' }}">
+                                            <span class="text-[10px] font-bold {{ \Carbon\Carbon::parse($evt->delivery_date)->isPast() ? 'text-rose-500' : 'text-slate-700 dark:text-slate-300' }}">
                                                 {{ \Carbon\Carbon::parse($evt->delivery_date)->format('d M Y') }}
                                             </span>
                                         </td>

@@ -48,6 +48,10 @@ class ProductionTrackingController extends Controller
         $query = \App\Models\NpcEvent::with(['customerCategory', 'parts.product'])
                 ->whereHas('parts');
         
+        if ($request->filled('search')) {
+            $query->where('po_no', 'like', '%' . $request->search . '%');
+        }
+        
         $pos = $query->latest()->paginate(10);
 
         return view('tracking.global', [

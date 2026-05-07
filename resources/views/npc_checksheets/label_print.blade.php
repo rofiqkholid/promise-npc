@@ -92,14 +92,18 @@
                 <div class="text-2xl font-black leading-none mb-1">{{ optional($part->product)->part_no ?? '-' }}</div>
                 <div class="text-sm font-semibold text-gray-700 mb-3 truncate">{{ optional($part->product)->part_name ?? '-' }}</div>
                 
-                <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="grid grid-cols-3 gap-2 text-xs">
                     <div>
                         <span class="text-[9px] font-bold text-gray-500 uppercase block">Model/Event:</span>
-                        <span class="font-bold">{{ optional(optional($part->product)->vehicleModel)->name ?? (optional(optional($part->event)->customerCategory)->name ?? '-') }}</span>
+                        <span class="font-bold block truncate" title="{{ optional(optional($part->product)->vehicleModel)->name ?? (optional(optional($part->event)->customerCategory)->name ?? '-') }}">{{ optional(optional($part->product)->vehicleModel)->name ?? (optional(optional($part->event)->customerCategory)->name ?? '-') }}</span>
                     </div>
                     <div>
                         <span class="text-[9px] font-bold text-gray-500 uppercase block">PO Number:</span>
-                        <span class="font-bold">{{ optional($part->event)->po_no ?? '-' }}</span>
+                        <span class="font-bold block truncate" title="{{ optional($part->event)->po_no ?? '-' }}">{{ optional($part->event)->po_no ?? '-' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] font-bold text-gray-500 uppercase block">ECN No:</span>
+                        <span class="font-bold block truncate" title="{{ optional(optional(optional($part->product)->docPackage)->currentRevision)->ecn_no ?? '-' }}">{{ optional(optional(optional($part->product)->docPackage)->currentRevision)->ecn_no ?? '-' }}</span>
                     </div>
                 </div>
             </div>

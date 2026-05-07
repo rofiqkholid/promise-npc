@@ -60,9 +60,7 @@
                                     <a href="{{ route('checksheets.export', $part->checksheet->id) }}" class="inline-flex px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
                                         <i class="fa-solid fa-file-excel"></i> Export Excel
                                     </a>
-                                    <a href="{{ route('checksheets.print-label', $part->id) }}" target="_blank" class="inline-flex px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
-                                        <i class="fa-solid fa-print"></i> Print QC Label
-                                    </a>
+
                                     @endif
                                     <p class="text-[9px] text-gray-400 mt-1 italic text-right max-w-[150px] text-balance">Review checksheet and sign the FG parts check</p>
                                 @else
@@ -73,9 +71,7 @@
                                     <a href="{{ route('checksheets.export', $part->checksheet->id) }}" class="inline-flex px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
                                         <i class="fa-solid fa-file-excel"></i> Export Excel
                                     </a>
-                                    <a href="{{ route('checksheets.print-label', $part->id) }}" target="_blank" class="inline-flex px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
-                                        <i class="fa-solid fa-print"></i> Print QC Label
-                                    </a>
+
                                     @endif
                                 @endif
                             </div>
