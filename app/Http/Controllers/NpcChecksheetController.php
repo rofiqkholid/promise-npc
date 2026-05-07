@@ -361,10 +361,11 @@ class NpcChecksheetController extends Controller
             
             $stdName = '';
             if ($std && $std->stdPart) {
-                $stdName = $std->stdPart->part_name;
+                $stdName = $std->stdPart->name;
             }
             $sheet->setCellValue('F' . $currentRow, $stdName);
             $sheet->mergeCells('I' . $currentRow . ':K' . $currentRow);
+            $sheet->setCellValue('I' . $currentRow, $std ? $std->spec : '');
             
             $currentRow++;
         }
@@ -380,15 +381,38 @@ class NpcChecksheetController extends Controller
         $sheet->getStyle('L10')->getFont()->setBold(true);
         
         if ($product && $product->productDetail && $product->productDetail->sketch_image_path) {
-            $imgPath = storage_path('app/public/' . str_replace('public/', '', $product->productDetail->sketch_image_path));
+            $imgPath = \Illuminate\Support\Facades\Storage::path($product->productDetail->sketch_image_path);
             if (file_exists($imgPath)) {
-                $drawing = new Drawing();
+                $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
                 $drawing->setName('Sketch');
                 $drawing->setDescription('Sketch Image');
                 $drawing->setPath($imgPath);
                 $drawing->setCoordinates('L11');
-                $drawing->setHeight(200); // Adjust height
-                $drawing->setOffsetX(20);
+                
+                // Calculate proportional dimensions to fit nicely
+                $imageSize = getimagesize($imgPath);
+                if ($imageSize) {
+                    $origWidth = $imageSize[0];
+                    $origHeight = $imageSize[1];
+                    
+                    $maxWidth = 240;  // Approx width of columns L to Q
+                    $maxHeight = 250; // Approx height of 15 rows
+                    
+                    $ratio = min($maxWidth / $origWidth, $maxHeight / $origHeight);
+                    
+                    if ($ratio < 1) {
+                        $drawing->setWidth($origWidth * $ratio);
+                        $drawing->setHeight($origHeight * $ratio);
+                    } else {
+                        $drawing->setWidth($origWidth);
+                        $drawing->setHeight($origHeight);
+                    }
+                } else {
+                    $drawing->setHeight(200); // Fallback
+                }
+                
+                $drawing->setOffsetX(10);
+                $drawing->setOffsetY(10);
                 $drawing->setWorksheet($sheet);
             }
         }

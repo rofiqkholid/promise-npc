@@ -29,10 +29,23 @@
     </div>
 
     <!-- Part Context Info -->
-    <div class="px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div class="px-6 py-4 grid grid-cols-2 md:grid-cols-5 gap-4 bg-slate-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div>
             <span class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Event/Project</span>
-            <span class="text-sm font-medium text-gray-700 dark:text-white">{{ optional($part->event)->event_name }}</span>
+            <span class="text-sm font-medium text-gray-700 dark:text-white">{{ optional($part->event)->event_name ?? 'N/A' }}</span>
+        </div>
+        <div>
+            <span class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">ECN / Revision</span>
+            <span class="text-sm font-bold {{ $part->has_ecn_update ? 'text-red-600' : 'text-gray-700 dark:text-white' }}">
+                @if($part->drawingRevision)
+                    {{ $part->drawingRevision->ecn_no ?? 'No ECN' }} (Rev {{ $part->drawingRevision->revision_no }})
+                    @if($part->has_ecn_update)
+                        <i class="fa-solid fa-triangle-exclamation" title="A newer revision exists in Master Data!"></i>
+                    @endif
+                @else
+                    N/A
+                @endif
+            </span>
         </div>
         <div>
             <span class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Qty Output</span>
