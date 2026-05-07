@@ -5,9 +5,7 @@
 
 @section('content')
 @php
-    $isMGM = $part ? $part->status === 'WAITING_MGM_CHECK' : false;
-    $role = $isMGM ? 'MGM' : 'QC';
-    $readonly = false; // Based on new flow, MGM checks the points, QC just uploads file
+    $readonly = true;
 @endphp
 
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 max-w-5xl mx-auto">
@@ -24,8 +22,8 @@
             <a href="{{ route('checksheets.export', $checksheet->id) }}" class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow-sm transition">
                 <i class="fa-regular fa-file-excel"></i> Export Excel
             </a>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full {{ $isMGM ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800' }} text-sm font-semibold shadow-sm border {{ $isMGM ? 'border-purple-200' : 'border-orange-200' }}">
-                <i class="fa-solid fa-user-shield"></i> {{ $role }} Review Mode
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-100 text-blue-800 text-sm font-semibold shadow-sm border border-blue-200">
+                <i class="fa-solid fa-user-shield"></i> Approval Review Mode
             </span>
         </div>
     </div>
@@ -56,10 +54,11 @@
         </div>
     </div>
 
-    <form action="{{ route('checksheets.update', $checksheet->id) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('checksheet-approvals.store', $checksheet->id) }}" method="POST">
         @csrf
-        @method('PUT')
-        <input type="hidden" name="role" value="{{ $role }}">
+        @php
+            $levelName = str_replace('WAITING_', '', $checksheet->approval_status);
+        @endphp
 
         @if ($errors->any())
             <div class="px-6 py-4 mx-6 mt-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
@@ -72,77 +71,12 @@
         @endif
 
         <div class="p-6">
-            @if(!$isMGM)
-            <!--=============================
-                   QA / QC FORM 
-            ==============================-->
-            <div class="space-y-6 max-w-2xl mx-auto">
-                <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded text-sm text-blue-700 dark:text-blue-300">
-                    <p class="font-semibold mb-1">Instruction Quality Control:</p>
-                    <p>Please fill in the percentage hitungan akurasi dimensi part and attach the physical inspection report file (PDF/Image).</p>
-                </div>
 
-                <div class="space-y-2">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Calculation Accuracy (%) <span class="text-red-500">*</span>
-                    </label>
-                    <div class="relative w-48">
-                        <input type="number" step="0.01" min="0" max="100" name="accuracy_percentage" required value="{{ old('accuracy_percentage', $checksheet->accuracy_percentage) }}"
-                            class="w-full text-right pr-8 rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-lg font-bold text-gray-800 dark:bg-gray-700 dark:text-white pb-2 pt-2">
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <span class="text-gray-500 font-bold">%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Upload IR Evidence (Max 10MB) <span class="text-gray-400 font-normal">(Optional)</span>
-                    </label>
-                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-                        <div class="space-y-1 text-center">
-                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
-                            <div class="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
-                                <label for="file-upload" class="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 px-2 py-1">
-                                    <span>Upload a file</span>
-                                    <input id="file-upload" name="attachment_file" type="file" class="sr-only" accept=".pdf,.jpg,.jpeg,.png">
-                                </label>
-                            </div>
-                            <p class="text-xs text-gray-500" id="file-name-display">PDF, PNG, JPG up to 10MB</p>
-                        </div>
-                    </div>
-                    @if($checksheet->attachment_path)
-                        <div class="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
-                            <i class="fa-solid fa-paperclip"></i> Existing file terlampir. Upload ulang untuk mengganti.
-                        </div>
-                    @endif
-                </div>
-            </div>
-            @endif
-
-            @if($isMGM)
             <!--=============================
                    MGM CHECKLIST FORM 
             ==============================-->
             <div class="mb-6">
-                <!-- Data QC Previous (Read Only) -->
-                <div class="flex flex-col md:flex-row gap-6 mb-6 p-4 rounded-lg bg-slate-50 border border-slate-200 dark:bg-gray-900 dark:border-gray-700">
-                    <div>
-                        <span class="block text-xs text-gray-500 uppercase font-semibold">Result Accuracy QC</span>
-                        <span class="text-2xl font-black text-blue-600 dark:text-blue-400">{{ $checksheet->accuracy_percentage ?? 'N/A' }}%</span>
-                    </div>
-                    @if($checksheet->attachment_path)
-                    <div class="flex items-center">
-                        <a href="{{ Storage::url($checksheet->attachment_path) }}" target="_blank" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                            <i class="fa-solid fa-file-pdf text-red-500"></i> View Attachment QC
-                        </a>
-                    </div>
-                    @else
-                    <div class="flex items-center text-sm text-gray-500 italic">
-                        No attachment file QC.
-                    </div>
-                    @endif
-                </div>
+
 
                 <div class="mb-4">
                     <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">History Problem</h3>
@@ -164,20 +98,7 @@
                         @endforelse
                     </ul>
 
-                    <!-- New History Input -->
-                    <div class="border-t border-red-200 dark:border-red-800/50 pt-4 mt-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Add New History Problem <span class="text-gray-500 text-xs font-normal">(Fill in if there are defect findings outside the checklist)</span>
-                        </label>
-                        <div id="dynamic-history-wrapper" class="space-y-2">
-                            <div class="flex items-center gap-2 history-row">
-                                <input type="text" name="new_history_problems[]" placeholder="Description masalah baru..." class="flex-1 text-sm border-gray-300 dark:border-gray-600 rounded shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-800 dark:text-white">
-                                <button type="button" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded transition add-history-btn">
-                                    <i class="fa-solid fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- New History Input hidden in approval -->
                 </div>
 
                 <div class="mb-4 mt-8">
@@ -229,8 +150,8 @@
                                 </td>
                                 @endfor
                                 <td class="px-4 py-2 text-center">
-                                    <select name="details[{{ $detail->id }}][row_result]" id="row-result-{{ $detail->id }}"
-                                            class="w-full text-xs py-1.5 px-2 font-bold border-gray-300 dark:border-gray-600 rounded shadow-sm focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white
+                                    <select name="details[{{ $detail->id }}][row_result]" id="row-result-{{ $detail->id }}" disabled
+                                            class="w-full text-xs py-1.5 px-2 font-bold border-gray-300 dark:border-gray-600 rounded shadow-sm focus:ring-1 focus:ring-blue-500 bg-gray-100 dark:bg-gray-800 dark:text-white
                                             @if($detail->row_result == 'OK') text-green-600 bg-green-50 dark:bg-green-900/20 
                                             @elseif($detail->row_result == 'NG') text-red-600 bg-red-50 dark:bg-red-900/20 @endif">
                                         <option value="" class="text-gray-400">- Select -</option>
@@ -253,20 +174,19 @@
                 <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-purple-50 dark:bg-purple-900/10 p-4 rounded-lg border border-purple-100 dark:border-purple-800/30">
                     <div class="flex items-start gap-4 w-full">
                         <label class="font-bold text-gray-800 dark:text-white text-base whitespace-nowrap mt-2">Remark:</label>
-                        <textarea name="final_result" rows="2"
-                                class="rounded-lg border-purple-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-base py-2 px-3 w-full text-gray-800 dark:bg-gray-800 dark:text-white dark:border-gray-600" placeholder="Add remark if necessary...">{{ $checksheet->final_result }}</textarea>
+                        <textarea name="final_result" rows="2" disabled
+                                class="rounded-lg border-purple-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-base py-2 px-3 w-full text-gray-800 bg-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-600">{{ $checksheet->final_result }}</textarea>
                     </div>
                 </div>
             </div>
-            @endif
         </div>
 
         <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 rounded-b-lg">
-            <a href="{{ route('tracking.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm text-sm font-medium">
+            <a href="{{ route('checksheet-approvals.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm text-sm font-medium">
                 Cancel
             </a>
-            <button type="submit" class="px-5 py-2 {{ $isMGM ? 'bg-purple-600 hover:bg-purple-700' : 'bg-orange-600 hover:bg-orange-700' }} text-white rounded-lg transition shadow-sm font-semibold flex items-center gap-2 text-sm">
-                <i class="fa-solid fa-floppy-disk"></i> {{ $isMGM ? 'Submit to Approval' : 'Submit Accuracy (QC)' }}
+            <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-sm font-semibold flex items-center gap-2 text-sm">
+                <i class="fa-solid fa-check-double"></i> Approve as {{ $levelName }}
             </button>
         </div>
     </form>

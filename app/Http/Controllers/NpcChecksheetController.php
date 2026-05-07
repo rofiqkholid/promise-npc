@@ -98,23 +98,20 @@ class NpcChecksheetController extends Controller
 
             $updateData = [
                 'accuracy_percentage' => $request->accuracy_percentage,
-                'qe_checked_by' => auth()->check() ? auth()->user()->id : 1,
+                'qe_checked_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
                 'qe_check_date' => Carbon::now()
             ];
 
             if ($request->hasFile('attachment_file')) {
-                // Delete old file if exists
                 if ($checksheet->attachment_path) {
                     Storage::disk('public')->delete($checksheet->attachment_path);
                 }
-                
                 $path = $request->file('attachment_file')->store('npc_checksheets', 'public');
                 $updateData['attachment_path'] = $path;
             }
 
             $checksheet->update($updateData);
 
-            // Move to next step
             if ($part->status === 'WAITING_QE_CHECK') {
                 $part->update(['status' => 'WAITING_MGM_CHECK']);
             }
@@ -123,11 +120,10 @@ class NpcChecksheetController extends Controller
 
         } elseif ($request->role === 'MGM') {
             $request->validate([
-                'final_result' => 'required|in:OK,NG,Need Improvement',
+                'final_result' => 'nullable|string|max:1000',
                 'details' => 'array'
             ]);
 
-            // Update individual checkpoint statuses
             foreach ($request->input('details', []) as $id => $data) {
                 $detail = NpcChecksheetDetail::find($id);
                 if ($detail && $detail->npc_checksheet_id == $checksheet->id) {
@@ -140,11 +136,11 @@ class NpcChecksheetController extends Controller
 
             $checksheet->update([
                 'final_result' => $request->final_result,
-                'mgm_checked_by' => auth()->check() ? auth()->user()->id : 1, // Fallback if auth missing
-                'mgm_check_date' => Carbon::now()
+                'mgm_checked_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
+                'mgm_check_date' => Carbon::now(),
+                'approval_status' => 'WAITING_QE_STAFF' // Enter Approval Phase
             ]);
 
-            // Process new history problems
             if ($request->has('new_history_problems') && is_array($request->new_history_problems)) {
                 $problems = array_filter($request->new_history_problems, function($val) {
                     return !empty(trim($val));
@@ -157,7 +153,7 @@ class NpcChecksheetController extends Controller
                             'product_id' => $part->product->id,
                             'problem_description' => trim($probDesc),
                             'npc_part_id_finder' => $part->id,
-                            'created_by' => auth()->check() ? auth()->user()->id : 1,
+                            'created_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
                             'created_at' => Carbon::now(),
                             'updated_at' => Carbon::now(),
                         ];
@@ -166,12 +162,12 @@ class NpcChecksheetController extends Controller
                 }
             }
 
-            // Finish the part production
+            // Instead of FINISHED, move part to WAITING_APPROVAL
             if ($part->status === 'WAITING_MGM_CHECK') {
-                $part->update(['status' => 'FINISHED']);
+                $part->update(['status' => 'WAITING_APPROVAL']);
             }
 
-            return redirect()->route('tracking.index')->with('success', 'MGM Checksheet successfully validated and saved.');
+            return redirect()->route('tracking.index')->with('success', 'MGM Checksheet successfully submitted to Approval Phase.');
         }
 
         return redirect()->route('tracking.index');
@@ -182,7 +178,7 @@ class NpcChecksheetController extends Controller
      */
     public function export(NpcChecksheet $checksheet)
     {
-        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.event.customerCategory', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail');
+        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.event.customerCategory', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail', 'qeStaff', 'qeSpv', 'qeMgr', 'mgmStaff', 'mgmSpv', 'mgmMgr');
         $part = $checksheet->npcPart;
         $product = $part->product;
 
@@ -523,18 +519,29 @@ class NpcChecksheetController extends Controller
         $sheet->setCellValue('O' . ($sigRow + 1), "Management\nStaff/Opr");
         $sheet->getStyle('I' . ($sigRow + 1) . ':Q' . ($sigRow + 1))->getAlignment()->setWrapText(true);
         
-        // Empty boxes for signature
+        // Empty boxes for signature -> now filled with names
         $sheet->mergeCells('C' . ($sigRow + 2) . ':C' . ($sigRow + 3));
         $sheet->mergeCells('D' . ($sigRow + 2) . ':D' . ($sigRow + 3));
         $sheet->mergeCells('E' . ($sigRow + 2) . ':H' . ($sigRow + 3));
         $sheet->mergeCells('I' . ($sigRow + 2) . ':K' . ($sigRow + 3));
         $sheet->mergeCells('L' . ($sigRow + 2) . ':N' . ($sigRow + 3));
         $sheet->mergeCells('O' . ($sigRow + 2) . ':Q' . ($sigRow + 3));
+        
+        $sheet->setCellValue('C' . ($sigRow + 2), optional($checksheet->qeMgr)->name ?? '');
+        $sheet->setCellValue('D' . ($sigRow + 2), optional($checksheet->qeSpv)->name ?? '');
+        $sheet->setCellValue('E' . ($sigRow + 2), optional($checksheet->qeStaff)->name ?? '');
+        
+        $sheet->setCellValue('I' . ($sigRow + 2), optional($checksheet->mgmMgr)->name ?? '');
+        $sheet->setCellValue('L' . ($sigRow + 2), optional($checksheet->mgmSpv)->name ?? '');
+        $sheet->setCellValue('O' . ($sigRow + 2), optional($checksheet->mgmStaff)->name ?? '');
+
         $sheet->getRowDimension($sigRow + 2)->setRowHeight(30);
         $sheet->getRowDimension($sigRow + 3)->setRowHeight(30);
         
         $sheet->getStyle('A' . $sigRow . ':Q' . ($sigRow + 3))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $sheet->getStyle('C' . $sigRow . ':Q' . ($sigRow + 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getStyle('C' . ($sigRow + 2) . ':Q' . ($sigRow + 3))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(true);
+        $sheet->getStyle('C' . ($sigRow + 2) . ':Q' . ($sigRow + 3))->getFont()->setItalic(true);
         
         // Generate Response
         $writer = new Xlsx($spreadsheet);

@@ -11,6 +11,17 @@ class NpcEvent extends Model
 
     protected $table = 'npc_events';
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($event) {
+            foreach ($event->parts as $part) {
+                $part->delete();
+            }
+        });
+    }
+
     protected $fillable = [
         'po_no',
         'delivery_to',

@@ -11,6 +11,19 @@ class NpcPart extends Model
 
     protected $table = 'npc_parts';
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($part) {
+            $part->processes()->delete();
+            if ($part->checksheet) {
+                $part->checksheet->details()->delete();
+                $part->checksheet->delete();
+            }
+        });
+    }
+
     protected $fillable = [
         'npc_event_id',
         'product_id',

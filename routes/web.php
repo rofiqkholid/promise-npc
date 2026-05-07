@@ -189,4 +189,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checksheets/{checksheet}/export', [NpcChecksheetController::class, 'export'])->name('checksheets.export');
     Route::get('/checksheets/{checksheet}/edit', [NpcChecksheetController::class, 'edit'])->name('checksheets.edit');
     Route::put('/checksheets/{checksheet}', [NpcChecksheetController::class, 'update'])->name('checksheets.update');
+
+    // Checksheet Approval Routes
+    Route::get('/checksheet-approvals', [\App\Http\Controllers\NpcChecksheetApprovalController::class, 'index'])->name('checksheet-approvals.index');
+    Route::get('/checksheet-approvals/{checksheet}', [\App\Http\Controllers\NpcChecksheetApprovalController::class, 'show'])->name('checksheet-approvals.show');
+    Route::post('/checksheet-approvals/{checksheet}', [\App\Http\Controllers\NpcChecksheetApprovalController::class, 'store'])->name('checksheet-approvals.store');
 });
