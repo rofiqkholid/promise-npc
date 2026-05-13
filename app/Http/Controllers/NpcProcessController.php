@@ -8,9 +8,15 @@ use Illuminate\Http\Request;
 
 class NpcProcessController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $processes = NpcProcess::orderBy('process_name', 'asc')->get();
+        $query = NpcProcess::orderBy('process_name', 'asc');
+        
+        if ($request->has('search') && $request->search != '') {
+            $query->where('process_name', 'like', '%' . $request->search . '%');
+        }
+
+        $processes = $query->paginate(20);
         return view('master.processes.index', compact('processes'));
     }
 

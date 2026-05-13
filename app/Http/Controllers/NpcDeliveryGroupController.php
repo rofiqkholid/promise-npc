@@ -7,9 +7,15 @@ use App\Models\NpcDeliveryGroup;
 
 class NpcDeliveryGroupController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $groups = NpcDeliveryGroup::latest()->get();
+        $query = NpcDeliveryGroup::latest();
+        
+        if ($request->has('search') && $request->search != '') {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        $groups = $query->paginate(20);
         return view('master.delivery_groups.index', compact('groups'));
     }
 

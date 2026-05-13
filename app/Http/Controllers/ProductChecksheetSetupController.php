@@ -16,16 +16,36 @@ class ProductChecksheetSetupController extends Controller
     {
         $query = Product::with('mappedCheckpoints', 'customer', 'vehicleModel')->orderBy('part_no');
         
-        if ($request->has('search')) {
+        if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('part_no', 'like', "%{$search}%")
                   ->orWhere('part_name', 'like', "%{$search}%");
             });
         }
+
+        if ($request->has('customer_id') && $request->customer_id != '') {
+            $query->where('customer_id', $request->customer_id);
+        }
+
+        if ($request->has('model_id') && $request->model_id != '') {
+            $query->where('model_id', $request->model_id);
+        }
+
+        if ($request->has('status') && $request->status != '') {
+            if ($request->status == 'mapped') {
+                $query->whereHas('mappedCheckpoints');
+            } elseif ($request->status == 'unmapped') {
+                $query->whereDoesntHave('mappedCheckpoints');
+            }
+        }
         
         $products = $query->paginate(20);
-        return view('master.product_checksheets.index', compact('products'));
+
+        $customers = \App\Models\Customer::orderBy('code')->get();
+        $models = \App\Models\VehicleModel::orderBy('name')->get();
+
+        return view('master.product_checksheets.index', compact('products', 'customers', 'models'));
     }
 
     public function edit(Product $product)

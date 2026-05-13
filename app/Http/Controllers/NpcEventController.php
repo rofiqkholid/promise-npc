@@ -16,9 +16,29 @@ class NpcEventController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $events = \App\Models\NpcEvent::with(['customerCategory', 'deliveryGroup'])->latest()->paginate(10);
+        $query = \App\Models\NpcEvent::with(['customerCategory.customer', 'deliveryGroup', 'parts.product.vehicleModel'])->latest();
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('po_no', 'like', "%{$search}%")
+                  ->orWhere('delivery_to', 'like', "%{$search}%")
+                  ->orWhereHas('customerCategory', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%")
+                        ->orWhereHas('customer', function($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%")
+                              ->orWhere('code', 'like', "%{$search}%");
+                        });
+                  })
+                  ->orWhereHas('deliveryGroup', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $events = $query->paginate(20);
         return view('npc_events.index', compact('events'));
     }
 

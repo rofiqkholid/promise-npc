@@ -7,9 +7,15 @@ use Illuminate\Http\Request;
 
 class NpcDeliveryTargetController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $targets = NpcDeliveryTarget::orderBy('target_name', 'asc')->get();
+        $query = NpcDeliveryTarget::orderBy('target_name', 'asc');
+        
+        if ($request->has('search') && $request->search != '') {
+            $query->where('target_name', 'like', '%' . $request->search . '%');
+        }
+
+        $targets = $query->paginate(20);
         return view('master.delivery_targets.index', compact('targets'));
     }
 

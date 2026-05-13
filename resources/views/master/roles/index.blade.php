@@ -16,6 +16,50 @@
 
     <div class="p-6">
 
+        <!-- Search Form -->
+        <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <form action="{{ route('master.roles.index') }}" method="GET" class="w-full sm:w-auto"
+                x-data="{ 
+                    searchQuery: '{{ request('search') }}',
+                    performSearch() {
+                        fetch('?search=' + this.searchQuery)
+                        .then(res => res.text())
+                        .then(html => {
+                            let doc = new DOMParser().parseFromString(html, 'text/html');
+                            document.querySelector('tbody').innerHTML = doc.querySelector('tbody').innerHTML;
+                            
+                            let pagination = document.querySelector('.mt-4 nav');
+                            let newPagination = doc.querySelector('.mt-4 nav');
+                            if(pagination && newPagination) {
+                                pagination.innerHTML = newPagination.innerHTML;
+                            } else if (newPagination) {
+                                let container = document.querySelector('.p-6');
+                                let div = document.createElement('div');
+                                div.className = 'mt-4';
+                                div.appendChild(newPagination);
+                                container.appendChild(div);
+                            }
+                            
+                            window.history.pushState(null, '', '?search=' + this.searchQuery);
+                        });
+                    }
+                }" @submit.prevent="performSearch()">
+                <div class="relative w-full sm:w-64">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <input type="text" name="search" x-model="searchQuery" x-ref="searchInput" placeholder="Search role name or code..." 
+                        @input.debounce.500ms="performSearch()"
+                        class="!pl-10 !pr-10 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-none">
+                    
+                    <button type="button" x-show="searchQuery.length > 0" style="display: none;"
+                        @click="searchQuery = ''; performSearch(); $refs.searchInput.focus()"
+                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-red-500 transition outline-none">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
         <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
@@ -67,6 +111,9 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+        <div class="mt-4">
+            {{ $roles->links() }}
         </div>
     </div>
 </div>

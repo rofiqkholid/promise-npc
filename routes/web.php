@@ -58,6 +58,8 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('processes', NpcProcessController::class)->except(['show']);
         Route::resource('delivery-targets', NpcDeliveryTargetController::class)->except(['show']);
         Route::resource('checkpoints', NpcMasterCheckpointController::class)->except(['show']);
+        Route::get('std-parts/import/template', [\App\Http\Controllers\NpcMasterStdPartController::class, 'downloadTemplate'])->name('std-parts.import.template');
+        Route::post('std-parts/import', [\App\Http\Controllers\NpcMasterStdPartController::class, 'importData'])->name('std-parts.import.store');
         Route::resource('std-parts', NpcMasterStdPartController::class)->except(['show']);
         Route::resource('departments', NpcMasterDepartmentController::class)->except(['show']);
         // Menambahkan Routings Route tapi dengan parameter part_id khusus

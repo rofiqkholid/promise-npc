@@ -9,9 +9,22 @@ use App\Models\NpcInternalCategory;
 
 class NpcCustomerCategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $categories = NpcCustomerCategory::with(['customer', 'internalCategory'])->latest()->get();
+        $query = NpcCustomerCategory::with(['customer', 'internalCategory'])->latest();
+        
+        if ($request->has('search') && $request->search != '') {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhereHas('customer', function($q) use ($request) {
+                      $q->where('name', 'like', '%' . $request->search . '%')
+                        ->orWhere('code', 'like', '%' . $request->search . '%');
+                  })
+                  ->orWhereHas('internalCategory', function($q) use ($request) {
+                      $q->where('name', 'like', '%' . $request->search . '%');
+                  });
+        }
+
+        $categories = $query->paginate(20);
         return view('master.customer_categories.index', compact('categories'));
     }
 

@@ -26,6 +26,66 @@
     </div>
 
     <div class="p-6">
+
+        <!-- Search Form -->
+        <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <form action="{{ route('master.routings.index') }}" method="GET" class="w-full sm:w-auto"
+                x-data="{ 
+                    searchQuery: '{{ request('search') }}',
+                    performSearch() {
+                        fetch('?search=' + this.searchQuery)
+                        .then(res => res.text())
+                        .then(html => {
+                            let doc = new DOMParser().parseFromString(html, 'text/html');
+                            document.querySelector('tbody').innerHTML = doc.querySelector('tbody').innerHTML;
+                            
+                            let pagination = document.querySelector('.mt-4 nav') || document.querySelector('.p-4.border-t nav');
+                            let newPagination = doc.querySelector('.mt-4 nav') || doc.querySelector('.p-4.border-t nav');
+                            
+                            if(pagination && newPagination) {
+                                pagination.parentElement.innerHTML = newPagination.parentElement.innerHTML;
+                            } else if (newPagination) {
+                                let container = document.querySelector('.bg-white.shadow-sm');
+                                let div = document.createElement('div');
+                                div.className = 'p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50';
+                                div.appendChild(newPagination.parentElement.children[0]);
+                                container.appendChild(div);
+                            } else if (pagination) {
+                                pagination.parentElement.innerHTML = '';
+                            }
+                            
+                            // Re-initialize sortable
+                            if (typeof Sortable !== 'undefined') {
+                                document.querySelectorAll('.sortable-container').forEach(container => {
+                                    new Sortable(container, {
+                                        handle: '.cursor-move',
+                                        animation: 150,
+                                        ghostClass: 'sortable-ghost',
+                                        onEnd: window.sortableOnEndFunction
+                                    });
+                                });
+                            }
+                            
+                            window.history.pushState(null, '', '?search=' + this.searchQuery);
+                        });
+                    }
+                }" @submit.prevent="performSearch()">
+                <div class="relative w-full sm:w-64">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <input type="text" name="search" x-model="searchQuery" x-ref="searchInput" placeholder="Search part no, name..." 
+                        @input.debounce.500ms="performSearch()"
+                        class="!pl-10 !pr-10 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-none">
+                    
+                    <button type="button" x-show="searchQuery.length > 0" style="display: none;"
+                        @click="searchQuery = ''; performSearch(); $refs.searchInput.focus()"
+                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-red-500 transition outline-none">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
         <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
@@ -114,7 +174,7 @@
                     handle: '.cursor-move',
                     animation: 150,
                     ghostClass: 'sortable-ghost',
-                    onEnd: function (evt) {
+                    onEnd: window.sortableOnEndFunction = function (evt) {
                         const itemEl = evt.item;
                         const parentEl = evt.to;
                         const partId = parentEl.getAttribute('data-part-id');

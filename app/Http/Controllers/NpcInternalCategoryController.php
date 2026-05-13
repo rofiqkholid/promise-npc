@@ -7,9 +7,15 @@ use App\Models\NpcInternalCategory;
 
 class NpcInternalCategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $categories = NpcInternalCategory::latest()->get();
+        $query = NpcInternalCategory::latest();
+        
+        if ($request->has('search') && $request->search != '') {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        $categories = $query->paginate(20);
         return view('master.internal_categories.index', compact('categories'));
     }
 

@@ -6,18 +6,25 @@ use Illuminate\Http\Request;
 
 class NpcMenuController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $parents = \App\Models\NpcMenu::whereNull('parent_id')
-            ->with('children')
-            ->orderBy('order')
-            ->get();
+        if ($request->has('search') && $request->search != '') {
+            $menus = \App\Models\NpcMenu::where('title', 'like', '%' . $request->search . '%')
+                ->orWhere('route_name', 'like', '%' . $request->search . '%')
+                ->orderBy('order')
+                ->get();
+        } else {
+            $parents = \App\Models\NpcMenu::whereNull('parent_id')
+                ->with('children')
+                ->orderBy('order')
+                ->get();
 
-        $menus = collect();
-        foreach ($parents as $parent) {
-            $menus->push($parent);
-            foreach ($parent->children as $child) {
-                $menus->push($child);
+            $menus = collect();
+            foreach ($parents as $parent) {
+                $menus->push($parent);
+                foreach ($parent->children as $child) {
+                    $menus->push($child);
+                }
             }
         }
 

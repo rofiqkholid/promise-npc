@@ -10,9 +10,16 @@ class NpcMasterDepartmentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $departments = NpcDepartment::orderBy('name')->get();
+        $query = NpcDepartment::orderBy('name');
+        
+        if ($request->has('search') && $request->search != '') {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('full_name', 'like', '%' . $request->search . '%');
+        }
+
+        $departments = $query->paginate(20);
         return view('master.departments.index', compact('departments'));
     }
 

@@ -10,12 +10,20 @@ use Illuminate\Support\Facades\DB;
 
 class NpcMasterRoutingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $routings = NpcMasterRouting::with(['part', 'process'])
+        $query = NpcMasterRouting::with(['part', 'process'])
             ->select('part_id')
-            ->groupBy('part_id')
-            ->paginate(10);
+            ->groupBy('part_id');
+
+        if ($request->has('search') && $request->search != '') {
+            $query->whereHas('part', function($q) use ($request) {
+                $q->where('part_no', 'like', '%' . $request->search . '%')
+                  ->orWhere('part_name', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $routings = $query->paginate(10);
             
         // We grouped by part_id, so now we fetch the processes for each part
         foreach ($routings as $routing) {

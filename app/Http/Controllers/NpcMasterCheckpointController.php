@@ -7,9 +7,16 @@ use Illuminate\Http\Request;
 
 class NpcMasterCheckpointController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $checkpoints = NpcMasterCheckpoint::orderBy('point_number', 'asc')->get();
+        $query = NpcMasterCheckpoint::orderBy('point_number', 'asc');
+        
+        if ($request->has('search') && $request->search != '') {
+            $query->where('check_item', 'like', '%' . $request->search . '%')
+                  ->orWhere('point_number', 'like', '%' . $request->search . '%');
+        }
+
+        $checkpoints = $query->paginate(20);
         return view('master.checkpoints.index', compact('checkpoints'));
     }
 

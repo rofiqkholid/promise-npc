@@ -6,9 +6,16 @@ use Illuminate\Http\Request;
 
 class NpcRoleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $roles = \App\Models\NpcRole::orderBy('name')->get();
+        $query = \App\Models\NpcRole::orderBy('name');
+        
+        if ($request->has('search') && $request->search != '') {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('code', 'like', '%' . $request->search . '%');
+        }
+
+        $roles = $query->paginate(20);
         return view('master.roles.index', compact('roles'));
     }
 

@@ -20,6 +20,54 @@
     </div>
 
     <div class="p-6">
+
+        <!-- Search Form -->
+        <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <form action="{{ route('events.index') }}" method="GET" class="w-full sm:w-auto"
+                x-data="{ 
+                    searchQuery: '{{ request('search') }}',
+                    performSearch() {
+                        fetch('?search=' + this.searchQuery)
+                        .then(res => res.text())
+                        .then(html => {
+                            let doc = new DOMParser().parseFromString(html, 'text/html');
+                            document.querySelector('tbody').innerHTML = doc.querySelector('tbody').innerHTML;
+                            
+                            let pagination = document.querySelector('.mt-4 nav') || document.querySelector('.p-4.border-t nav');
+                            let newPagination = doc.querySelector('.mt-4 nav') || doc.querySelector('.p-4.border-t nav');
+                            
+                            if(pagination && newPagination) {
+                                pagination.parentElement.innerHTML = newPagination.parentElement.innerHTML;
+                            } else if (newPagination) {
+                                let container = document.querySelector('.bg-white.shadow-sm');
+                                let div = document.createElement('div');
+                                div.className = 'p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50';
+                                div.appendChild(newPagination.parentElement.children[0]);
+                                container.appendChild(div);
+                            } else if (pagination) {
+                                pagination.parentElement.innerHTML = '';
+                            }
+                            
+                            window.history.pushState(null, '', '?search=' + this.searchQuery);
+                        });
+                    }
+                }" @submit.prevent="performSearch()">
+                <div class="relative w-full sm:w-80">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <input type="text" name="search" x-model="searchQuery" x-ref="searchInput" placeholder="Search PO No, Customer, Model..." 
+                        @input.debounce.500ms="performSearch()"
+                        class="!pl-10 !pr-10 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-none">
+                    
+                    <button type="button" x-show="searchQuery.length > 0" style="display: none;"
+                        @click="searchQuery = ''; performSearch(); $refs.searchInput.focus()"
+                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-red-500 transition outline-none">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
         <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
@@ -37,8 +85,11 @@
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($events as $index => $event)
                     <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-gray-700/30 transition group">
-                        <td class="px-6 py-4 text-slate-800 dark:text-slate-200 text-sm">{{ $events->firstItem() + $index }}</td>
-                        <td class="px-6 py-4 text-blue-900 dark:text-blue-400 font-semibold text-sm">{{ optional($event->customerCategory)->name ?? '-' }}</td>
+                        <td class="px-6 py-4 text-slate-800 dark:text-slate-200 text-sm">{{ ($events->currentPage() - 1) * $events->perPage() + $loop->iteration }}</td>
+                        <td class="px-6 py-4 text-blue-900 dark:text-blue-400 font-semibold text-sm">
+                            {{ $event->po_no }}
+                            <div class="text-xs text-slate-500 font-normal mt-0.5">{{ optional($event->customerCategory)->name ?? '-' }}</div>
+                        </td>
                         <td class="px-6 py-4 text-slate-600 dark:text-slate-400 text-sm">
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium">
                                 {{ optional(optional($event->customerCategory)->customer)->code ?? '-' }}
