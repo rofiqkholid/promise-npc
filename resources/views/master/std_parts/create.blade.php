@@ -4,7 +4,7 @@
 @section('page_title', 'Master Data / STD Parts / Add')
 
 @section('content')
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 max-w-2xl mx-auto">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 max-w-2xl">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
         <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
             <i class="fa-solid fa-plus text-blue-500"></i> Create New STD Part

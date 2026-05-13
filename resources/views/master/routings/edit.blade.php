@@ -4,7 +4,7 @@
 @section('page_title', 'Master Data / Edit Master Routing')
 
 @section('content')
-<div class="max-w-4xl mx-auto">
+<div class="max-w-4xl">
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
             <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
@@ -12,7 +12,7 @@
             </h2>
         </div>
 
-        <form action="{{ route('master.routings.update', $part->id) }}" method="POST" class="p-6 space-y-6">
+        <form action="{{ route('master.routings.update', $part->hashed_id) }}" method="POST" class="p-6 space-y-6">
             @csrf
             @method('PUT')
             

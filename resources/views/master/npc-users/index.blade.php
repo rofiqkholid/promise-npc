@@ -50,11 +50,11 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex justify-end gap-1 opacity-50 group-hover:opacity-100 transition">
-                                <a href="{{ route('master.npc-users.edit', $user) }}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-md transition" title="Edit Hak Akses Individu">
+                                <a href="{{ route('master.npc-users.edit', $user->hashed_id) }}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-md transition" title="Edit Hak Akses Individu">
                                     <i class="fa-solid fa-shield-halved"></i>
                                 </a>
                                 @if(auth()->id() !== $user->nik)
-                                <form action="{{ route('master.npc-users.destroy', $user) }}" method="POST" class="inline">
+                                <form action="{{ route('master.npc-users.destroy', $user->hashed_id) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="button" onclick="confirmRevoke(this.closest('form'))" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-md transition" title="Revoke NPC Access">

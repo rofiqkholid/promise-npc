@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasHashedId;
 
 class NpcMasterRouting extends Model
 {
+    use HasHashedId;
+
     protected $fillable = ['part_id', 'process_id', 'department_id', 'sequence_order'];
 
     public function part()

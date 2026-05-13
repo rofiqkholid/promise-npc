@@ -13,7 +13,7 @@
             <span class="text-sm font-medium bg-blue-100 text-blue-800 py-1 px-3 rounded-full">{{ optional($event->customerCategory)->name ?? 'Event' }}</span>
         </div>
 
-        <form action="{{ route('events.parts.store', $event->id) }}" method="POST" class="p-6 space-y-6">
+        <form action="{{ route('events.parts.store', $event->hashed_id) }}" method="POST" class="p-6 space-y-6">
             @csrf
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -89,7 +89,7 @@
             </div>
 
             <div class="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-                <a href="{{ route('events.parts.index', $event->id) }}" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+                <a href="{{ route('events.parts.index', $event->hashed_id) }}" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
                     Cancel
                 </a>
                 <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg shadow-md shadow-blue-500/20 text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition">

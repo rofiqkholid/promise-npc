@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasHashedId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class NpcPartProcess extends Model
 {
+    use HasHashedId;
+
     use HasFactory;
 
     protected $table = 'npc_part_processes';

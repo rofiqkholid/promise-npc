@@ -53,11 +53,11 @@
                                         <i class="fa-solid fa-lock text-[8px]"></i> Not Yet Registered in MGM
                                     </div>
                                 @elseif($part->status === 'WAITING_MGM_CHECK')
-                                    <a href="{{ route('checksheets.create', $part->id) }}" class="inline-flex px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]" style="background-color: #a855f7;">
+                                    <a href="{{ route('checksheets.create', $part->hashed_id) }}" class="inline-flex px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]" style="background-color: #a855f7;">
                                         <i class="fa-solid fa-user-check"></i> MGM Checksheet Form
                                     </a>
                                     @if($part->checksheet)
-                                    <a href="{{ route('checksheets.export', $part->checksheet->id) }}" class="inline-flex px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
+                                    <a href="{{ route('checksheets.export', $part->checksheet->hashed_id) }}" class="inline-flex px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
                                         <i class="fa-solid fa-file-excel"></i> Export Excel
                                     </a>
 
@@ -68,7 +68,7 @@
                                         <i class="fa-solid fa-lock text-[8px]"></i> Completed
                                     </div>
                                     @if($part->checksheet)
-                                    <a href="{{ route('checksheets.export', $part->checksheet->id) }}" class="inline-flex px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
+                                    <a href="{{ route('checksheets.export', $part->checksheet->hashed_id) }}" class="inline-flex px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
                                         <i class="fa-solid fa-file-excel"></i> Export Excel
                                     </a>
 

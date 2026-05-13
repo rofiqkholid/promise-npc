@@ -39,7 +39,7 @@
             <a href="{{ route('events.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition font-medium text-sm flex items-center gap-2">
                 <i class="fa-solid fa-arrow-left"></i> Back
             </a>
-            <a href="{{ route('events.parts.create', $event->id) }}" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 transition shadow-md shadow-blue-500/20 font-medium text-sm flex items-center gap-2">
+            <a href="{{ route('events.parts.create', $event->hashed_id) }}" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 transition shadow-md shadow-blue-500/20 font-medium text-sm flex items-center gap-2">
                 <i class="fa-solid fa-plus"></i> Add Part
             </a>
         </div>
@@ -116,10 +116,10 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-1 opacity-50 group-hover:opacity-100 transition">
-                                <a href="{{ route('events.parts.edit', [$event->id, $part->id]) }}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-md transition" title="Edit">
+                                <a href="{{ route('events.parts.edit', [$event->hashed_id, $part->hashed_id]) }}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-md transition" title="Edit">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </a>
-                                <form action="{{ route('events.parts.destroy', [$event->id, $part->id]) }}" method="POST" class="inline" onsubmit="confirmAction(event, 'Are you sure you want to delete this data?')">
+                                <form action="{{ route('events.parts.destroy', [$event->hashed_id, $part->hashed_id]) }}" method="POST" class="inline" onsubmit="confirmAction(event, 'Are you sure you want to delete this data?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-md transition" title="Delete">

@@ -21,7 +21,7 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{{ route('checksheets.export', $checksheet->id) }}" class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow-sm transition">
+            <a href="{{ route('checksheets.export', $checksheet->hashed_id) }}" class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow-sm transition">
                 <i class="fa-regular fa-file-excel"></i> Export Excel
             </a>
             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full {{ $isMGM ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800' }} text-sm font-semibold shadow-sm border {{ $isMGM ? 'border-purple-200' : 'border-orange-200' }}">
@@ -56,7 +56,7 @@
         </div>
     </div>
 
-    <form action="{{ route('checksheets.update', $checksheet->id) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('checksheets.update', $checksheet->hashed_id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         <input type="hidden" name="role" value="{{ $role }}">

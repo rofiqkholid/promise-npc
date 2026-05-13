@@ -73,7 +73,7 @@
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right align-middle">
-                            <a href="{{ route('checksheets.setup.edit', $product->id) }}" class="inline-flex px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 rounded font-medium transition items-center gap-1.5 text-xs shadow-sm border border-blue-200 dark:border-blue-800/50 hover:border-transparent">
+                            <a href="{{ route('checksheets.setup.edit', $product->hashed_id) }}" class="inline-flex px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 rounded font-medium transition items-center gap-1.5 text-xs shadow-sm border border-blue-200 dark:border-blue-800/50 hover:border-transparent">
                                 <i class="fa-solid fa-pencil"></i> Mapping Checksheet
                             </a>
                         </td>

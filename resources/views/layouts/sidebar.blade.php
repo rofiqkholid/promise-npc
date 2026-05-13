@@ -18,12 +18,16 @@
         @foreach($sidebarMenus as $menu)
             @php
                 $isParentActive = false;
-                if ($menu->route !== '#' && request()->routeIs($menu->route.'*')) {
-                    $isParentActive = true;
+                if ($menu->route !== '#') {
+                    $baseRoute = preg_replace('/\.index$/', '', $menu->route);
+                    if (request()->routeIs($menu->route) || request()->routeIs($baseRoute . '.*')) {
+                        $isParentActive = true;
+                    }
                 }
                 if ($menu->children->count() > 0) {
                     foreach($menu->children as $child) {
-                        if (request()->routeIs($child->route.'*')) {
+                        $baseChildRoute = preg_replace('/\.index$/', '', $child->route);
+                        if (request()->routeIs($child->route) || request()->routeIs($baseChildRoute . '.*')) {
                             $isParentActive = true;
                             break;
                         }
@@ -33,7 +37,11 @@
             
             @if($menu->children->count() > 0)
                 {{-- PARENT MENU WITH DROPDOWN --}}
-                <div x-data="{ open: {{ $isParentActive ? 'true' : 'false' }} }" class="relative">
+                <div x-data="{ 
+                        open: localStorage.getItem('menu_open_{{ $menu->id }}') !== null ? localStorage.getItem('menu_open_{{ $menu->id }}') === 'true' : {{ $isParentActive ? 'true' : 'false' }} 
+                     }" 
+                     x-init="$watch('open', val => localStorage.setItem('menu_open_{{ $menu->id }}', val))"
+                     class="relative">
                     <button @click="open = !open; sidebarExpanded = true"
                         class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xs transition-all duration-200 group relative
                         {{ $isParentActive ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-400 font-semibold' : 'text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700/50 hover:text-slate-900 dark:hover:text-white' }}"
@@ -56,12 +64,16 @@
                     <div x-show="open && sidebarExpanded" 
                          x-collapse 
                          class="submenu-container pl-4 space-y-1 mt-1"
-                         style="display: {{ $isParentActive ? 'block' : 'none' }}">
+                         x-cloak>
                         @foreach($menu->children as $child)
+                            @php
+                                $baseChildRoute = preg_replace('/\.index$/', '', $child->route);
+                                $isActive = request()->routeIs($child->route) || request()->routeIs($baseChildRoute . '.*');
+                            @endphp
                             <a href="{{ route($child->route) }}"
                                 class="flex items-center gap-3 px-3 py-2 rounded-xs transition-all duration-200 text-sm
-                                {{ request()->routeIs($child->route.'*') ? 'text-primary-700 dark:text-primary-400 font-medium bg-primary-100/50 dark:bg-primary-900/20' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-gray-700/50' }}">
-                                <span class="w-1.5 h-1.5 rounded-full {{ request()->routeIs($child->route.'*') ? 'bg-primary-700 dark:bg-primary-400' : 'bg-slate-400 dark:bg-gray-600' }}"></span>
+                                {{ $isActive ? 'text-primary-700 dark:text-primary-400 font-medium bg-primary-100/50 dark:bg-primary-900/20' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-gray-700/50' }}">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $isActive ? 'bg-primary-700 dark:bg-primary-400' : 'bg-slate-400 dark:bg-gray-600' }}"></span>
                                 <span class="side-label whitespace-nowrap">{{ $child->title }}</span>
                             </a>
                         @endforeach

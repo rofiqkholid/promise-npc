@@ -21,7 +21,7 @@
         </div>
     </div>
     
-    <form action="{{ route('checksheets.setup.update', $product->id) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('checksheets.setup.update', $product->hashed_id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         
         <div class="p-6 space-y-8">

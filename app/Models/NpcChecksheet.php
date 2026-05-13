@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasHashedId;
 
 class NpcChecksheet extends Model
 {
+    use HasHashedId;
+
     protected $fillable = [
         'npc_part_id',
         'qe_checked_by',

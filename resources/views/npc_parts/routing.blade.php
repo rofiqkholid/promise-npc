@@ -36,7 +36,7 @@
                 </div>
             </div>
 
-            <form action="{{ route('parts.routing.update', $part->id) }}" method="POST">
+            <form action="{{ route('parts.routing.update', $part->hashed_id) }}" method="POST">
                 @csrf
                 
                 <div class="flex justify-between items-center mb-3">

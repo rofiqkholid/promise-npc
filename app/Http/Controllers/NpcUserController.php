@@ -39,7 +39,12 @@ class NpcUserController extends Controller
 
     public function edit(string $id)
     {
-        $user = \App\Models\User::findOrFail($id);
+        if (!is_numeric($id)) {
+            $hashids = new \Hashids\Hashids(env('APP_KEY'), 10);
+            $decoded = $hashids->decode($id);
+            $id = !empty($decoded) ? $decoded[0] : abort(404);
+        }
+        $user = \App\Models\User::where('id', $id)->firstOrFail();
         
         // Prevent editing non-NPC users here
         if ($user->roles->isEmpty()) {
@@ -89,7 +94,12 @@ class NpcUserController extends Controller
 
     public function update(Request $request, string $id)
     {
-        $user = \App\Models\User::findOrFail($id);
+        if (!is_numeric($id)) {
+            $hashids = new \Hashids\Hashids(env('APP_KEY'), 10);
+            $decoded = $hashids->decode($id);
+            $id = !empty($decoded) ? $decoded[0] : abort(404);
+        }
+        $user = \App\Models\User::where('id', $id)->firstOrFail();
 
         $request->validate([
             'role_ids' => 'required|array|min:1',
@@ -123,7 +133,12 @@ class NpcUserController extends Controller
 
     public function destroy(string $id)
     {
-        $user = \App\Models\User::findOrFail($id);
+        if (!is_numeric($id)) {
+            $hashids = new \Hashids\Hashids(env('APP_KEY'), 10);
+            $decoded = $hashids->decode($id);
+            $id = !empty($decoded) ? $decoded[0] : abort(404);
+        }
+        $user = \App\Models\User::where('id', $id)->firstOrFail();
         
         // Prevent revoking admin from self if it's the last admin
         if ($user->nik === Auth::id() && $user->roles->contains('code', 'admin')) {

@@ -14,7 +14,7 @@
         </a>
     </div>
 
-    <form action="{{ route('master.promise-users.update', $user->id) }}" method="POST" class="p-6">
+    <form action="{{ route('master.promise-users.update', $user->hashed_id) }}" method="POST" class="p-6">
         @csrf
         @method('PUT')
         

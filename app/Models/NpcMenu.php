@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasHashedId;
 
 class NpcMenu extends Model
 {
+    use HasHashedId;
+
     protected $fillable = [
         'parent_id',
         'title',

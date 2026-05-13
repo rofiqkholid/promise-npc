@@ -14,7 +14,7 @@
         </a>
     </div>
 
-    <form action="{{ route('master.menus.update', $menu->id) }}" method="POST" class="p-6">
+    <form action="{{ route('master.menus.update', $menu->hashed_id) }}" method="POST" class="p-6">
         @csrf
         @method('PUT')
         

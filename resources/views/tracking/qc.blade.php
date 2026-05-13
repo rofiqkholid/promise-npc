@@ -73,7 +73,7 @@
                                     <i class="fa-solid fa-lock text-[8px]"></i> Not Yet Registered in QC
                                 </div>
                             @elseif($part->status === 'WAITING_QE_CHECK')
-                                <a href="{{ route('checksheets.create', $part->id) }}" class="inline-flex px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded shadow-sm font-bold transition items-center gap-2 text-[11px]" style="background-color: #f97316;">
+                                <a href="{{ route('checksheets.create', $part->hashed_id) }}" class="inline-flex px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded shadow-sm font-bold transition items-center gap-2 text-[11px]" style="background-color: #f97316;">
                                     <i class="fa-regular fa-clipboard"></i> Input Quality (QC)
                                 </a>
                                 <p class="text-[9px] text-gray-400 mt-2 italic text-right max-w-[150px] mx-auto float-right text-balance">Fill quality parameter form & pass to MGM</p>
@@ -83,7 +83,7 @@
                                         <i class="fa-solid fa-lock text-[8px]"></i> Already Inspected
                                     </div>
                                     @if($part->checksheet)
-                                    <a href="{{ route('checksheets.print-label', $part->id) }}" target="_blank" class="inline-flex px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
+                                    <a href="{{ route('checksheets.print-label', $part->hashed_id) }}" target="_blank" class="inline-flex px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
                                         <i class="fa-solid fa-print"></i> Print QC Label
                                     </a>
                                     @endif

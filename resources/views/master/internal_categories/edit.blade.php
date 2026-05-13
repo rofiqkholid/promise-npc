@@ -14,7 +14,7 @@
         </a>
     </div>
 
-    <form action="{{ route('master.internal-categories.update', $internalCategory->id) }}" method="POST">
+    <form action="{{ route('master.internal-categories.update', $internalCategory->hashed_id) }}" method="POST">
         @csrf
         @method('PUT')
         <div class="p-6 space-y-4">

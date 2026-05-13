@@ -62,7 +62,7 @@
                         </td>
                         <td class="px-6 py-4 text-right align-middle pointer-events-auto">
                             @if($part->status === 'PO_REGISTERED')
-                                <a href="{{ route('parts.routing.edit', $part->id) }}" class="inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded shadow-sm font-medium transition items-center gap-2 text-xs" style="background-color: #4f46e5;">
+                                <a href="{{ route('parts.routing.edit', $part->hashed_id) }}" class="inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded shadow-sm font-medium transition items-center gap-2 text-xs" style="background-color: #4f46e5;">
                                     <i class="fa-solid fa-route"></i> Set Routing Schedule
                                 </a>
                             @else
@@ -75,7 +75,7 @@
                                         <i class="fa-solid fa-check text-[8px]"></i> Setup is ready to send to production
                                     </div>
                                     @if($canRollbackSetup)
-                                    <form action="{{ route('tracking.setup.rollback', $part->id) }}" method="POST">
+                                    <form action="{{ route('tracking.setup.rollback', $part->hashed_id) }}" method="POST">
                                         @csrf
                                         <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold transition mt-1" onclick="confirmAction(event, 'Are you sure you want to cancel the routing setup and return the part to the initial stage (PO_REGISTERED)?')">
                                             <i class="fa-solid fa-rotate-left"></i> Rollback Setup

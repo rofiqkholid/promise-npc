@@ -69,7 +69,7 @@
                                 @if($checksheet->approval_status === 'APPROVED')
                                     <span class="text-green-600 font-semibold"><i class="fa-solid fa-check-circle"></i> Fully Approved</span>
                                 @else
-                                    <a href="{{ route('checksheet-approvals.show', $checksheet->id) }}" class="inline-flex text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 transition shadow-sm">
+                                    <a href="{{ route('checksheet-approvals.show', $checksheet->hashed_id) }}" class="inline-flex text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 transition shadow-sm">
                                         <i class="fa-solid fa-eye mr-2 mt-1"></i> Review & Approve
                                     </a>
                                 @endif

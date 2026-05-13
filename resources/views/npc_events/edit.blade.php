@@ -12,7 +12,7 @@
             </h2>
         </div>
 
-        <form action="{{ route('events.update', $event->id) }}" method="POST" class="p-6 space-y-6">
+        <form action="{{ route('events.update', $event->hashed_id) }}" method="POST" class="p-6 space-y-6">
             @csrf
             @method('PUT')
             

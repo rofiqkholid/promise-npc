@@ -19,7 +19,7 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{{ route('checksheets.export', $checksheet->id) }}" class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow-sm transition">
+            <a href="{{ route('checksheets.export', $checksheet->hashed_id) }}" class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow-sm transition">
                 <i class="fa-regular fa-file-excel"></i> Export Excel
             </a>
             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-100 text-blue-800 text-sm font-semibold shadow-sm border border-blue-200">
@@ -67,7 +67,7 @@
         </div>
     </div>
 
-    <form action="{{ route('checksheet-approvals.store', $checksheet->id) }}" method="POST">
+    <form action="{{ route('checksheet-approvals.store', $checksheet->hashed_id) }}" method="POST">
         @csrf
         @php
             $levelName = str_replace('WAITING_', '', $checksheet->approval_status);

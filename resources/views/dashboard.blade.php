@@ -160,7 +160,7 @@
                                             <span class="text-[9px] font-bold text-rose-600 bg-rose-100 px-1 rounded-sm uppercase mb-1 inline-block">ECN Update</span>
                                             <p class="text-xs font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
                                         </div>
-                                        <a href="{{ route('events.parts.edit', ['event' => $part->event->npc_event_id ?? 0, 'part' => $part->id]) }}" class="text-[10px] bg-primary-50 text-primary-600 hover:bg-primary-100 px-2 py-1 rounded-sm font-medium">Review</a>
+                                        <a href="{{ route('events.parts.edit', ['event' => $part->event->npc_event_id ?? 0, 'part' => $part->hashed_id]) }}" class="text-[10px] bg-primary-50 text-primary-600 hover:bg-primary-100 px-2 py-1 rounded-sm font-medium">Review</a>
                                     </div>
                                 </div>
                             @endforeach

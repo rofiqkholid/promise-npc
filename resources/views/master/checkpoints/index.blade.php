@@ -43,10 +43,10 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex justify-end gap-1 opacity-50 group-hover:opacity-100 transition">
-                                <a href="{{ route('master.checkpoints.edit', $cp->id) }}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-md transition" title="Edit">
+                                <a href="{{ route('master.checkpoints.edit', $cp->hashed_id) }}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-md transition" title="Edit">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </a>
-                                <form action="{{ route('master.checkpoints.destroy', $cp->id) }}" method="POST" class="inline" onsubmit="confirmAction(event, 'Permanently delete this check point?')">
+                                <form action="{{ route('master.checkpoints.destroy', $cp->hashed_id) }}" method="POST" class="inline" onsubmit="confirmAction(event, 'Permanently delete this check point?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-md transition" title="Delete">

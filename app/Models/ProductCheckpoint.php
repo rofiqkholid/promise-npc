@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasHashedId;
 
 class ProductCheckpoint extends Model
 {
+    use HasHashedId;
+
     use HasFactory;
 
     protected $table = 'product_checkpoints';

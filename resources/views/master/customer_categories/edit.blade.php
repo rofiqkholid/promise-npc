@@ -14,7 +14,7 @@
         </a>
     </div>
 
-    <form action="{{ route('master.customer-categories.update', $customerCategory->id) }}" method="POST">
+    <form action="{{ route('master.customer-categories.update', $customerCategory->hashed_id) }}" method="POST">
         @csrf
         @method('PUT')
         <div class="p-6 space-y-5">

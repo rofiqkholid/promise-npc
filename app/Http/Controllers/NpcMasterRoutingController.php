@@ -63,6 +63,12 @@ class NpcMasterRoutingController extends Controller
 
     public function edit($part_id)
     {
+        if (!is_numeric($part_id)) {
+            $hashids = new \Hashids\Hashids(env('APP_KEY'), 10);
+            $decoded = $hashids->decode($part_id);
+            $part_id = !empty($decoded) ? $decoded[0] : abort(404);
+        }
+
         $part = Product::findOrFail($part_id);
         $routings = NpcMasterRouting::where('part_id', $part_id)->orderBy('sequence_order')->get();
         $processes = NpcProcess::with('departments')->orderBy('process_name')->get();
@@ -72,6 +78,12 @@ class NpcMasterRoutingController extends Controller
 
     public function update(Request $request, $part_id)
     {
+        if (!is_numeric($part_id)) {
+            $hashids = new \Hashids\Hashids(env('APP_KEY'), 10);
+            $decoded = $hashids->decode($part_id);
+            $part_id = !empty($decoded) ? $decoded[0] : abort(404);
+        }
+
         $request->validate([
             'part_id' => 'required|exists:products,id',
             'process_ids' => 'required|array|min:1',
@@ -104,6 +116,12 @@ class NpcMasterRoutingController extends Controller
 
     public function destroy($part_id)
     {
+        if (!is_numeric($part_id)) {
+            $hashids = new \Hashids\Hashids(env('APP_KEY'), 10);
+            $decoded = $hashids->decode($part_id);
+            $part_id = !empty($decoded) ? $decoded[0] : abort(404);
+        }
+
         NpcMasterRouting::where('part_id', $part_id)->delete();
         return redirect()->route('master.routings.index')->with('success', 'Routing Master successfully deleted.');
     }

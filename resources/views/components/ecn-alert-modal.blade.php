@@ -86,7 +86,7 @@
                                     <div class="text-slate-400">{{ $ep->created_at->diffForHumans() }}</div>
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    <form action="{{ route('parts.apply-ecn', $ep->id) }}" method="POST" onsubmit="confirmAction(event, 'Apply latest revision to this part?')" class="inline-block">
+                                    <form action="{{ route('parts.apply-ecn', $ep->hashed_id) }}" method="POST" onsubmit="confirmAction(event, 'Apply latest revision to this part?')" class="inline-block">
                                         @csrf
                                         <button type="submit" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded shadow-sm transition-colors flex items-center gap-2">
                                             <i class="fa-solid fa-check"></i> Apply

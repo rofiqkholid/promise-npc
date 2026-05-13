@@ -4,7 +4,7 @@
 @section('page_title', 'Master Data / Department / Edit')
 
 @section('content')
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 max-w-2xl mx-auto">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 max-w-2xl">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
         <h2 class="text-xl font-semibold text-gray-800 dark:text-white">
             <i class="fa-solid fa-pen-to-square text-blue-600 mr-2"></i> Edit Department Form
@@ -21,7 +21,7 @@
         </div>
     @endif
 
-    <form action="{{ route('master.departments.update', $department->id) }}" method="POST">
+    <form action="{{ route('master.departments.update', $department->hashed_id) }}" method="POST">
         @csrf
         @method('PUT')
         <div class="p-6 space-y-6">

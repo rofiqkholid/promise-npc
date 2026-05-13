@@ -102,12 +102,12 @@
                                         $hasFinishedProcess = $part->processes->where('status', 'FINISHED')->count() > 0;
                                     @endphp
                                     <button type="button"
-                                        onclick="openCompleteModal({{ $part->id }}, {{ $activeProcess->id }}, '{{ optional($activeProcess->process)->process_name }}', '{{ optional($activeProcess->department)->name }}', '{{ route('tracking.process.complete', $part->id) }}')"
+                                        onclick="openCompleteModal({{ $part->hashed_id }}, {{ $activeProcess->hashed_id }}, '{{ optional($activeProcess->process)->process_name }}', '{{ optional($activeProcess->department)->name }}', '{{ route('tracking.process.complete', $part->hashed_id) }}')"
                                         class="inline-flex px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded shadow-sm font-bold transition items-center gap-2 text-[11px] mb-2 w-full justify-center" style="background-color: #f59e0b;">
                                         Complete {{ optional($activeProcess->process)->process_name }} <i class="fa-solid fa-forward-step"></i>
                                     </button>
                                     @if($hasFinishedProcess)
-                                        <form action="{{ route('tracking.process.rollback', $part->id) }}" method="POST">
+                                        <form action="{{ route('tracking.process.rollback', $part->hashed_id) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 flex items-center justify-end w-full gap-1 font-semibold transition mb-2" onclick="confirmAction(event, 'Are you sure you want to rollback the previous process?')">
                                                 <i class="fa-solid fa-rotate-left"></i> Rollback Previous Process
@@ -128,7 +128,7 @@
                                         <i class="fa-solid fa-check-double text-[8px] text-green-500"></i> Submitted to QC
                                     </div>
                                     @if($canRollback)
-                                    <form action="{{ route('tracking.process.rollback', $part->id) }}" method="POST">
+                                    <form action="{{ route('tracking.process.rollback', $part->hashed_id) }}" method="POST">
                                         @csrf
                                         <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold transition mt-1" onclick="confirmAction(event, 'Are you sure you want to rollback this part from QC to Production stage?')">
                                             <i class="fa-solid fa-rotate-left"></i> Rollback Production

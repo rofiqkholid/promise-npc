@@ -4,7 +4,7 @@
 @section('page_title', 'User Management / Roles / Permissions')
 
 @section('content')
-<div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+<div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 max-w-5xl">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
             <i class="fa-solid fa-pen-to-square text-blue-500"></i> Edit Role
@@ -14,7 +14,7 @@
         </a>
     </div>
 
-    <form action="{{ route('master.roles.update', $role->id) }}" method="POST">
+    <form action="{{ route('master.roles.update', $role->hashed_id) }}" method="POST">
         @csrf
         @method('PUT')
         

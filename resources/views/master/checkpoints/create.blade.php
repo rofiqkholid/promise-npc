@@ -4,7 +4,7 @@
 @section('page_title', 'Master Data / Quality Checkpoints / Add New')
 
 @section('content')
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 max-w-2xl mx-auto">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 max-w-2xl">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <h2 class="text-xl font-semibold text-gray-800 dark:text-white">
             <i class="fa-solid fa-plus-circle text-indigo-600 mr-2"></i> Form Master Checkpoint

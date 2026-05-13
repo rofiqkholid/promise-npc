@@ -54,13 +54,13 @@
                         <td class="px-6 py-4 text-gray-600 dark:text-gray-400 text-sm font-medium">{{ $event->delivery_to ?? '-' }}</td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-1 opacity-50 group-hover:opacity-100 transition">
-                                <a href="{{ route('events.parts.index', $event->id) }}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-md transition" title="Parts List">
+                                <a href="{{ route('events.parts.index', $event->hashed_id) }}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-md transition" title="Parts List">
                                     <i class="fa-solid fa-list-check"></i>
                                 </a>
-                                <a href="{{ route('events.edit', $event->id) }}" class="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 p-2 rounded-md transition" title="Edit">
+                                <a href="{{ route('events.edit', $event->hashed_id) }}" class="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 p-2 rounded-md transition" title="Edit">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </a>
-                                <form action="{{ route('events.destroy', $event->id) }}" method="POST" class="inline" onsubmit="confirmAction(event, 'Are you sure you want to delete this data?')">
+                                <form action="{{ route('events.destroy', $event->hashed_id) }}" method="POST" class="inline" onsubmit="confirmAction(event, 'Are you sure you want to delete this data?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-md transition" title="Delete">
