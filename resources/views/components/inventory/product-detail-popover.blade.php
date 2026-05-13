@@ -1,4 +1,4 @@
-<div id="global-tooltip-portal" class="fixed z-[9999] bg-white dark:bg-gray-800 rounded-xs shadow-2xl border border-slate-200 dark:border-gray-700 p-5 w-72 text-left hidden font-sans scale-in"></div>
+<div id="global-tooltip-portal" class="fixed z-[9999] bg-white dark:bg-gray-800 shadow-2xl border border-slate-200 dark:border-gray-700 p-5 w-72 text-left hidden font-sans scale-in"></div>
 
 @push('scripts')
 <script>

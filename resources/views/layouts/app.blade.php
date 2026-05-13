@@ -61,20 +61,12 @@
         class="flex h-screen overflow-hidden">
 
         <aside class="fixed inset-y-0 left-0 z-50 bg-sidebar dark:bg-gray-800 border-r border-slate-200 dark:border-gray-700 transition-all duration-300 ease-in-out w-[var(--sidebar-width)]"
-            :class="{
-                'w-64': sidebarExpanded && window.innerWidth >= 1024, 
-                'w-20': !sidebarExpanded && window.innerWidth >= 1024,
-                'translate-x-0 w-64': sidebarMobileOpen,
-                '-translate-x-full lg:translate-x-0': !sidebarMobileOpen
-            }">
+            :class="{ 'w-64': sidebarExpanded && window.innerWidth >= 1024, 'w-20': !sidebarExpanded && window.innerWidth >= 1024, 'translate-x-0 w-64': sidebarMobileOpen, '-translate-x-full lg:translate-x-0': !sidebarMobileOpen }">
             @include('layouts.sidebar')
         </aside>
 
         <div class="flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-300 lg:pl-[var(--sidebar-width)]"
-            :class="{
-                 'lg:pl-64': sidebarExpanded,
-                 'lg:pl-20': !sidebarExpanded
-             }">
+            :class="{ 'lg:pl-64': sidebarExpanded, 'lg:pl-20': !sidebarExpanded }">
 
             @include('layouts.header')
 

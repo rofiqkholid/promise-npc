@@ -8,7 +8,7 @@
     $readonly = true;
 @endphp
 
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 max-w-5xl mx-auto">
+<div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 max-w-5xl mx-auto">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
         <div>
             <h2 class="text-xl font-semibold text-gray-800 dark:text-white">
@@ -19,10 +19,10 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{{ route('checksheets.export', $checksheet->hashed_id) }}" class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow-sm transition">
+            <a href="{{ route('checksheets.export', $checksheet->hashed_id) }}" class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold shadow-sm transition">
                 <i class="fa-regular fa-file-excel"></i> Export Excel
             </a>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-100 text-blue-800 text-sm font-semibold shadow-sm border border-blue-200">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-800 text-sm font-semibold shadow-sm border border-blue-200">
                 <i class="fa-solid fa-user-shield"></i> Approval Review Mode
             </span>
         </div>
@@ -74,7 +74,7 @@
         @endphp
 
         @if ($errors->any())
-            <div class="px-6 py-4 mx-6 mt-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+            <div class="px-6 py-4 mx-6 mt-4 bg-red-50 border border-red-200 text-red-600 text-sm">
                 <ul class="list-disc pl-5 space-y-1">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -96,7 +96,7 @@
                     <p class="text-xs text-gray-500 mt-1">List of problems previously found on this Product / Part Number ini di masa lampau.</p>
                 </div>
 
-                <div class="mb-6 p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/50">
+                <div class="mb-6 p-4 border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/50">
                     <!-- Past History (Read-only) -->
                     <ul class="list-disc pl-5 space-y-1 mb-4 text-sm text-gray-700 dark:text-gray-300">
                         @forelse(optional($part->product)->historyProblems ?? [] as $history)
@@ -122,7 +122,7 @@
                 @php
                     $checkCount = max(1, min($part->qty, 10));
                 @endphp
-                <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
                     <table class="min-w-full text-left text-sm whitespace-nowrap">
                         <thead class="bg-gray-100 dark:bg-gray-700/80 text-gray-700 dark:text-gray-300 uppercase text-xs font-semibold">
                             <tr>
@@ -151,7 +151,7 @@
                                 @endphp
                                 <td class="px-2 py-2 border-r dark:border-gray-700 text-center cursor-pointer sample-cell select-none" data-detail-id="{{ $detail->id }}" data-sample-index="{{ $i }}">
                                     <input type="hidden" name="details[{{ $detail->id }}][samples][{{ $i }}]" value="{{ $sampleValue }}" class="sample-input-{{ $detail->id }}">
-                                    <div class="flex items-center justify-center h-8 w-8 mx-auto rounded transition hover:bg-gray-200 dark:hover:bg-gray-600 icon-container">
+                                    <div class="flex items-center justify-center h-8 w-8 mx-auto transition hover:bg-gray-200 dark:hover:bg-gray-600 icon-container">
                                         @if($sampleValue === 'OK')
                                             <i class="fa-solid fa-circle text-green-500 text-lg"></i>
                                         @elseif($sampleValue === 'NG')
@@ -164,9 +164,7 @@
                                 @endfor
                                 <td class="px-4 py-2 text-center">
                                     <select name="details[{{ $detail->id }}][row_result]" id="row-result-{{ $detail->id }}" disabled
-                                            class="w-full text-xs py-1.5 px-2 font-bold border-gray-300 dark:border-gray-600 rounded shadow-sm focus:ring-1 focus:ring-blue-500 bg-gray-100 dark:bg-gray-800 dark:text-white
-                                            @if($detail->row_result == 'OK') text-green-600 bg-green-50 dark:bg-green-900/20 
-                                            @elseif($detail->row_result == 'NG') text-red-600 bg-red-50 dark:bg-red-900/20 @endif">
+                                            class="w-full text-xs py-1.5 px-2 font-bold border-gray-300 dark:border-gray-600 shadow-sm focus:ring-1 focus:ring-blue-500 bg-gray-100 dark:bg-gray-800 dark:text-white @if($detail->row_result == 'OK') text-green-600 bg-green-50 dark:bg-green-900/20 @elseif($detail->row_result == 'NG') text-red-600 bg-red-50 dark:bg-red-900/20 @endif">
                                         <option value="" class="text-gray-400">- Select -</option>
                                         <option value="OK" class="text-green-600 font-bold" {{ $detail->row_result === 'OK' ? 'selected' : '' }}>OK</option>
                                         <option value="NG" class="text-red-600 font-bold" {{ $detail->row_result === 'NG' ? 'selected' : '' }}>NG</option>
@@ -184,21 +182,21 @@
                     </table>
                 </div>
 
-                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-purple-50 dark:bg-purple-900/10 p-4 rounded-lg border border-purple-100 dark:border-purple-800/30">
+                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-purple-50 dark:bg-purple-900/10 p-4 border border-purple-100 dark:border-purple-800/30">
                     <div class="flex items-start gap-4 w-full">
                         <label class="font-bold text-gray-800 dark:text-white text-base whitespace-nowrap mt-2">Remark:</label>
                         <textarea name="final_result" rows="2" disabled
-                                class="rounded-lg border-purple-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-base py-2 px-3 w-full text-gray-800 bg-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-600">{{ $checksheet->final_result }}</textarea>
+                                class="border-purple-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-base py-2 px-3 w-full text-gray-800 bg-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-600">{{ $checksheet->final_result }}</textarea>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 rounded-b-lg">
-            <a href="{{ route('checksheet-approvals.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm text-sm font-medium">
+        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+            <a href="{{ route('checksheet-approvals.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm text-sm font-medium">
                 Cancel
             </a>
-            <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-sm font-semibold flex items-center gap-2 text-sm">
+            <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm">
                 <i class="fa-solid fa-check-double"></i> Approve as {{ $levelName }}
             </button>
         </div>
@@ -235,8 +233,8 @@
                     const newRow = document.createElement('div');
                     newRow.className = 'flex items-center gap-2 history-row mt-2';
                     newRow.innerHTML = `
-                        <input type="text" name="new_history_problems[]" placeholder="Description masalah baru..." class="flex-1 text-sm border-gray-300 dark:border-gray-600 rounded shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-800 dark:text-white">
-                        <button type="button" class="px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-800/60 text-red-700 dark:text-red-400 rounded transition remove-history-btn">
+                        <input type="text" name="new_history_problems[]" placeholder="Description masalah baru..." class="flex-1 text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-800 dark:text-white">
+                        <button type="button" class="px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-800/60 text-red-700 dark:text-red-400 transition remove-history-btn">
                             <i class="fa-solid fa-minus"></i>
                         </button>
                     `;

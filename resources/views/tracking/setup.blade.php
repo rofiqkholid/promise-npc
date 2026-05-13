@@ -4,7 +4,7 @@
 @section('page_title', 'Transaksi / ' . ($pageTitle ?? 'Production Routing Setup'))
 
 @section('content')
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+<div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
         <h2 class="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
             <i class="fa-solid {{ $pageIcon ?? 'fa-route' }} text-blue-500"></i> {{ $pageTitle ?? 'Production Routing Setup' }}
@@ -16,7 +16,7 @@
 
     <!-- Table -->
     <div class="p-6">
-        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
@@ -47,7 +47,7 @@
                             @if($part->processes->count() > 0)
                                 <div class="flex flex-wrap gap-1 mb-1.5">
                                     @foreach($part->processes as $process)
-                                        <span class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-semibold px-1.5 py-0.5 rounded" title="{{ optional($process->department)->name }}">
+                                        <span class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-semibold px-1.5 py-0.5" title="{{ optional($process->department)->name }}">
                                             <span class="text-gray-400 font-bold">{{ $process->sequence_order }}.</span>
                                             {{ optional($process->process)->process_name ?? 'Unknown Process' }}
                                         </span>
@@ -55,14 +55,14 @@
                                 </div>
                                 <span class="text-[10px] text-gray-400 italic">Routing pending for production</span>
                             @else
-                                <div class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-orange-50 text-orange-700 border border-orange-200 text-[10px] font-medium">
+                                <div class="inline-flex items-center gap-1.5 px-2 py-1 bg-orange-50 text-orange-700 border border-orange-200 text-[10px] font-medium">
                                     <i class="fa-solid fa-triangle-exclamation"></i> No Routing Yet
                                 </div>
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right align-middle pointer-events-auto">
                             @if($part->status === 'PO_REGISTERED')
-                                <a href="{{ route('parts.routing.edit', $part->hashed_id) }}" class="inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded shadow-sm font-medium transition items-center gap-2 text-xs" style="background-color: #4f46e5;">
+                                <a href="{{ route('parts.routing.edit', $part->hashed_id) }}" class="inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm font-medium transition items-center gap-2 text-xs" style="background-color: #4f46e5;">
                                     <i class="fa-solid fa-route"></i> Set Routing Schedule
                                 </a>
                             @else
@@ -71,7 +71,7 @@
                                     $canRollbackSetup = $part->status === 'WAITING_DEPT_CONFIRM' && !$part->processes->where('status', 'FINISHED')->count();
                                 @endphp
                                 <div class="flex flex-col items-end gap-2">
-                                    <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full">
+                                    <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full">
                                         <i class="fa-solid fa-check text-[8px]"></i> Setup is ready to send to production
                                     </div>
                                     @if($canRollbackSetup)

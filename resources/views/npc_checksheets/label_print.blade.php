@@ -59,13 +59,13 @@
 
     <!-- Control bar (hidden when printing) -->
     <div class="w-full text-center mb-6 no-print">
-        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 inline-block">
+        <div class="bg-white p-4 shadow-sm border border-gray-200 inline-block">
             <h2 class="text-lg font-bold mb-2">Quality Label Print Preview</h2>
             <p class="text-sm text-gray-600 mb-4">Total Qty: {{ $part->qty }} PCS. <br>This will generate {{ $part->qty }} labels.</p>
-            <button onclick="window.print()" class="px-6 py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700 transition">
+            <button onclick="window.print()" class="px-6 py-2 bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition">
                 <i class="fa-solid fa-print mr-2"></i> Print Labels Now
             </button>
-            <button onclick="window.close()" class="px-6 py-2 bg-gray-200 text-gray-700 font-bold rounded shadow ml-2 hover:bg-gray-300 transition">
+            <button onclick="window.close()" class="px-6 py-2 bg-gray-200 text-gray-700 font-bold shadow ml-2 hover:bg-gray-300 transition">
                 Close
             </button>
         </div>
@@ -79,7 +79,7 @@
                     <h1 class="text-xl font-black uppercase tracking-wider leading-none">QUALITY PASSED</h1>
                     <p class="text-xs font-bold text-gray-600 mt-1">PT. Summit Adyawinsa Indonesia</p>
                 </div>
-                <div class="bg-black text-white px-3 py-1 font-bold text-sm rounded-sm">
+                <div class="bg-black text-white px-3 py-1 font-bold text-sm">
                     QC
                 </div>
             </div>

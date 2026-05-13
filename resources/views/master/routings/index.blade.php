@@ -15,18 +15,18 @@
 @endpush
 
 @section('content')
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+<div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
         <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
             <i class="fa-solid fa-route text-blue-500"></i> Register Master Routing
         </h2>
-        <a href="{{ route('master.routings.create') }}" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 transition shadow-md shadow-blue-500/20 font-medium text-sm flex items-center gap-2">
+        <a href="{{ route('master.routings.create') }}" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 transition shadow-md shadow-blue-500/20 font-medium text-sm flex items-center gap-2">
             <i class="fa-solid fa-plus"></i> Add Routing
         </a>
     </div>
 
     <div class="p-6">
-        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
@@ -56,7 +56,7 @@
                             <div class="flex flex-wrap gap-2 items-center sortable-container" data-part-id="{{ $routing->part_id }}">
                                 @foreach($routing->processes as $i => $procRouting)
                                     <div class="sortable-item flex items-center gap-2 cursor-move group/badge" data-id="{{ $procRouting->id }}">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-300 group-hover/badge:bg-blue-50 dark:group-hover/badge:bg-blue-900/30 group-hover/badge:border-blue-300 dark:group-hover/badge:border-blue-700 transition" title="Drag to change sequence">
+                                        <span class="inline-flex items-center px-2.5 py-1 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-300 group-hover/badge:bg-blue-50 dark:group-hover/badge:bg-blue-900/30 group-hover/badge:border-blue-300 dark:group-hover/badge:border-blue-700 transition" title="Drag to change sequence">
                                             <i class="fa-solid fa-grip-vertical text-slate-400 mr-1.5 group-hover/badge:text-blue-500"></i>
                                             {{ optional($procRouting->process)->process_name ?? 'Unknown' }}
                                         </span>
@@ -67,13 +67,13 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-1 opacity-50 group-hover:opacity-100 transition">
-                                <a href="{{ route('master.routings.edit', $routing->part_id) }}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-md transition" title="Edit">
+                                <a href="{{ route('master.routings.edit', $routing->part_id) }}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 transition" title="Edit">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </a>
                                 <form action="{{ route('master.routings.destroy', $routing->part_id) }}" method="POST" class="inline" onsubmit="confirmAction(event, 'Are you sure you want to delete routing for this part?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-md transition" title="Delete">
+                                    <button type="submit" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 transition" title="Delete">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </form>

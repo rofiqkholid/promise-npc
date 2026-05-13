@@ -1,4 +1,4 @@
-<div id="sto-log-popover" class="fixed z-[9999] bg-white dark:bg-gray-800 rounded-xs shadow-2xl border border-slate-200 dark:border-gray-700 w-80 text-left hidden p-0 overflow-hidden font-sans scale-in">
+<div id="sto-log-popover" class="fixed z-[9999] bg-white dark:bg-gray-800 shadow-2xl border border-slate-200 dark:border-gray-700 w-80 text-left hidden p-0 overflow-hidden font-sans scale-in">
     <div class="bg-slate-50 dark:bg-slate-900/50 px-4 py-3 border-b border-slate-100 dark:border-gray-700 flex justify-between items-center">
         <h4 class="font-bold text-slate-800 dark:text-gray-200 text-[10px] uppercase tracking-widest flex items-center gap-2">
             <i class="fa-solid fa-clock-rotate-left text-primary-500"></i> STO Log History

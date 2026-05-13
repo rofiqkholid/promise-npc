@@ -4,7 +4,7 @@
 @section('page_title', 'Transaction / ' . ($pageTitle ?? 'Quality Control (QC)'))
 
 @section('content')
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+<div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
         <h2 class="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
             <i class="fa-solid {{ $pageIcon ?? 'fa-microscope' }} text-blue-500"></i> {{ $pageTitle ?? 'Quality Control (QC)' }}
@@ -16,7 +16,7 @@
 
     <!-- Table -->
     <div class="p-6" x-data="{ activePhotoModal: null }">
-        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
@@ -32,19 +32,19 @@
                         <td class="px-6 py-4">
                             <div class="text-gray-800 dark:text-gray-200 font-bold text-sm">{{ optional($part->product)->part_no }}</div>
                             <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5">{{ optional($part->product)->part_name }}</div>
-                            <div class="text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-700 px-2 py-0.5 inline-block rounded border border-gray-200 dark:border-gray-600">{{ optional($part->product->vehicleModel)->name ?? 'Unknown Model' }}</div>
+                            <div class="text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-700 px-2 py-0.5 inline-block border border-gray-200 dark:border-gray-600">{{ optional($part->product->vehicleModel)->name ?? 'Unknown Model' }}</div>
                             <div class="text-gray-800 dark:text-gray-300 font-black flex items-center gap-1.5 mt-2"><i class="fa-solid fa-boxes-stacked text-gray-400"></i> Initial Target: {{ number_format($part->qty) }} <span class="text-xs font-semibold text-gray-500">PCS</span></div>
                         </td>
                         <td class="px-6 py-4 text-center align-middle">
                             @if(in_array($part->status, ['PO_REGISTERED', 'WAITING_DEPT_CONFIRM']))
-                                <div class="inline-flex flex-col items-center gap-1.5 px-3 py-2 rounded bg-slate-50 border border-slate-200 text-[10px] text-slate-500 italic">
+                                <div class="inline-flex flex-col items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-[10px] text-slate-500 italic">
                                     <i class="fa-solid fa-industry text-sm"></i> In Production
                                 </div>
                             @else
                                 <div class="flex flex-col items-center gap-1">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-green-50 border border-green-200 text-green-700 text-[10px] font-bold"><i class="fa-solid fa-check-double"></i> Production Done</span>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 border border-green-200 text-green-700 text-[10px] font-bold"><i class="fa-solid fa-check-double"></i> Production Done</span>
                                     <span class="text-[11px] text-gray-500 font-medium">Date: {{ $part->actual_completion_date ? \Carbon\Carbon::parse($part->actual_completion_date)->format('d M y') : '-' }}</span>
-                                    <button @click="activePhotoModal = {{ $part->id }}" class="mt-1 px-3 py-1 bg-white border border-gray-300 dark:bg-gray-700 dark:border-gray-600 text-[10px] rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center gap-1.5 font-bold text-gray-700 dark:text-gray-300">
+                                    <button @click="activePhotoModal = {{ $part->id }}" class="mt-1 px-3 py-1 bg-white border border-gray-300 dark:bg-gray-700 dark:border-gray-600 text-[10px] shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center gap-1.5 font-bold text-gray-700 dark:text-gray-300">
                                         <i class="fa-solid fa-camera text-blue-500"></i> Check Qty Report & Photo
                                     </button>
                                 </div>
@@ -58,32 +58,32 @@
                                     $hasChecksheet = $part->checksheet()->exists();
                                 @endphp
                                 @if($hasChecksheet)
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-100 border border-blue-200 text-blue-800 text-[10px] font-bold shadow-sm"><i class="fa-solid fa-pen-to-square"></i> FILLED & BEING CHECKED</span>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 border border-blue-200 text-blue-800 text-[10px] font-bold shadow-sm"><i class="fa-solid fa-pen-to-square"></i> FILLED & BEING CHECKED</span>
                                 @else
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-100 border border-orange-200 text-orange-800 text-[10px] font-bold shadow-sm"><i class="fa-solid fa-triangle-exclamation animate-pulse"></i> NOT YET INPUT BY QC</span>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-orange-100 border border-orange-200 text-orange-800 text-[10px] font-bold shadow-sm"><i class="fa-solid fa-triangle-exclamation animate-pulse"></i> NOT YET INPUT BY QC</span>
                                 @endif
                                 <div class="mt-2 text-[10px] text-gray-500"><i class="fa-solid fa-calendar-check text-gray-400 mr-1"></i> Target QC: <span class="font-bold text-gray-700">{{ \Carbon\Carbon::parse($part->qc_target_date)->format('d M') }}</span></div>
                             @else
-                                <div class="text-[10px] text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-1 rounded inline-flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> PASSED QC</div>
+                                <div class="text-[10px] text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-1 inline-flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> PASSED QC</div>
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right align-middle pointer-events-auto">
                             @if(in_array($part->status, ['PO_REGISTERED', 'WAITING_DEPT_CONFIRM']))
-                                <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed">
+                                <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed">
                                     <i class="fa-solid fa-lock text-[8px]"></i> Not Yet Registered in QC
                                 </div>
                             @elseif($part->status === 'WAITING_QE_CHECK')
-                                <a href="{{ route('checksheets.create', $part->hashed_id) }}" class="inline-flex px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded shadow-sm font-bold transition items-center gap-2 text-[11px]" style="background-color: #f97316;">
+                                <a href="{{ route('checksheets.create', $part->hashed_id) }}" class="inline-flex px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white shadow-sm font-bold transition items-center gap-2 text-[11px]" style="background-color: #f97316;">
                                     <i class="fa-regular fa-clipboard"></i> Input Quality (QC)
                                 </a>
                                 <p class="text-[9px] text-gray-400 mt-2 italic text-right max-w-[150px] mx-auto float-right text-balance">Fill quality parameter form & pass to MGM</p>
                             @else
                                 <div class="flex flex-col items-end gap-2">
-                                    <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full max-w-[150px]">
+                                    <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full max-w-[150px]">
                                         <i class="fa-solid fa-lock text-[8px]"></i> Already Inspected
                                     </div>
                                     @if($part->checksheet)
-                                    <a href="{{ route('checksheets.print-label', $part->hashed_id) }}" target="_blank" class="inline-flex px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
+                                    <a href="{{ route('checksheets.print-label', $part->hashed_id) }}" target="_blank" class="inline-flex px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
                                         <i class="fa-solid fa-print"></i> Print QC Label
                                     </a>
                                     @endif
@@ -128,7 +128,7 @@
                             x-transition:leave="ease-in duration-200"
                             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            class="relative transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+                            class="relative transform overflow-hidden bg-white dark:bg-gray-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
                             
                             <!-- Header -->
                             <div class="bg-gray-50/80 dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -144,7 +144,7 @@
                                 <div class="p-6 max-h-[75vh] overflow-y-auto bg-gray-50/50 dark:bg-gray-900/50">
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         @foreach($part->processes->sortBy('sequence_order') as $idx => $p)
-                                            <div class="flex flex-col bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow transition-shadow group {{ $p->status === 'FINISHED' ? '' : 'opacity-60 saturate-50' }}">
+                                            <div class="flex flex-col bg-white dark:bg-gray-800 overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow transition-shadow group {{ $p->status === 'FINISHED' ? '' : 'opacity-60 saturate-50' }}">
                                                 <!-- Image Box -->
                                                 <div class="relative w-full aspect-video bg-gray-900 flex items-center justify-center border-b border-gray-100 dark:border-gray-700">
                                                     @if($p->photo_proof)
@@ -162,9 +162,9 @@
                                                     <!-- Status Floating Badge -->
                                                     <div class="absolute top-3 right-3 shadow-md">
                                                     @if($p->status === 'FINISHED')
-                                                        <span class="px-2.5 py-1 rounded bg-emerald-500 text-white text-[10px] font-black tracking-wider uppercase"><i class="fa-solid fa-check mr-1"></i> Done</span>
+                                                        <span class="px-2.5 py-1 bg-emerald-500 text-white text-[10px] font-black tracking-wider uppercase"><i class="fa-solid fa-check mr-1"></i> Done</span>
                                                     @else
-                                                        <span class="px-2.5 py-1 rounded bg-white/90 text-gray-700 text-[10px] font-bold tracking-wider shadow-sm uppercase">{{ $p->status }}</span>
+                                                        <span class="px-2.5 py-1 bg-white/90 text-gray-700 text-[10px] font-bold tracking-wider shadow-sm uppercase">{{ $p->status }}</span>
                                                     @endif
                                                     </div>
                                                 </div>
@@ -172,7 +172,7 @@
                                                 <!-- Content Box -->
                                                 <div class="p-4 flex flex-col flex-1">
                                                     <h4 class="font-bold text-base text-gray-800 dark:text-gray-100 mb-1 flex items-center gap-2">
-                                                        <span class="flex-shrink-0 w-6 h-6 inline-flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 text-xs shadow-sm">{{ $p->sequence_order }}</span>
+                                                        <span class="flex-shrink-0 w-6 h-6 inline-flex items-center justify-center bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 text-xs shadow-sm">{{ $p->sequence_order }}</span>
                                                         {{ optional($p->process)->process_name ?? 'Process ' . $p->sequence_order }}
                                                     </h4>
                                                     
@@ -209,7 +209,7 @@
                             
                             <!-- Footer -->
                             <div class="bg-gray-50 dark:bg-gray-800 px-6 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                                <button type="button" @click="activePhotoModal = null" class="px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-50 transition">Close Report</button>
+                                <button type="button" @click="activePhotoModal = null" class="px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 transition">Close Report</button>
                             </div>
                         </div>
                     </div>

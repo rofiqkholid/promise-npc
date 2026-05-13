@@ -17,45 +17,45 @@
     <!-- KPI Cards (Row 1) -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 flex-none">
         <!-- Active Events -->
-        <div class="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center">
+        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center">
             <div>
                 <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Total Active Projects</p>
                 <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['active_events'] }}</h3>
             </div>
-            <div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-lg">
+            <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-lg">
                 <i class="fa-solid fa-folder-open"></i>
             </div>
         </div>
 
         <!-- In Production -->
-        <div class="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center">
+        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center">
             <div>
                 <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Parts in Production</p>
                 <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['in_production'] }}</h3>
             </div>
-            <div class="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 text-lg">
+            <div class="w-10 h-10 bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 text-lg">
                 <i class="fa-solid fa-industry"></i>
             </div>
         </div>
 
         <!-- Pending QC -->
-        <div class="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center">
+        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center">
             <div>
                 <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Pending QC Checks</p>
                 <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['pending_qc'] }}</h3>
             </div>
-            <div class="w-10 h-10 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 text-lg">
+            <div class="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 text-lg">
                 <i class="fa-solid fa-microscope"></i>
             </div>
         </div>
 
         <!-- Ready to Deliver -->
-        <div class="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center">
+        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center">
             <div>
                 <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Stock (Ready to Deliver)</p>
                 <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['ready_deliver'] }}</h3>
             </div>
-            <div class="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-lg">
+            <div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-lg">
                 <i class="fa-solid fa-boxes-stacked"></i>
             </div>
         </div>
@@ -68,7 +68,7 @@
         <div class="w-2/3 flex flex-col gap-4 min-h-0">
             
             <!-- Nearest Events -->
-            <div class="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 p-0 shadow-sm flex-none overflow-hidden">
+            <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0 shadow-sm flex-none overflow-hidden">
                 <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between">
                     <h3 class="text-sm font-bold text-slate-800 dark:text-white"><i class="fa-regular fa-calendar-check text-slate-400 mr-2"></i> Upcoming Events</h3>
                     <a href="{{ route('events.index') }}" class="text-[10px] text-primary-600 font-medium">View All</a>
@@ -118,7 +118,7 @@
             <!-- Charts Row -->
             <div class="flex-1 grid grid-cols-2 gap-4 min-h-0">
                 <!-- Trend Chart -->
-                <div class="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col relative min-h-0">
+                <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col relative min-h-0">
                     <h3 class="text-sm font-bold text-slate-800 dark:text-white flex-none mb-2">Event Progress (Items)</h3>
                     <div class="flex-1 w-full relative">
                         <canvas id="trendChart"></canvas>
@@ -127,7 +127,7 @@
 
                 <!-- Dept / Customer Charts (Tabs/Stacked or Side by Side internally) -->
                 <!-- Let's put Dept Workload here -->
-                <div class="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col relative min-h-0">
+                <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col relative min-h-0">
                     <h3 class="text-sm font-bold text-slate-800 dark:text-white flex-none mb-2">Department Bottleneck</h3>
                     <div class="flex-1 w-full relative">
                         <canvas id="deptChart"></canvas>
@@ -141,10 +141,10 @@
         <div class="w-1/3 flex flex-col gap-4 min-h-0">
             
             <!-- Action Required: ECN & Stagnant (Scrollable Body) -->
-            <div class="flex-1 bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden">
+            <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden">
                 <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex-none">
                     <h3 class="text-sm font-bold text-slate-800 dark:text-white flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-rose-500 mr-2 animate-pulse"></span>
+                        <span class="w-2 h-2 bg-rose-500 mr-2 animate-pulse"></span>
                         Action Required
                     </h3>
                 </div>
@@ -157,10 +157,10 @@
                                 <div class="p-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                                     <div class="flex justify-between items-start">
                                         <div>
-                                            <span class="text-[9px] font-bold text-rose-600 bg-rose-100 px-1 rounded-sm uppercase mb-1 inline-block">ECN Update</span>
+                                            <span class="text-[9px] font-bold text-rose-600 bg-rose-100 px-1 uppercase mb-1 inline-block">ECN Update</span>
                                             <p class="text-xs font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
                                         </div>
-                                        <a href="{{ route('events.parts.edit', ['event' => $part->event->npc_event_id ?? 0, 'part' => $part->hashed_id]) }}" class="text-[10px] bg-primary-50 text-primary-600 hover:bg-primary-100 px-2 py-1 rounded-sm font-medium">Review</a>
+                                        <a href="{{ route('events.parts.edit', ['event' => $part->event->npc_event_id ?? 0, 'part' => $part->hashed_id]) }}" class="text-[10px] bg-primary-50 text-primary-600 hover:bg-primary-100 px-2 py-1 font-medium">Review</a>
                                     </div>
                                 </div>
                             @endforeach
@@ -169,10 +169,10 @@
                                 <div class="p-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                                     <div class="flex justify-between items-start">
                                         <div>
-                                            <span class="text-[9px] font-bold text-amber-600 bg-amber-100 px-1 rounded-sm uppercase mb-1 inline-block">Stagnant > 7d</span>
+                                            <span class="text-[9px] font-bold text-amber-600 bg-amber-100 px-1 uppercase mb-1 inline-block">Stagnant > 7d</span>
                                             <p class="text-xs font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
                                         </div>
-                                        <span class="text-[9px] text-slate-500 border border-slate-200 dark:border-slate-600 px-1 rounded-sm bg-slate-50 dark:bg-slate-800">{{ str_replace('_', ' ', $part->status) }}</span>
+                                        <span class="text-[9px] text-slate-500 border border-slate-200 dark:border-slate-600 px-1 bg-slate-50 dark:bg-slate-800">{{ str_replace('_', ' ', $part->status) }}</span>
                                     </div>
                                 </div>
                             @endforeach
@@ -187,7 +187,7 @@
             </div>
 
             <!-- Recent Deliveries (Scrollable Body) -->
-            <div class="flex-1 bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden">
+            <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden">
                 <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex-none flex justify-between items-center">
                     <h3 class="text-sm font-bold text-slate-800 dark:text-white flex items-center">
                         <i class="fa-solid fa-truck-ramp-box text-emerald-500 mr-2"></i>

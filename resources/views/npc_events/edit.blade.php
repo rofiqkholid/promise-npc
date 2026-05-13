@@ -5,7 +5,7 @@
 
 @section('content')
 <div class="max-w-3xl mx-auto">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
             <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                 <i class="fa-solid fa-pen-to-square text-blue-500"></i> Form Edit Event
@@ -24,7 +24,7 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Nomor PO <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="po_no" required class="w-full text-sm rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Masukkan No. PO" value="{{ old('po_no', $event->po_no) }}">
+                    <input type="text" name="po_no" required class="w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Masukkan No. PO" value="{{ old('po_no', $event->po_no) }}">
                     @error('po_no') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                 </div>
 
@@ -113,10 +113,10 @@
             </div>
 
             <div class="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-                <a href="{{ route('events.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+                <a href="{{ route('events.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
                     Cancel
                 </a>
-                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg shadow-md shadow-blue-500/20 text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition">
+                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-blue-500/20 text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition">
                     <i class="fa-solid fa-floppy-disk mr-1"></i> Update Event
                 </button>
             </div>

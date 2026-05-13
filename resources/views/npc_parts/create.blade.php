@@ -5,12 +5,12 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
             <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                 <i class="fa-solid fa-cube text-blue-500"></i> Form Add Part Output
             </h2>
-            <span class="text-sm font-medium bg-blue-100 text-blue-800 py-1 px-3 rounded-full">{{ optional($event->customerCategory)->name ?? 'Event' }}</span>
+            <span class="text-sm font-medium bg-blue-100 text-blue-800 py-1 px-3">{{ optional($event->customerCategory)->name ?? 'Event' }}</span>
         </div>
 
         <form action="{{ route('events.parts.store', $event->hashed_id) }}" method="POST" class="p-6 space-y-6">
@@ -27,12 +27,12 @@
                             <i class="fa-solid fa-search text-xs"></i>
                         </div>
                         <input type="text" id="part_search" autocomplete="off"
-                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                            class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
                             style="padding-left: 2.5rem;"
                             placeholder="Type Part No or Part Name to search...">
                         
                         <!-- Search Results Dropdown -->
-                        <div id="search_results" class="hidden absolute z-30 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        <div id="search_results" class="hidden absolute z-30 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg max-h-60 overflow-y-auto">
                             <!-- Items go here -->
                         </div>
                     </div>
@@ -44,7 +44,7 @@
                         PO No
                     </label>
                     <input type="text" name="po_no" value="{{ $event->po_no }}" readonly
-                        class="w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm sm:text-sm dark:bg-gray-800 dark:text-gray-400 bg-gray-100 text-gray-500 cursor-not-allowed focus:ring-0 focus:border-gray-300">
+                        class="w-full border-gray-300 dark:border-gray-600 shadow-sm sm:text-sm dark:bg-gray-800 dark:text-gray-400 bg-gray-100 text-gray-500 cursor-not-allowed focus:ring-0 focus:border-gray-300">
                 </div>
 
                 <div class="space-y-1">
@@ -52,7 +52,7 @@
                         Part No <span class="text-red-500">*</span>
                     </label>
                     <input type="text" id="part_no_input" name="part_no" required value="{{ old('part_no') }}" readonly
-                        class="w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm sm:text-sm dark:bg-gray-800 dark:text-gray-400 bg-gray-100 text-gray-500 cursor-not-allowed focus:ring-0 focus:border-gray-300"
+                        class="w-full border-gray-300 dark:border-gray-600 shadow-sm sm:text-sm dark:bg-gray-800 dark:text-gray-400 bg-gray-100 text-gray-500 cursor-not-allowed focus:ring-0 focus:border-gray-300"
                         placeholder="Select from search above...">
                     @error('part_no') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                 </div>
@@ -62,7 +62,7 @@
                         Part Name <span class="text-red-500">*</span>
                     </label>
                     <input type="text" id="part_name_input" name="part_name" required value="{{ old('part_name') }}" readonly
-                        class="w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm sm:text-sm dark:bg-gray-800 dark:text-gray-400 bg-gray-100 text-gray-500 cursor-not-allowed focus:ring-0 focus:border-gray-300"
+                        class="w-full border-gray-300 dark:border-gray-600 shadow-sm sm:text-sm dark:bg-gray-800 dark:text-gray-400 bg-gray-100 text-gray-500 cursor-not-allowed focus:ring-0 focus:border-gray-300"
                         placeholder="Auto-filled from search...">
                     @error('part_name') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                 </div>
@@ -72,7 +72,7 @@
                         Qty <span class="text-red-500">*</span>
                     </label>
                     <input type="number" name="qty" required min="1" value="{{ old('qty', 1) }}"
-                        class="w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                        class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
                         placeholder="Jumlah order">
                 </div>
 
@@ -81,7 +81,7 @@
                         Delivery Date <span class="text-red-500">*</span>
                     </label>
                     <input type="date" name="delivery_date" required value="{{ old('delivery_date') }}"
-                        class="w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
+                        class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
                 </div>
 
 
@@ -89,10 +89,10 @@
             </div>
 
             <div class="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-                <a href="{{ route('events.parts.index', $event->hashed_id) }}" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+                <a href="{{ route('events.parts.index', $event->hashed_id) }}" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
                     Cancel
                 </a>
-                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg shadow-md shadow-blue-500/20 text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition">
+                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-blue-500/20 text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition">
                     <i class="fa-solid fa-floppy-disk mr-1"></i> Save Part
                 </button>
             </div>

@@ -10,7 +10,7 @@
     $readonly = false; // Based on new flow, MGM checks the points, QC just uploads file
 @endphp
 
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 max-w-5xl mx-auto">
+<div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 max-w-5xl mx-auto">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
         <div>
             <h2 class="text-xl font-semibold text-gray-800 dark:text-white">
@@ -21,10 +21,10 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{{ route('checksheets.export', $checksheet->hashed_id) }}" class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow-sm transition">
+            <a href="{{ route('checksheets.export', $checksheet->hashed_id) }}" class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold shadow-sm transition">
                 <i class="fa-regular fa-file-excel"></i> Export Excel
             </a>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full {{ $isMGM ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800' }} text-sm font-semibold shadow-sm border {{ $isMGM ? 'border-purple-200' : 'border-orange-200' }}">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 {{ $isMGM ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800' }} text-sm font-semibold shadow-sm border {{ $isMGM ? 'border-purple-200' : 'border-orange-200' }}">
                 <i class="fa-solid fa-user-shield"></i> {{ $role }} Review Mode
             </span>
         </div>
@@ -62,7 +62,7 @@
         <input type="hidden" name="role" value="{{ $role }}">
 
         @if ($errors->any())
-            <div class="px-6 py-4 mx-6 mt-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+            <div class="px-6 py-4 mx-6 mt-4 bg-red-50 border border-red-200 text-red-600 text-sm">
                 <ul class="list-disc pl-5 space-y-1">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -77,7 +77,7 @@
                    QA / QC FORM 
             ==============================-->
             <div class="space-y-6 max-w-2xl mx-auto">
-                <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded text-sm text-blue-700 dark:text-blue-300">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 text-sm text-blue-700 dark:text-blue-300">
                     <p class="font-semibold mb-1">Instruction Quality Control:</p>
                     <p>Please fill in the percentage hitungan akurasi dimensi part and attach the physical inspection report file (PDF/Image).</p>
                 </div>
@@ -88,7 +88,7 @@
                     </label>
                     <div class="relative w-48">
                         <input type="number" step="0.01" min="0" max="100" name="accuracy_percentage" required value="{{ old('accuracy_percentage', $checksheet->accuracy_percentage) }}"
-                            class="w-full text-right pr-8 rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-lg font-bold text-gray-800 dark:bg-gray-700 dark:text-white pb-2 pt-2">
+                            class="w-full text-right pr-8 border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-lg font-bold text-gray-800 dark:bg-gray-700 dark:text-white pb-2 pt-2">
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                             <span class="text-gray-500 font-bold">%</span>
                         </div>
@@ -99,11 +99,11 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Upload IR Evidence (Max 10MB) <span class="text-gray-400 font-normal">(Optional)</span>
                     </label>
-                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
                         <div class="space-y-1 text-center">
                             <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
                             <div class="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
-                                <label for="file-upload" class="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 px-2 py-1">
+                                <label for="file-upload" class="relative cursor-pointer bg-white dark:bg-gray-700 font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 px-2 py-1">
                                     <span>Upload a file</span>
                                     <input id="file-upload" name="attachment_file" type="file" class="sr-only" accept=".pdf,.jpg,.jpeg,.png">
                                 </label>
@@ -126,14 +126,14 @@
             ==============================-->
             <div class="mb-6">
                 <!-- Data QC Previous (Read Only) -->
-                <div class="flex flex-col md:flex-row gap-6 mb-6 p-4 rounded-lg bg-slate-50 border border-slate-200 dark:bg-gray-900 dark:border-gray-700">
+                <div class="flex flex-col md:flex-row gap-6 mb-6 p-4 bg-slate-50 border border-slate-200 dark:bg-gray-900 dark:border-gray-700">
                     <div>
                         <span class="block text-xs text-gray-500 uppercase font-semibold">Result Accuracy QC</span>
                         <span class="text-2xl font-black text-blue-600 dark:text-blue-400">{{ $checksheet->accuracy_percentage ?? 'N/A' }}%</span>
                     </div>
                     @if($checksheet->attachment_path)
                     <div class="flex items-center">
-                        <a href="{{ Storage::url($checksheet->attachment_path) }}" target="_blank" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        <a href="{{ Storage::url($checksheet->attachment_path) }}" target="_blank" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                             <i class="fa-solid fa-file-pdf text-red-500"></i> View Attachment QC
                         </a>
                     </div>
@@ -149,7 +149,7 @@
                     <p class="text-xs text-gray-500 mt-1">List of problems previously found on this Product / Part Number ini di masa lampau.</p>
                 </div>
 
-                <div class="mb-6 p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/50">
+                <div class="mb-6 p-4 border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/50">
                     <!-- Past History (Read-only) -->
                     <ul class="list-disc pl-5 space-y-1 mb-4 text-sm text-gray-700 dark:text-gray-300">
                         @forelse(optional($part->product)->historyProblems ?? [] as $history)
@@ -171,8 +171,8 @@
                         </label>
                         <div id="dynamic-history-wrapper" class="space-y-2">
                             <div class="flex items-center gap-2 history-row">
-                                <input type="text" name="new_history_problems[]" placeholder="Description masalah baru..." class="flex-1 text-sm border-gray-300 dark:border-gray-600 rounded shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-800 dark:text-white">
-                                <button type="button" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded transition add-history-btn">
+                                <input type="text" name="new_history_problems[]" placeholder="Description masalah baru..." class="flex-1 text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-800 dark:text-white">
+                                <button type="button" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 transition add-history-btn">
                                     <i class="fa-solid fa-plus"></i>
                                 </button>
                             </div>
@@ -188,7 +188,7 @@
                 @php
                     $checkCount = max(1, min($part->qty, 10));
                 @endphp
-                <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
                     <table class="min-w-full text-left text-sm whitespace-nowrap">
                         <thead class="bg-gray-100 dark:bg-gray-700/80 text-gray-700 dark:text-gray-300 uppercase text-xs font-semibold">
                             <tr>
@@ -217,7 +217,7 @@
                                 @endphp
                                 <td class="px-2 py-2 border-r dark:border-gray-700 text-center cursor-pointer sample-cell select-none" data-detail-id="{{ $detail->id }}" data-sample-index="{{ $i }}">
                                     <input type="hidden" name="details[{{ $detail->id }}][samples][{{ $i }}]" value="{{ $sampleValue }}" class="sample-input-{{ $detail->id }}">
-                                    <div class="flex items-center justify-center h-8 w-8 mx-auto rounded transition hover:bg-gray-200 dark:hover:bg-gray-600 icon-container">
+                                    <div class="flex items-center justify-center h-8 w-8 mx-auto transition hover:bg-gray-200 dark:hover:bg-gray-600 icon-container">
                                         @if($sampleValue === 'OK')
                                             <i class="fa-solid fa-circle text-green-500 text-lg"></i>
                                         @elseif($sampleValue === 'NG')
@@ -230,9 +230,7 @@
                                 @endfor
                                 <td class="px-4 py-2 text-center">
                                     <select name="details[{{ $detail->id }}][row_result]" id="row-result-{{ $detail->id }}"
-                                            class="w-full text-xs py-1.5 px-2 font-bold border-gray-300 dark:border-gray-600 rounded shadow-sm focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white
-                                            @if($detail->row_result == 'OK') text-green-600 bg-green-50 dark:bg-green-900/20 
-                                            @elseif($detail->row_result == 'NG') text-red-600 bg-red-50 dark:bg-red-900/20 @endif">
+                                            class="w-full text-xs py-1.5 px-2 font-bold border-gray-300 dark:border-gray-600 shadow-sm focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white @if($detail->row_result == 'OK') text-green-600 bg-green-50 dark:bg-green-900/20 @elseif($detail->row_result == 'NG') text-red-600 bg-red-50 dark:bg-red-900/20 @endif">
                                         <option value="" class="text-gray-400">- Select -</option>
                                         <option value="OK" class="text-green-600 font-bold" {{ $detail->row_result === 'OK' ? 'selected' : '' }}>OK</option>
                                         <option value="NG" class="text-red-600 font-bold" {{ $detail->row_result === 'NG' ? 'selected' : '' }}>NG</option>
@@ -250,22 +248,22 @@
                     </table>
                 </div>
 
-                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-purple-50 dark:bg-purple-900/10 p-4 rounded-lg border border-purple-100 dark:border-purple-800/30">
+                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-purple-50 dark:bg-purple-900/10 p-4 border border-purple-100 dark:border-purple-800/30">
                     <div class="flex items-start gap-4 w-full">
                         <label class="font-bold text-gray-800 dark:text-white text-base whitespace-nowrap mt-2">Remark:</label>
                         <textarea name="final_result" rows="2"
-                                class="rounded-lg border-purple-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-base py-2 px-3 w-full text-gray-800 dark:bg-gray-800 dark:text-white dark:border-gray-600" placeholder="Add remark if necessary...">{{ $checksheet->final_result }}</textarea>
+                                class="border-purple-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-base py-2 px-3 w-full text-gray-800 dark:bg-gray-800 dark:text-white dark:border-gray-600" placeholder="Add remark if necessary...">{{ $checksheet->final_result }}</textarea>
                     </div>
                 </div>
             </div>
             @endif
         </div>
 
-        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 rounded-b-lg">
-            <a href="{{ route('tracking.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm text-sm font-medium">
+        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+            <a href="{{ route('tracking.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm text-sm font-medium">
                 Cancel
             </a>
-            <button type="submit" class="px-5 py-2 {{ $isMGM ? 'bg-purple-600 hover:bg-purple-700' : 'bg-orange-600 hover:bg-orange-700' }} text-white rounded-lg transition shadow-sm font-semibold flex items-center gap-2 text-sm">
+            <button type="submit" class="px-5 py-2 {{ $isMGM ? 'bg-purple-600 hover:bg-purple-700' : 'bg-orange-600 hover:bg-orange-700' }} text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm">
                 <i class="fa-solid fa-floppy-disk"></i> {{ $isMGM ? 'Submit to Approval' : 'Submit Accuracy (QC)' }}
             </button>
         </div>
@@ -302,8 +300,8 @@
                     const newRow = document.createElement('div');
                     newRow.className = 'flex items-center gap-2 history-row mt-2';
                     newRow.innerHTML = `
-                        <input type="text" name="new_history_problems[]" placeholder="Description masalah baru..." class="flex-1 text-sm border-gray-300 dark:border-gray-600 rounded shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-800 dark:text-white">
-                        <button type="button" class="px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-800/60 text-red-700 dark:text-red-400 rounded transition remove-history-btn">
+                        <input type="text" name="new_history_problems[]" placeholder="Description masalah baru..." class="flex-1 text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-800 dark:text-white">
+                        <button type="button" class="px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-800/60 text-red-700 dark:text-red-400 transition remove-history-btn">
                             <i class="fa-solid fa-minus"></i>
                         </button>
                     `;

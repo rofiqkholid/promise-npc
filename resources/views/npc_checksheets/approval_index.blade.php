@@ -4,20 +4,20 @@
 @section('page_title', 'Checksheet Approvals')
 
 @section('content')
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+<div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Waiting for Approval</h2>
     </div>
     
     <div class="p-6">
         @if(session('success'))
-            <div class="mb-4 p-4 text-green-700 bg-green-100 rounded-lg dark:bg-green-200 dark:text-green-800" role="alert">
+            <div class="mb-4 p-4 text-green-700 bg-green-100 dark:bg-green-200 dark:text-green-800" role="alert">
                 {{ session('success') }}
             </div>
         @endif
 
         @if(session('error'))
-            <div class="mb-4 p-4 text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800" role="alert">
+            <div class="mb-4 p-4 text-red-700 bg-red-100 dark:bg-red-200 dark:text-red-800" role="alert">
                 {{ session('error') }}
             </div>
         @endif
@@ -61,7 +61,7 @@
                                 {{ optional(optional(optional($checksheet->npcPart->event)->customerCategory)->customer)->code ?? 'N/A' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold bg-yellow-100 text-yellow-800">
                                     {{ $levelName }}
                                 </span>
                             </td>
@@ -69,7 +69,7 @@
                                 @if($checksheet->approval_status === 'APPROVED')
                                     <span class="text-green-600 font-semibold"><i class="fa-solid fa-check-circle"></i> Fully Approved</span>
                                 @else
-                                    <a href="{{ route('checksheet-approvals.show', $checksheet->hashed_id) }}" class="inline-flex text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 transition shadow-sm">
+                                    <a href="{{ route('checksheet-approvals.show', $checksheet->hashed_id) }}" class="inline-flex text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 transition shadow-sm">
                                         <i class="fa-solid fa-eye mr-2 mt-1"></i> Review & Approve
                                     </a>
                                 @endif

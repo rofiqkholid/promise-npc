@@ -4,7 +4,7 @@
 @section('page_title', 'Master Data / Process Production / Add New')
 
 @section('content')
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 max-w-2xl">
+<div class="bg-white dark:bg-gray-800 shadow border border-gray-200 dark:border-gray-700 max-w-2xl">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <h2 class="text-xl font-semibold text-gray-800 dark:text-white">
             <i class="fa-solid fa-plus-circle text-blue-600 mr-2"></i> Form Add Process
@@ -12,7 +12,7 @@
     </div>
 
     @if ($errors->any())
-        <div class="bg-red-50 text-red-700 p-4 m-6 rounded-lg mb-0 text-sm border-l-4 border-red-500">
+        <div class="bg-red-50 text-red-700 p-4 m-6 mb-0 text-sm border-l-4 border-red-500">
             <ul class="list-disc pl-5">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -34,7 +34,7 @@
                         <i class="fa-solid fa-route text-xs"></i>
                     </div>
                     <input type="text" id="process_name" name="process_name" required value="{{ old('process_name') }}"
-                        class="w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                        class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
                         style="padding-left: 2.5rem;" placeholder="Example: Stamping, Painting, Assy, Weld...">
                 </div>
             </div>
@@ -81,7 +81,7 @@
                                 type="text" 
                                 x-model="search" 
                                 @focus="open = true"
-                                class="w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                                class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
                                 style="padding-left: 2.5rem;" 
                                 placeholder="Type to search and add department...">
                         </div>
@@ -89,7 +89,7 @@
                         <!-- Dropdown Box -->
                         <div x-show="open && filteredDepartments.length > 0" 
                              style="display: none;"
-                             class="absolute z-20 mt-1 w-full bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 max-h-60 overflow-y-auto">
+                             class="absolute z-20 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 max-h-60 overflow-y-auto">
                             <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
                                 <template x-for="dept in filteredDepartments" :key="dept.id">
                                     <li>
@@ -103,13 +103,13 @@
                         
                         <div x-show="open && search !== '' && filteredDepartments.length === 0" 
                              style="display: none;"
-                             class="absolute z-20 mt-1 w-full bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
+                             class="absolute z-20 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
                             <span class="text-sm text-gray-500"><i class="fa-solid fa-magnifying-glass mr-1"></i> No department found with that keyword.</span>
                         </div>
                     </div>
 
                     <!-- Selected tags container (Result) -->
-                    <div class="p-3 bg-slate-50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-300 dark:border-gray-700 min-h-[60px]">
+                    <div class="p-3 bg-slate-50 dark:bg-gray-800/50 border border-dashed border-gray-300 dark:border-gray-700 min-h-[60px]">
                         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Selected PIC:</p>
                         <div class="flex flex-wrap gap-2">
                             <template x-if="selectedDepartments.length === 0">
@@ -117,7 +117,7 @@
                             </template>
                             
                             <template x-for="dept in selectedDepartments" :key="dept.id">
-                                <div class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 rounded-full text-sm font-medium border border-blue-200 dark:border-blue-800 shadow-sm transition-all hover:shadow">
+                                <div class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 text-sm font-medium border border-blue-200 dark:border-blue-800 shadow-sm transition-all hover:shadow">
                                     <span x-text="dept.name"></span>
                                     <button type="button" @click="removeDepartment(dept.id)" class="ml-1.5 text-blue-400 hover:text-red-500 dark:text-blue-400 dark:hover:text-red-400 focus:outline-none transition-colors">
                                         <i class="fa-solid fa-xmark"></i>
@@ -144,11 +144,11 @@
 
         </div>
 
-        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 rounded-b-lg">
-            <a href="{{ route('master.processes.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+            <a href="{{ route('master.processes.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
                 Cancel
             </a>
-            <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg shadow-md shadow-blue-500/20 text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition flex items-center gap-2">
+            <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-blue-500/20 text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition flex items-center gap-2">
                 <i class="fa-solid fa-floppy-disk"></i> Save Process
             </button>
         </div>

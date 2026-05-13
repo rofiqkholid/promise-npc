@@ -2,15 +2,15 @@
 
 <div id="scannerModal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-[60] justify-center items-center w-full h-full bg-slate-900/60 backdrop-blur-sm flex p-4 transition-all duration-300">
     <div class="relative w-full max-w-lg h-auto">
-        <div class="relative bg-white dark:bg-gray-800 rounded-xs border border-slate-200 dark:border-gray-700 shadow-xl overflow-hidden">
+        <div class="relative bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 shadow-xl overflow-hidden">
             <!-- Header -->
             <div class="px-5 py-4 border-b border-slate-100 dark:border-gray-700 flex items-center justify-between">
                 <h3 class="text-base font-semibold text-gray-900 dark:text-white tracking-tight">QR Scanner</h3>
                 <div class="flex items-center gap-1.5">
-                    <button type="button" id="toggleMirror" class="w-8 h-8 flex items-center justify-center rounded-xs text-gray-400 hover:text-gray-700 dark:hover:text-white transition-all" title="Mirror Camera">
+                    <button type="button" id="toggleMirror" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-white transition-all" title="Mirror Camera">
                         <i class="fa-solid fa-arrows-left-right text-xs"></i>
                     </button>
-                    <button type="button" id="closeScanner" class="w-8 h-8 flex items-center justify-center rounded-xs text-gray-400 hover:text-rose-600 transition-all">
+                    <button type="button" id="closeScanner" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-rose-600 transition-all">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -18,11 +18,11 @@
 
             <!-- Scanner Area -->
             <div class="p-4">
-                <div class="relative overflow-hidden rounded-xs bg-black aspect-square border border-slate-200 dark:border-gray-700 shadow-inner">
+                <div class="relative overflow-hidden bg-black aspect-square border border-slate-200 dark:border-gray-700 shadow-inner">
                     <div id="qr-reader" class="w-full h-full overflow-hidden bg-black flex items-center justify-center"></div>
                 </div>
 
-                <div id="qr-status" class="mt-4 flex items-center justify-center gap-2 py-2 px-4 rounded-xs text-sm font-medium transition-all border border-transparent">
+                <div id="qr-status" class="mt-4 flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium transition-all border border-transparent">
                     <i class="fa-solid fa-circle-notch fa-spin text-xs"></i> 
                     <span>Initializing Engine...</span>
                 </div>

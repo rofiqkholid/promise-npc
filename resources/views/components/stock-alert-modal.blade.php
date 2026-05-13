@@ -12,12 +12,12 @@
         <div class="relative w-full max-w-xl transform transition-all duration-300 ease-out scale-95 opacity-0" id="stockAlertContent">
             
             <!-- Card Body -->
-            <div class="bg-white dark:bg-gray-800 rounded-xs overflow-hidden border border-slate-200 dark:border-gray-700 flex flex-col">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden border border-slate-200 dark:border-gray-700 flex flex-col">
                 
                 <!-- Professional Header -->
                 <div class="px-6 py-4 border-b border-slate-100 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-gray-800">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xs bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400 flex items-center justify-center border border-rose-100 dark:border-rose-900/30">
+                        <div class="w-10 h-10 bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400 flex items-center justify-center border border-rose-100 dark:border-rose-900/30">
                             <i class="fa-solid fa-triangle-exclamation text-lg"></i>
                         </div>
                         <div>
@@ -27,7 +27,7 @@
                             </p>
                         </div>
                     </div>
-                    <button type="button" id="closeStockAlert" class="w-8 h-8 flex items-center justify-center rounded-xs text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-gray-700 transition-all">
+                    <button type="button" id="closeStockAlert" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-gray-700 transition-all">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -42,7 +42,7 @@
                     <div class="space-y-4">
                         @if(count($stockAlerts) === 0)
                             <div class="py-12 flex flex-col items-center justify-center text-center">
-                                <div class="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-900/10 text-emerald-500 flex items-center justify-center mb-4 border border-emerald-100 dark:border-emerald-900/30">
+                                <div class="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-500 flex items-center justify-center mb-4 border border-emerald-100 dark:border-emerald-900/30">
                                     <i class="fa-solid fa-check text-3xl"></i>
                                 </div>
                                 <h4 class="text-base font-semibold text-slate-900 dark:text-white tracking-tight">All Clear</h4>
@@ -54,13 +54,13 @@
                             @if(count($criticalItems) > 0)
                                 <div>
                                     <div class="flex items-center gap-3 mb-3">
-                                        <span class="text-[10px] font-bold uppercase tracking-widest text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-900/30 px-2 py-1 rounded-xs border border-rose-200 dark:border-rose-800">Critical Stock</span>
+                                        <span class="text-[10px] font-bold uppercase tracking-widest text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-900/30 px-2 py-1 border border-rose-200 dark:border-rose-800">Critical Stock</span>
                                         <div class="h-px flex-1 bg-rose-200 dark:bg-rose-900/30"></div>
                                     </div>
                                     <div class="space-y-2">
                                         @foreach($criticalItems as $item)
                                         <a href="{{ route('inventory.stockMonitoring') }}?search={{ urlencode(optional($item->product)->part_no) }}" 
-                                           class="block p-3 bg-white dark:bg-gray-800 rounded-xs border border-slate-200 dark:border-gray-700 hover:border-rose-300 dark:hover:border-rose-700 transition-colors group"
+                                           class="block p-3 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:border-rose-300 dark:hover:border-rose-700 transition-colors group"
                                            title="Click to view in Stock Monitoring">
                                             <div class="flex items-start justify-between gap-4">
                                                 <div class="min-w-0 flex-1">
@@ -75,7 +75,7 @@
                                                         <span class="font-medium">{{ $item->model_name }}</span>
                                                     </div>
                                                 </div>
-                                                <div class="flex items-center gap-3 bg-slate-50 dark:bg-gray-700/50 px-3 py-1.5 rounded border border-slate-100 dark:border-gray-700">
+                                                <div class="flex items-center gap-3 bg-slate-50 dark:bg-gray-700/50 px-3 py-1.5 border border-slate-100 dark:border-gray-700">
                                                     <div class="text-right">
                                                         <div class="text-[9px] text-slate-400 uppercase tracking-widest font-bold">Stock</div>
                                                         <div class="text-sm font-bold text-rose-600 dark:text-rose-400 tabular-nums leading-none">{{ number_format($item->current_stock_qty) }}</div>
@@ -96,13 +96,13 @@
                             @if(count($warningItems) > 0)
                                 <div class="mt-6">
                                     <div class="flex items-center gap-3 mb-3">
-                                        <span class="text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-xs border border-amber-200 dark:border-amber-800">Overstock</span>
+                                        <span class="text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 border border-amber-200 dark:border-amber-800">Overstock</span>
                                         <div class="h-px flex-1 bg-amber-200 dark:bg-amber-900/30"></div>
                                     </div>
                                     <div class="space-y-2">
                                         @foreach($warningItems as $item)
                                         <a href="{{ route('inventory.stockMonitoring') }}?search={{ urlencode(optional($item->product)->part_no) }}"
-                                           class="block p-3 bg-white dark:bg-gray-800 rounded-xs border border-slate-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 transition-colors group"
+                                           class="block p-3 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 transition-colors group"
                                            title="Click to view in Stock Monitoring">
                                             <div class="flex items-start justify-between gap-4">
                                                 <div class="min-w-0 flex-1">
@@ -117,7 +117,7 @@
                                                         <span class="font-medium">{{ $item->model_name }}</span>
                                                     </div>
                                                 </div>
-                                                <div class="flex items-center gap-3 bg-slate-50 dark:bg-gray-700/50 px-3 py-1.5 rounded border border-slate-100 dark:border-gray-700">
+                                                <div class="flex items-center gap-3 bg-slate-50 dark:bg-gray-700/50 px-3 py-1.5 border border-slate-100 dark:border-gray-700">
                                                     <div class="text-right">
                                                         <div class="text-[9px] text-slate-400 uppercase tracking-widest font-bold">Stock</div>
                                                         <div class="text-sm font-bold text-amber-600 dark:text-amber-400 tabular-nums leading-none">{{ number_format($item->current_stock_qty) }}</div>
@@ -140,7 +140,7 @@
 
                 <!-- Action Footer -->
                 <div class="p-4 border-t border-slate-100 dark:border-gray-800 bg-white dark:bg-gray-800">
-                    <button type="button" id="closeStockAlertBtn" class="w-full h-10 bg-primary-600 hover:bg-primary-700 text-white rounded-xs font-semibold text-xs tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                    <button type="button" id="closeStockAlertBtn" class="w-full h-10 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-xs tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2">
                         <i class="fa-solid fa-check text-sm"></i>
                         Acknowledge
                     </button>

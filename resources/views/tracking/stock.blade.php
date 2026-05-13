@@ -4,7 +4,7 @@
 @section('page_title', 'Transaction / ' . ($pageTitle ?? 'Finished Goods Stock (FG)'))
 
 @section('content')
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+<div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
         <div>
             <h2 class="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
@@ -18,7 +18,7 @@
 
     <!-- Table -->
     <div class="p-6">
-        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
@@ -61,12 +61,12 @@
                             <div class="text-xs text-gray-500 font-medium mb-2 pl-4">
                                 <div class="mb-1">Model: <span class="text-blue-600 dark:text-blue-400">{{ $modelName }}</span></div>
                                 <div class="flex items-center gap-1.5">
-                                    <span class="px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 rounded text-[9px] font-bold tracking-wider" title="Category Customer">{{ $categoryName }}</span>
-                                    <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded text-[9px] font-bold tracking-wider" title="Delivery Group (GR)">{{ $grName }}</span>
+                                    <span class="px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 text-[9px] font-bold tracking-wider" title="Category Customer">{{ $categoryName }}</span>
+                                    <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 text-[9px] font-bold tracking-wider" title="Delivery Group (GR)">{{ $grName }}</span>
                                 </div>
                             </div>
                             
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold border {{ $timeStatusClass }}">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border {{ $timeStatusClass }}">
                                 <i class="fa-solid {{ $timeStatusIcon }}"></i> {{ $timeStatusText }}
                             </span>
                         </td>
@@ -120,19 +120,19 @@
                         <td class="px-6 py-4 text-right pointer-events-auto">
                             <div class="flex flex-col items-end gap-2 text-sm">
                             @if($part->status === 'CLOSED')
-                                <div class="px-3 py-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded text-[10px] text-blue-600 dark:text-blue-400 italic flex items-center gap-1.5 cursor-not-allowed font-bold">
+                                <div class="px-3 py-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-[10px] text-blue-600 dark:text-blue-400 italic flex items-center gap-1.5 cursor-not-allowed font-bold">
                                     <i class="fa-solid fa-check-double text-[10px]"></i> Already Delivered (Closed)
                                 </div>
                             @elseif(!in_array($part->status, ['FINISHED', 'OUTSTANDING']))
-                                <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded text-[10px] text-gray-400 italic flex items-center gap-1.5 cursor-not-allowed">
+                                <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center gap-1.5 cursor-not-allowed">
                                     <i class="fa-solid fa-lock text-[8px]"></i> Waiting for Process to Complete
                                 </div>
                             @else
-                                <button type="button" onclick="openDeliverModal('{{ $part->hashed_id }}', '{{ $part->qty - $part->delivered_qty }}', '{{ route('tracking.deliver', $part->hashed_id) }}', '{{ optional($part->product)->part_no }}')" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded shadow-sm font-medium transition text-xs flex items-center justify-center gap-2 w-full">
+                                <button type="button" onclick="openDeliverModal('{{ $part->hashed_id }}', '{{ $part->qty - $part->delivered_qty }}', '{{ route('tracking.deliver', $part->hashed_id) }}', '{{ optional($part->product)->part_no }}')" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-sm font-medium transition text-xs flex items-center justify-center gap-2 w-full">
                                     <i class="fa-solid fa-truck-fast"></i> Deliver Parts
                                 </button>
                                 @if($part->checksheet)
-                                <a href="{{ route('checksheets.print-label', $part->hashed_id) }}" target="_blank" class="px-4 py-2 bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 rounded shadow-sm font-medium transition text-xs flex items-center justify-center gap-2 w-full">
+                                <a href="{{ route('checksheets.print-label', $part->hashed_id) }}" target="_blank" class="px-4 py-2 bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 shadow-sm font-medium transition text-xs flex items-center justify-center gap-2 w-full">
                                     <i class="fa-solid fa-print"></i> Print QC Label
                                 </a>
                                 @endif
@@ -165,7 +165,7 @@
 
 <!-- Deliver Modal -->
 <div id="deliverModal" class="fixed inset-0 z-50 hidden bg-gray-900/50 backdrop-blur-sm overflow-y-auto h-full w-full flex items-center justify-center">
-    <div class="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden scale-95 opacity-0 transition-all duration-300" id="deliverModalContent">
+    <div class="relative w-full max-w-md bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden scale-95 opacity-0 transition-all duration-300" id="deliverModalContent">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex justify-between items-center">
             <h3 class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
                 <i class="fa-solid fa-truck-ramp-box text-blue-500"></i> Parts Delivery Form
@@ -189,7 +189,7 @@
                     </label>
                     <div class="relative">
                         <input type="number" id="modalDeliveredQty" name="delivered_qty" min="1" required
-                            class="w-full pl-4 pr-12 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-bold text-lg text-gray-800 dark:bg-gray-700 dark:text-white">
+                            class="w-full pl-4 pr-12 py-2 border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-bold text-lg text-gray-800 dark:bg-gray-700 dark:text-white">
                         <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-500 font-semibold text-sm">
                             PCS
                         </div>
@@ -199,16 +199,16 @@
                     </p>
                 </div>
                 
-                <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/50 p-3 rounded text-xs text-yellow-800 dark:text-yellow-300 mb-2">
+                <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/50 p-3 text-xs text-yellow-800 dark:text-yellow-300 mb-2">
                     <i class="fa-solid fa-circle-exclamation mr-1"></i> Make sure you have printed the Delivery Note from your internal system before this process.
                 </div>
             </div>
             
             <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-                <button type="button" onclick="closeDeliverModal()" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition text-sm">
+                <button type="button" onclick="closeDeliverModal()" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 shadow-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition text-sm">
                     Cancel
                 </button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm font-bold transition flex items-center gap-2 text-sm">
+                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white shadow-sm font-bold transition flex items-center gap-2 text-sm">
                     <i class="fa-solid fa-paper-plane"></i> Delivery Process
                 </button>
             </div>

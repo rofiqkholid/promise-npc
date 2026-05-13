@@ -43,8 +43,7 @@
                      x-init="$watch('open', val => localStorage.setItem('menu_open_{{ $menu->id }}', val))"
                      class="relative">
                     <button @click="open = !open; sidebarExpanded = true"
-                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xs transition-all duration-200 group relative
-                        {{ $isParentActive ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-400 font-semibold' : 'text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700/50 hover:text-slate-900 dark:hover:text-white' }}"
+                        class="w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 group relative {{ $isParentActive ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-400 font-semibold' : 'text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700/50 hover:text-slate-900 dark:hover:text-white' }}"
                         :class="!sidebarExpanded ? 'justify-center' : ''">
                         
                         <i class="{{ $menu->icon }} w-6 text-center text-lg {{ $isParentActive ? 'text-primary-700 dark:text-primary-400' : 'text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300' }}"></i>
@@ -55,7 +54,7 @@
                            :class="open ? 'rotate-180' : ''"></i>
 
                         {{-- Tooltip for Minimized --}}
-                        <div x-show="!sidebarExpanded" x-cloak class="absolute left-full top-2 ml-2 bg-slate-800 dark:bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none whitespace-nowrap">
+                        <div x-show="!sidebarExpanded" x-cloak class="absolute left-full top-2 ml-2 bg-slate-800 dark:bg-black text-white text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none whitespace-nowrap">
                             {{ $menu->title }}
                         </div>
                     </button>
@@ -71,9 +70,8 @@
                                 $isActive = request()->routeIs($child->route) || request()->routeIs($baseChildRoute . '.*');
                             @endphp
                             <a href="{{ route($child->route) }}"
-                                class="flex items-center gap-3 px-3 py-2 rounded-xs transition-all duration-200 text-sm
-                                {{ $isActive ? 'text-primary-700 dark:text-primary-400 font-medium bg-primary-100/50 dark:bg-primary-900/20' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-gray-700/50' }}">
-                                <span class="w-1.5 h-1.5 rounded-full {{ $isActive ? 'bg-primary-700 dark:bg-primary-400' : 'bg-slate-400 dark:bg-gray-600' }}"></span>
+                                class="flex items-center gap-3 px-3 py-2 transition-all duration-200 text-sm {{ $isActive ? 'text-primary-700 dark:text-primary-400 font-medium bg-primary-100/50 dark:bg-primary-900/20' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-gray-700/50' }}">
+                                <span class="w-1.5 h-1.5 {{ $isActive ? 'bg-primary-700 dark:bg-primary-400' : 'bg-slate-400 dark:bg-gray-600' }}"></span>
                                 <span class="side-label whitespace-nowrap">{{ $child->title }}</span>
                             </a>
                         @endforeach
@@ -82,18 +80,16 @@
             @else
                 {{-- SINGLE MENU ITEM --}}
                 <a href="{{ $menu->route === '#' ? '#' : route($menu->route) }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xs transition-all duration-200 group relative
-                {{ $isParentActive ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-400 font-semibold' : 'text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700/50 hover:text-slate-900 dark:hover:text-white' }}"
+                    class="flex items-center gap-3 px-3 py-2.5 transition-all duration-200 group relative {{ $isParentActive ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-400 font-semibold' : 'text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700/50 hover:text-slate-900 dark:hover:text-white' }}"
                     :class="!sidebarExpanded ? 'justify-center' : ''">
 
-                    <i class="{{ $menu->icon }} w-6 text-center text-lg
-                        {{ $isParentActive ? 'text-primary-700 dark:text-primary-400' : 'text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300' }}">
+                    <i class="{{ $menu->icon }} w-6 text-center text-lg {{ $isParentActive ? 'text-primary-700 dark:text-primary-400' : 'text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300' }}">
                     </i>
 
                     <span x-show="sidebarExpanded" class="side-label text-sm whitespace-nowrap">{{ $menu->title }}</span>
 
                     {{-- Tooltip for Minimized --}}
-                    <div x-show="!sidebarExpanded" x-cloak class="absolute left-full top-2 ml-2 bg-slate-800 dark:bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none whitespace-nowrap">
+                    <div x-show="!sidebarExpanded" x-cloak class="absolute left-full top-2 ml-2 bg-slate-800 dark:bg-black text-white text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none whitespace-nowrap">
                         {{ $menu->title }}
                     </div>
                 </a>
@@ -104,12 +100,12 @@
 
     <!-- Footer Profile / Settings -->
     <div class="p-4 border-t border-slate-200 dark:border-gray-700">
-        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xs hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors group relative"
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors group relative"
             :class="!sidebarExpanded ? 'justify-center' : ''">
             <i class="fa-solid fa-gear w-6 text-center text-lg text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300"></i>
             <span x-show="sidebarExpanded" class="side-label text-sm font-medium whitespace-nowrap text-slate-600 dark:text-gray-400 group-hover:text-slate-900 dark:group-hover:text-white">Settings</span>
             {{-- Tooltip for Minimized --}}
-            <div x-show="!sidebarExpanded" x-cloak class="absolute left-full top-2 ml-2 bg-slate-800 dark:bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none whitespace-nowrap">
+            <div x-show="!sidebarExpanded" x-cloak class="absolute left-full top-2 ml-2 bg-slate-800 dark:bg-black text-white text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none whitespace-nowrap">
                 Settings
             </div>
         </a>

@@ -5,7 +5,7 @@
 
 @section('content')
 <div class="max-w-3xl mx-auto">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
             <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                 <i class="fa-solid fa-clipboard-list text-blue-500"></i> Form Add New Event
@@ -23,7 +23,7 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Nomor PO <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="po_no" required class="w-full text-sm rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Masukkan No. PO" value="{{ old('po_no') }}">
+                    <input type="text" name="po_no" required class="w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Masukkan No. PO" value="{{ old('po_no') }}">
                     @error('po_no') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                 </div>
 
@@ -108,7 +108,7 @@
                     <h3 class="text-md font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                         <i class="fa-solid fa-cubes text-indigo-500"></i> Part Detailss & PO
                     </h3>
-                    <button type="button" id="add_part_btn" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition text-sm font-medium flex items-center gap-1">
+                    <button type="button" id="add_part_btn" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition text-sm font-medium flex items-center gap-1">
                         <i class="fa-solid fa-plus"></i> Add Part
                     </button>
                 </div>
@@ -122,10 +122,10 @@
             </div>
 
             <div class="pt-6 mt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-                <a href="{{ route('events.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+                <a href="{{ route('events.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
                     Cancel
                 </a>
-                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg shadow-md shadow-blue-500/20 text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition">
+                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-blue-500/20 text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition">
                     <i class="fa-solid fa-floppy-disk mr-1"></i> Save Event
                 </button>
             </div>
@@ -252,10 +252,10 @@
             if(emptyMsg) emptyMsg.style.display = 'none';
 
             const template = `
-                <div class="part-item bg-slate-50 dark:bg-gray-800/80 p-4 rounded-lg border border-slate-200 dark:border-gray-700">
+                <div class="part-item bg-slate-50 dark:bg-gray-800/80 p-4 border border-slate-200 dark:border-gray-700">
                     <div class="flex justify-between items-center mb-3">
                         <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-box-open mr-1"></i> Item Part</span>
-                        <button type="button" class="remove-part text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:hover:bg-red-900/30 p-1.5 rounded transition flex items-center justify-center" title="Delete Part">
+                        <button type="button" class="remove-part text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:hover:bg-red-900/30 p-1.5 transition flex items-center justify-center" title="Delete Part">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
@@ -263,18 +263,18 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="space-y-1">
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Target Delivery</label>
-                            <input type="date" name="parts[${partIndex}][delivery_date]" required class="w-full text-sm rounded border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                            <input type="date" name="parts[${partIndex}][delivery_date]" required class="w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
                         </div>
                         <div class="space-y-1 relative">
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Part Number</label>
-                            <input type="text" class="part-no-display w-full text-sm rounded border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Search Part No..." autocomplete="off">
+                            <input type="text" class="part-no-display w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Search Part No..." autocomplete="off">
                             <input type="hidden" name="parts[${partIndex}][part_no]" class="part-no-input" required>
                             <input type="hidden" name="parts[${partIndex}][part_name]" class="part-name-input">
-                            <div class="part-autocomplete hidden absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg max-h-52 overflow-y-auto text-sm"></div>
+                            <div class="part-autocomplete hidden absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg max-h-52 overflow-y-auto text-sm"></div>
                         </div>
                         <div class="space-y-1">
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Qty</label>
-                            <input type="number" name="parts[${partIndex}][qty]" min="1" value="1" required class="w-full text-sm rounded border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                            <input type="number" name="parts[${partIndex}][qty]" min="1" value="1" required class="w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
                         </div>
                     </div>
                 </div>

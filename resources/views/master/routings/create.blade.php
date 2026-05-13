@@ -5,7 +5,7 @@
 
 @section('content')
 <div class="max-w-4xl">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
             <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                 <i class="fa-solid fa-route text-blue-500"></i> Form Add Master Routing
@@ -26,13 +26,13 @@
                             <i class="fa-solid fa-search text-xs"></i>
                         </div>
                         <input type="text" id="part_search" autocomplete="off"
-                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                            class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
                             style="padding-left: 2.5rem;"
                             placeholder="Type Part No or Part Name to search...">
                         
                         <input type="hidden" id="part_id" name="part_id" required value="{{ old('part_id') }}">
                         
-                        <div id="search_results" class="hidden absolute z-30 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        <div id="search_results" class="hidden absolute z-30 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg max-h-60 overflow-y-auto">
                             <!-- Items go here -->
                         </div>
                     </div>
@@ -48,30 +48,30 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Alur Process (Process Sequence) <span class="text-red-500">*</span>
                         </label>
-                        <button type="button" id="add_process_btn" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition text-xs font-medium flex items-center gap-1">
+                        <button type="button" id="add_process_btn" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition text-xs font-medium flex items-center gap-1">
                             <i class="fa-solid fa-plus"></i> Add Process
                         </button>
                     </div>
 
                     <div id="process_container" class="space-y-3">
                         <!-- Dynamic processes -->
-                        <div class="process-item flex gap-3 items-start bg-white dark:bg-gray-800 p-2 rounded border border-transparent hover:border-gray-200 dark:hover:border-gray-700" data-index="0">
+                        <div class="process-item flex gap-3 items-start bg-white dark:bg-gray-800 p-2 border border-transparent hover:border-gray-200 dark:hover:border-gray-700" data-index="0">
                             <div class="w-12 text-center font-bold text-gray-400 dark:text-gray-500 mt-2 flex items-center justify-center gap-1">
                                 <span class="cursor-move text-gray-400 hover:text-gray-600"><i class="fa-solid fa-grip-vertical"></i></span>
                                 <span class="seq-num">1.</span>
                             </div>
                             <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <select name="process_ids[]" required class="process-select w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
+                                <select name="process_ids[]" required class="process-select w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
                                     <option value="">Select Process</option>
                                     @foreach($processes as $proc)
                                         <option value="{{ $proc->id }}">{{ $proc->process_name }}</option>
                                     @endforeach
                                 </select>
-                                <select name="department_ids[]" required class="department-select w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
+                                <select name="department_ids[]" required class="department-select w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
                                     <option value="">Select Department</option>
                                 </select>
                             </div>
-                            <button type="button" class="remove-process w-10 text-center text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded transition mt-0.5">
+                            <button type="button" class="remove-process w-10 text-center text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 transition mt-0.5">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
                         </div>
@@ -81,10 +81,10 @@
             </div>
 
             <div class="pt-6 mt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-                <a href="{{ route('master.routings.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+                <a href="{{ route('master.routings.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">
                     Cancel
                 </a>
-                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg shadow-md shadow-blue-500/20 text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition">
+                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-blue-500/20 text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition">
                     <i class="fa-solid fa-floppy-disk mr-1"></i> Save Routing
                 </button>
             </div>
@@ -194,20 +194,20 @@
         addBtn.addEventListener('click', function() {
             processCount++;
             const itemHtml = `
-                <div class="process-item flex gap-3 items-start bg-white dark:bg-gray-800 p-2 rounded border border-transparent hover:border-gray-200 dark:hover:border-gray-700" data-index="${processCount}">
+                <div class="process-item flex gap-3 items-start bg-white dark:bg-gray-800 p-2 border border-transparent hover:border-gray-200 dark:hover:border-gray-700" data-index="${processCount}">
                     <div class="w-12 text-center font-bold text-gray-400 dark:text-gray-500 mt-2 flex items-center justify-center gap-1">
                         <span class="cursor-move text-gray-400 hover:text-gray-600"><i class="fa-solid fa-grip-vertical"></i></span>
                         <span class="seq-num"></span>
                     </div>
                     <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <select name="process_ids[]" required class="process-select w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
+                        <select name="process_ids[]" required class="process-select w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
                             ${processOptions}
                         </select>
-                        <select name="department_ids[]" required class="department-select w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
+                        <select name="department_ids[]" required class="department-select w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
                             <option value="">Select Department</option>
                         </select>
                     </div>
-                    <button type="button" class="remove-process w-10 text-center text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded transition mt-0.5">
+                    <button type="button" class="remove-process w-10 text-center text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 transition mt-0.5">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>

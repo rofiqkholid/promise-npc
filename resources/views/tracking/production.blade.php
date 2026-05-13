@@ -4,7 +4,7 @@
 @section('page_title', 'Transaction / ' . ($pageTitle ?? 'Process Production'))
 
 @section('content')
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+<div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
         <h2 class="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
             <i class="fa-solid {{ $pageIcon ?? 'fa-industry' }} text-blue-500"></i> {{ $pageTitle ?? 'Process Production' }}
@@ -16,7 +16,7 @@
 
     <!-- Table -->
     <div class="p-6">
-        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
@@ -38,11 +38,11 @@
                         </td>
                         <td class="px-6 py-4 text-center align-middle">
                             @if($part->status === 'PO_REGISTERED')
-                                <div class="inline-flex flex-col items-center gap-1.5 px-3 py-2 rounded bg-slate-50 border border-slate-200 text-[10px] text-slate-500 italic">
+                                <div class="inline-flex flex-col items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-[10px] text-slate-500 italic">
                                     <i class="fa-solid fa-lock text-sm"></i> Planned
                                 </div>
                             @elseif($part->status === 'WAITING_DEPT_CONFIRM')
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-100 border border-yellow-200 text-yellow-800 text-[10px] font-bold tracking-wide"><i class="fa-solid fa-gears fa-spin"></i> IN PROCESS</span>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-100 border border-yellow-200 text-yellow-800 text-[10px] font-bold tracking-wide"><i class="fa-solid fa-gears fa-spin"></i> IN PROCESS</span>
                             @else
                                 <div class="text-[10px] text-gray-400 italic font-medium"><i class="fa-solid fa-check text-green-500"></i> Submitted to QC</div>
                             @endif
@@ -74,7 +74,7 @@
                                             }
                                         @endphp
                                         <div class="relative flex items-center gap-3">
-                                            <div class="relative z-10 w-5 h-5 rounded-full flex items-center justify-center font-bold text-[9px] {{ $circleColor }} transition-colors">
+                                            <div class="relative z-10 w-5 h-5 flex items-center justify-center font-bold text-[9px] {{ $circleColor }} transition-colors">
                                                 {!! $icon !!}
                                             </div>
                                             <div class="flex flex-col">
@@ -92,7 +92,7 @@
                         </td>
                         <td class="px-6 py-4 text-right align-middle pointer-events-auto">
                             @if($part->status === 'PO_REGISTERED')
-                                <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed">
+                                <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed">
                                     <i class="fa-solid fa-lock text-[8px]"></i> Not yet send to production
                                 </div>
                             @elseif($part->status === 'WAITING_DEPT_CONFIRM')
@@ -103,7 +103,7 @@
                                     @endphp
                                     <button type="button"
                                         onclick="openCompleteModal({{ $part->hashed_id }}, {{ $activeProcess->hashed_id }}, '{{ optional($activeProcess->process)->process_name }}', '{{ optional($activeProcess->department)->name }}', '{{ route('tracking.process.complete', $part->hashed_id) }}')"
-                                        class="inline-flex px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded shadow-sm font-bold transition items-center gap-2 text-[11px] mb-2 w-full justify-center" style="background-color: #f59e0b;">
+                                        class="inline-flex px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white shadow-sm font-bold transition items-center gap-2 text-[11px] mb-2 w-full justify-center" style="background-color: #f59e0b;">
                                         Complete {{ optional($activeProcess->process)->process_name }} <i class="fa-solid fa-forward-step"></i>
                                     </button>
                                     @if($hasFinishedProcess)
@@ -124,7 +124,7 @@
                                     $canRollback = !$checksheet || !$checksheet->qe_checked_by;
                                 @endphp
                                 <div class="flex flex-col items-end gap-2">
-                                    <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full">
+                                    <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full">
                                         <i class="fa-solid fa-check-double text-[8px] text-green-500"></i> Submitted to QC
                                     </div>
                                     @if($canRollback)
@@ -137,7 +137,7 @@
                                     @endif
                                 </div>
                             @else
-                                <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed">
+                                <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed">
                                     <i class="fa-solid fa-check-double text-[8px] text-green-500"></i> Completed
                                 </div>
                             @endif
@@ -167,7 +167,7 @@
 
 {{-- Modal: Production Done --}}
 <div id="modal-complete" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4 border border-gray-200 dark:border-gray-700">
+    <div class="bg-white dark:bg-gray-800 shadow-2xl w-full max-w-md mx-4 border border-gray-200 dark:border-gray-700">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h3 class="text-base font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                 <i class="fa-solid fa-flag-checkered text-amber-500"></i> Completion Confirmation <span id="modal-process-name-title"></span>
@@ -178,7 +178,7 @@
             @csrf
             <input type="hidden" name="process_id" id="modal-process-id" value="">
             <div class="px-6 py-5 space-y-4">
-                <div class="p-3 bg-amber-50 dark:bg-amber-900/30 rounded-lg border border-amber-100 dark:border-amber-800/50 flex flex-col gap-1">
+                <div class="p-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800/50 flex flex-col gap-1">
                     <p class="text-xs text-amber-800 dark:text-amber-200 font-medium">You are about to complete the following process stage:</p>
                     <div class="flex items-center gap-2 mt-1">
                         <span id="modal-process-name" class="font-black text-amber-600 dark:text-amber-400"></span>
@@ -191,36 +191,31 @@
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Total Qty Completed <span class="text-red-500">*</span></label>
                         <input type="number" name="actual_qty" required min="0" placeholder="Pcs Count"
-                            class="w-full text-sm rounded border-gray-300 dark:border-gray-600 shadow-sm focus:border-amber-500 focus:ring-amber-500 dark:bg-gray-700 dark:text-white">
+                            class="w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-amber-500 focus:ring-amber-500 dark:bg-gray-700 dark:text-white">
                         <p class="text-[9px] text-gray-400 mt-1 italic">Total actual parts (Actual Qty).</p>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Actual Completion Date <span class="text-red-500">*</span></label>
                         <input type="date" name="actual_completion_date" required
-                            class="w-full text-sm rounded border-gray-300 dark:border-gray-600 shadow-sm focus:border-amber-500 focus:ring-amber-500 dark:bg-gray-700 dark:text-white">
+                            class="w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-amber-500 focus:ring-amber-500 dark:bg-gray-700 dark:text-white">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Upload Part Photo Evidence<span class="text-red-500">*</span></label>
                     <input type="file" name="photo" required accept="image/jpeg,image/png,image/gif"
-                        class="block w-full text-sm text-gray-500 dark:text-gray-400
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded file:border-0
-                        file:text-xs file:font-semibold
-                        file:bg-amber-50 file:text-amber-700 dark:file:bg-amber-900/30 dark:file:text-amber-400
-                        hover:file:bg-amber-100 uppercase file:cursor-pointer border border-gray-300 dark:border-gray-600 rounded">
+                        class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 dark:file:bg-amber-900/30 dark:file:text-amber-400 hover:file:bg-amber-100 uppercase file:cursor-pointer border border-gray-300 dark:border-gray-600">
                     <p class="text-[10px] text-gray-400 mt-1 italic">Max 5 MB (JPG/PNG). Photo of a batch of parts.</p>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Production Notes <span class="text-gray-400 text-[10px] font-normal">(optional)</span></label>
                     <textarea name="production_notes" rows="3" placeholder="Example: Completed ahead of schedule..."
-                        class="w-full text-sm rounded border-gray-300 dark:border-gray-600 shadow-sm focus:border-amber-500 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"></textarea>
+                        class="w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-amber-500 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"></textarea>
                 </div>
             </div>
-            <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 rounded-b-xl">
-                <button type="button" onclick="closeCompleteModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">Cancel</button>
-                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm transition flex items-center gap-1">
+            <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                <button type="button" onclick="closeCompleteModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition">Cancel</button>
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 shadow-sm transition flex items-center gap-1">
                     <i class="fa-solid fa-check"></i> Complete Process
                 </button>
             </div>

@@ -7,7 +7,7 @@
 <div class="max-w-4xl mx-auto space-y-6">
     
     <!-- Profile Info Card -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/50">
             <h2 class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
                 <i class="fa-solid fa-user-circle text-blue-600"></i>
@@ -18,7 +18,7 @@
             <div class="flex flex-col md:flex-row gap-8 items-center md:items-start">
                 <!-- Avatar Section (Icon matching Header) -->
                 <div class="shrink-0">
-                    <div class="h-24 w-24 rounded-full bg-slate-100 dark:bg-gray-700 text-slate-500 dark:text-gray-400 flex items-center justify-center text-4xl border border-slate-200 dark:border-gray-600 shadow-sm">
+                    <div class="h-24 w-24 bg-slate-100 dark:bg-gray-700 text-slate-500 dark:text-gray-400 flex items-center justify-center text-4xl border border-slate-200 dark:border-gray-600 shadow-sm">
                         <i class="fa-solid fa-user"></i>
                     </div>
                 </div>
@@ -41,7 +41,7 @@
                         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Role / Position</label>
                         <div class="flex flex-wrap gap-2 mt-1">
                             @forelse($user->roles as $role)
-                                <span class="px-2.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold border border-blue-200 dark:border-blue-800">
+                                <span class="px-2.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold border border-blue-200 dark:border-blue-800">
                                     {{ $role->name }}
                                 </span>
                             @empty
@@ -55,7 +55,7 @@
     </div>
 
     <!-- Change Password Card -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/50">
             <h2 class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
                 <i class="fa-solid fa-shield-halved text-amber-500"></i>
@@ -74,7 +74,7 @@
                     <div class="md:col-span-2">
                         <div class="relative">
                             <input type="password" name="current_password" id="current_password" 
-                                class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500 @error('current_password') border-red-500 @enderror pr-10" 
+                                class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500 @error('current_password') border-red-500 @enderror pr-10" 
                                 placeholder="Enter current password"
                                 required>
                             <button type="button" class="toggle-password absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-blue-500 transition-colors" data-target="current_password">
@@ -97,7 +97,7 @@
                     <div class="md:col-span-2">
                         <div class="relative">
                             <input type="password" name="password" id="password" 
-                                class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500 @error('password') border-red-500 @enderror pr-10" 
+                                class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500 @error('password') border-red-500 @enderror pr-10" 
                                 placeholder="Enter new password"
                                 required>
                             <button type="button" class="toggle-password absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-blue-500 transition-colors" data-target="password">
@@ -117,7 +117,7 @@
                     <div class="md:col-span-2">
                         <div class="relative">
                             <input type="password" name="password_confirmation" id="password_confirmation" 
-                                class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500 pr-10" 
+                                class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500 pr-10" 
                                 placeholder="Confirm your new password"
                                 required>
                             <button type="button" class="toggle-password absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-blue-500 transition-colors" data-target="password_confirmation">
@@ -128,7 +128,7 @@
                 </div>
             </div>
             <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700/30 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg shadow-md shadow-blue-500/20 text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition flex items-center gap-2" onclick="confirmAction(event, 'Are you sure you want to update your password?')">
+                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-blue-500/20 text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition flex items-center gap-2" onclick="confirmAction(event, 'Are you sure you want to update your password?')">
                     Update Password
                 </button>
             </div>

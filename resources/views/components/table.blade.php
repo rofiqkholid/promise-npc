@@ -1,4 +1,4 @@
-<div class="bg-white dark:bg-gray-800 rounded-xs border border-gray-200 dark:border-gray-700 overflow-hidden relative">
+<div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden relative">
     <div class="p-4 bg-white dark:bg-gray-800">
         <table {{ $attributes->merge(['class' => 'custom-table w-full text-left border-collapse']) }}>
             {{ $slot }}
@@ -23,7 +23,7 @@
             order: [[0, 'desc']],
             pageLength: 10,
             lengthMenu: [10, 25, 50, 100],
-            dom: "<'flex flex-col sm:flex-row justify-between items-center mb-6 gap-4'<'flex items-center gap-3'l B><'w-full sm:w-auto'f>>r<'overflow-x-auto w-full relative border border-gray-200 dark:border-gray-700 rounded-xs't><'flex flex-col md:flex-row justify-between items-center mt-6 gap-4 text-gray-500'i p>",
+            dom: "<'flex flex-col sm:flex-row justify-between items-center mb-6 gap-4'<'flex items-center gap-3'l B><'w-full sm:w-auto'f>>r<'overflow-x-auto w-full relative border border-gray-200 dark:border-gray-700 't><'flex flex-col md:flex-row justify-between items-center mt-6 gap-4 text-gray-500'i p>",
             buttons: [
                 { extend: 'excel', text: '<i class="fa-solid fa-file-excel"></i>', className: 'dt-button buttons-excel' },
                 { extend: 'pdf', text: '<i class="fa-solid fa-file-pdf"></i>', className: 'dt-button buttons-pdf' },

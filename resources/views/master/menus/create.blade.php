@@ -4,12 +4,12 @@
 @section('page_title', 'Master Data / Menu Management / Add')
 
 @section('content')
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 max-w-3xl">
+<div class="bg-white dark:bg-gray-800 shadow border border-gray-200 dark:border-gray-700 max-w-3xl">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
             <i class="fa-solid fa-plus text-blue-500"></i> Add New Menu
         </h2>
-        <a href="{{ route('master.menus.index') }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition text-sm flex items-center gap-2 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+        <a href="{{ route('master.menus.index') }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 transition text-sm flex items-center gap-2 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
             <i class="fa-solid fa-arrow-left"></i> Back
         </a>
     </div>
@@ -21,7 +21,7 @@
             <div class="space-y-2">
                 <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Title <span class="text-red-500">*</span></label>
                 <input type="text" name="title" id="title" value="{{ old('title') }}" required
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
+                    class="w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
                     placeholder="e.g., Master Data">
                 @error('title')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -31,7 +31,7 @@
             <div class="space-y-2">
                 <label for="route_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Route Name</label>
                 <input type="text" name="route_name" id="route_name" value="{{ old('route_name') }}"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
+                    class="w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
                     placeholder="e.g., master.processes.index">
                 <p class="text-xs text-gray-500">Leave blank if this is a parent dropdown menu.</p>
                 @error('route_name')
@@ -42,7 +42,7 @@
             <div class="space-y-2">
                 <label for="parent_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Parent Menu</label>
                 <select name="parent_id" id="parent_id"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm">
+                    class="w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm">
                     <option value="">-- No Parent (Root Level) --</option>
                     @foreach($parents as $parent)
                         <option value="{{ $parent->id }}" {{ old('parent_id') == $parent->id ? 'selected' : '' }}>
@@ -58,7 +58,7 @@
             <div class="space-y-2">
                 <label for="icon" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Icon CSS Class</label>
                 <input type="text" name="icon" id="icon" value="{{ old('icon') }}"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
+                    class="w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
                     placeholder="e.g., fa-solid fa-users">
                 @error('icon')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -68,7 +68,7 @@
             <div class="space-y-2">
                 <label for="order" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Display Order <span class="text-red-500">*</span></label>
                 <input type="number" name="order" id="order" value="{{ old('order', 0) }}" required
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm">
+                    class="w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm">
                 @error('order')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
@@ -77,7 +77,7 @@
             <div class="space-y-2 flex items-center mt-6">
                 <input type="hidden" name="is_active" value="0">
                 <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', 1) ? 'checked' : '' }}
-                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
                 <label for="is_active" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
                     Active (Show in Sidebar)
                 </label>
@@ -85,7 +85,7 @@
         </div>
 
         <div class="mt-8 border-t border-gray-200 dark:border-gray-700 pt-5 flex justify-end">
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition shadow-md shadow-blue-500/20 font-medium">
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition shadow-md shadow-blue-500/20 font-medium">
                 Save Menu
             </button>
         </div>

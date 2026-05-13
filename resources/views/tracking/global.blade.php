@@ -4,7 +4,7 @@
 @section('page_title', 'Transaksi / ' . ($pageTitle ?? 'Global Tracking'))
 
 @section('content')
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+<div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
         <h2 class="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
             <i class="fa-solid {{ $pageIcon ?? 'fa-list-check' }} text-blue-500"></i> {{ $pageTitle ?? 'Global Tracking' }}
@@ -18,8 +18,8 @@
     <!-- Dashboard Cards -->
     <div class="px-6 pt-6 pb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Card 1: Total Event -->
-        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
-            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30 flex items-center justify-center text-white text-xl">
+        <div class="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
+            <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30 flex items-center justify-center text-white text-xl">
                 <i class="fa-solid fa-calendar-check mt-1"></i>
             </div>
             <div>
@@ -29,8 +29,8 @@
         </div>
         
         <!-- Card 2: Total PO -->
-        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
-            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center text-white text-xl">
+        <div class="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
+            <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center text-white text-xl">
                 <i class="fa-solid fa-file-invoice mt-1"></i>
             </div>
             <div>
@@ -40,8 +40,8 @@
         </div>
 
         <!-- Card 3: Total Part -->
-        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
-            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shadow-amber-500/30 flex items-center justify-center text-white text-xl">
+        <div class="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
+            <div class="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shadow-amber-500/30 flex items-center justify-center text-white text-xl">
                 <i class="fa-solid fa-cubes mt-1"></i>
             </div>
             <div>
@@ -51,8 +51,8 @@
         </div>
 
         <!-- Card 4: PO Close -->
-        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
-            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center text-white text-xl">
+        <div class="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
+            <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center text-white text-xl">
                 <i class="fa-solid fa-flag-checkered mt-1"></i>
             </div>
             <div>
@@ -65,7 +65,7 @@
 
     <!-- Table & Modals -->
     <div class="p-6" x-data="{ activeModal: {{ request('open_event', 'null') }}, activeGlobalPhotoModal: null }">
-        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
@@ -141,17 +141,17 @@
                         <tr @click="activeModal = {{ $po->id }}" class="cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition group text-sm">
                             <td class="px-6 py-4">
                                 <div class="flex items-start gap-4">
-                                    <div class="mt-1 w-6 h-6 rounded bg-blue-100 text-blue-500 dark:bg-blue-900/50 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                    <div class="mt-1 w-6 h-6 bg-blue-100 text-blue-500 dark:bg-blue-900/50 dark:text-blue-400 flex items-center justify-center shrink-0">
                                         <i class="fa-solid fa-expand text-xs"></i>
                                     </div>
                                     <div>
-                                        <div class="text-blue-600 dark:text-blue-400 font-bold text-[11px] uppercase tracking-wide bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 px-2 py-0.5 inline-block rounded mb-1">{{ optional($po->customerCategory)->name ?? 'Unknown Event' }}</div>
+                                        <div class="text-blue-600 dark:text-blue-400 font-bold text-[11px] uppercase tracking-wide bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 px-2 py-0.5 inline-block mb-1">{{ optional($po->customerCategory)->name ?? 'Unknown Event' }}</div>
                                         <div class="text-gray-800 dark:text-gray-200 font-bold text-sm">{{ $po->po_no }}</div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <span class="bg-gray-100 border border-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 px-3 py-1 rounded-full font-bold text-xs">{{ $totalParts }}</span>
+                                <span class="bg-gray-100 border border-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 px-3 py-1 font-bold text-xs">{{ $totalParts }}</span>
                             </td>
                             <td class="px-6 py-4">
                                 @if($earliestDelivery)
@@ -200,21 +200,21 @@
                                         @endphp
                                         <div class="flex flex-col items-center flex-1 relative group">
                                             @if($idx < count($steps) - 1)
-                                                <div class="absolute w-[calc(100%-2.25rem)] top-[14px] left-[calc(50%+1.125rem)] h-[3px] rounded {{ $lineBg }} overflow-hidden">
+                                                <div class="absolute w-[calc(100%-2.25rem)] top-[14px] left-[calc(50%+1.125rem)] h-[3px] {{ $lineBg }} overflow-hidden">
                                                     @if($rPctNext > 0 && $rPctNext < 100)
-                                                        <div class="h-full bg-emerald-500 rounded transition-all duration-700" style="width: {{ $rPctNext }}%"></div>
+                                                        <div class="h-full bg-emerald-500 transition-all duration-700" style="width: {{ $rPctNext }}%"></div>
                                                     @endif
                                                 </div>
                                             @endif
                                             
                                             <div class="relative w-8 h-8 z-10" title="{{ $pCount }} of {{ $totalParts }} Parts selesai ({{ $pPct }}%)">
-                                                <div class="relative w-full h-full bg-white dark:bg-gray-800 border-2 {{ $circleBorder }} flex items-center justify-center rounded-full text-[12px] overflow-hidden shadow-sm transition-all duration-300">
+                                                <div class="relative w-full h-full bg-white dark:bg-gray-800 border-2 {{ $circleBorder }} flex items-center justify-center text-[12px] overflow-hidden shadow-sm transition-all duration-300">
                                                     <div class="absolute bottom-0 left-0 right-0 {{ $fillClass }} transition-all duration-700 ease-out opacity-90" style="height: {{ $pPct }}%; z-index:0;"></div>
                                                     <i class="fa-solid {{ $step['icon'] }} relative z-10 {{ $iconColor }}"></i>
                                                 </div>
                                                 
                                                 @if($showCheck)
-                                                    <div class="absolute -bottom-1 -right-1.5 bg-white dark:bg-gray-800 rounded-full w-4 h-4 flex items-center justify-center z-30 leading-none shadow-sm">
+                                                    <div class="absolute -bottom-1 -right-1.5 bg-white dark:bg-gray-800 w-4 h-4 flex items-center justify-center z-30 leading-none shadow-sm">
                                                         <i class="fa-solid fa-circle-check text-emerald-600 text-[12px]"></i>
                                                     </div>
                                                 @endif
@@ -232,9 +232,9 @@
                             </td>
                             <td class="px-6 py-4 text-right align-top">
                                 <div class="text-[11px] font-medium text-gray-500 text-right w-full flex flex-col items-end gap-1">
-                                    <span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">IN: {{ $po->created_at->format('d M y') }}</span>
+                                    <span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 border border-gray-200 dark:border-gray-600">IN: {{ $po->created_at->format('d M y') }}</span>
                                     @if($poParts->where('status', 'CLOSED')->count() === $totalParts && $totalParts > 0)
-                                        <span class="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 px-2 py-1 rounded border border-emerald-200 shadow-sm mt-1 font-bold"><i class="fa-solid fa-check-double"></i> COMPLETE</span>
+                                        <span class="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 px-2 py-1 border border-emerald-200 shadow-sm mt-1 font-bold"><i class="fa-solid fa-check-double"></i> COMPLETE</span>
                                     @else
                                         <span class="text-amber-600 font-bold mt-1 tracking-wide"><i class="fa-solid fa-spinner fa-spin"></i> ACTIVE</span>
                                     @endif
@@ -278,7 +278,7 @@
                             x-transition:leave="ease-in duration-200"
                             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            class="relative transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-5xl">
+                            class="relative transform overflow-hidden bg-white dark:bg-gray-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-5xl">
                             
                             <!-- Header -->
                             <div class="bg-gray-50/80 dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -292,7 +292,7 @@
                             
                             <!-- Body table -->
                             <div class="px-6 py-4 overflow-y-auto max-h-[70vh]">
-                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                                <div class="border border-gray-200 dark:border-gray-700 overflow-hidden">
                                     <table class="w-full text-[11px] text-left text-slate-600 dark:text-slate-400">
                                         <thead class="bg-blue-50/50 dark:bg-blue-900/20 text-slate-700 dark:text-slate-300 border-b border-gray-200 dark:border-gray-700 uppercase tracking-wider">
                                             <tr>
@@ -383,23 +383,23 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                                                                 @endphp
                                                                 <div class="flex flex-col items-center flex-1 relative">
                                                                     @if($sIdx < count($stepsArr) - 1)
-                                                                        <div class="absolute h-[2px] rounded {{ $lineBg }}" style="width: calc(100% - 24px); left: calc(50% + 12px); top: 11px;"></div>
+                                                                        <div class="absolute h-[2px] {{ $lineBg }}" style="width: calc(100% - 24px); left: calc(50% + 12px); top: 11px;"></div>
                                                                     @endif
                                                                     
                                                                     @if($stepObj['title'] === 'Part Making')
-                                                                        <div @click="expandedPM = expandedPM === {{ $part->id }} ? null : {{ $part->id }}" class="z-10 relative border-2 {{ $circleBorder }} w-6 h-6 flex items-center justify-center rounded-full text-[10px] transition-all duration-300 cursor-pointer hover:scale-125 hover:shadow-md" title="Klik untuk melihat Detail Rute Part Making">
+                                                                        <div @click="expandedPM = expandedPM === {{ $part->id }} ? null : {{ $part->id }}" class="z-10 relative border-2 {{ $circleBorder }} w-6 h-6 flex items-center justify-center text-[10px] transition-all duration-300 cursor-pointer hover:scale-125 hover:shadow-md" title="Klik untuk melihat Detail Rute Part Making">
                                                                             <i class="fa-solid {{ $stepObj['icon'] }}"></i>
                                                                             @if($isPast || ($isReached && $sIdx == 4 && in_array($part->status, ['CLOSED'])))
-                                                                                <div class="absolute -bottom-1 -right-1 bg-white dark:bg-gray-800 rounded-full w-3 h-3 flex items-center justify-center text-[8px] text-emerald-600 shadow-sm">
+                                                                                <div class="absolute -bottom-1 -right-1 bg-white dark:bg-gray-800 w-3 h-3 flex items-center justify-center text-[8px] text-emerald-600 shadow-sm">
                                                                                     <i class="fa-solid fa-circle-check"></i>
                                                                                 </div>
                                                                             @endif
                                                                         </div>
                                                                     @else
-                                                                        <div class="z-10 relative border-2 {{ $circleBorder }} w-6 h-6 flex items-center justify-center rounded-full text-[10px] transition-all duration-300">
+                                                                        <div class="z-10 relative border-2 {{ $circleBorder }} w-6 h-6 flex items-center justify-center text-[10px] transition-all duration-300">
                                                                             <i class="fa-solid {{ $stepObj['icon'] }}"></i>
                                                                             @if($isPast || ($isReached && $sIdx == 4 && in_array($part->status, ['CLOSED'])))
-                                                                                <div class="absolute -bottom-1 -right-1 bg-white dark:bg-gray-800 rounded-full w-3 h-3 flex items-center justify-center text-[8px] text-emerald-600 shadow-sm">
+                                                                                <div class="absolute -bottom-1 -right-1 bg-white dark:bg-gray-800 w-3 h-3 flex items-center justify-center text-[8px] text-emerald-600 shadow-sm">
                                                                                     <i class="fa-solid fa-circle-check"></i>
                                                                                 </div>
                                                                             @endif
@@ -420,7 +420,7 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                                                             <div class="flex items-center justify-between mb-2">
                                                                 <h5 class="text-[9px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5"><i class="fa-solid fa-route"></i> Rute Detail: Part Making</h5>
                                                                 @if($part->processes->where('status', 'FINISHED')->count() > 0)
-                                                                <button @click="activeGlobalPhotoModal = {{ $part->id }}" class="text-[9px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded transition flex items-center gap-1 shadow-sm">
+                                                                <button @click="activeGlobalPhotoModal = {{ $part->id }}" class="text-[9px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 transition flex items-center gap-1 shadow-sm">
                                                                     <i class="fa-solid fa-camera"></i> Cek Qty & Foto
                                                                 </button>
                                                                 @endif
@@ -480,7 +480,7 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
     }
                                                                         @endphp
                                                                         <div class="flex items-center shrink-0">
-                                                                            <div class="flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-bold border {{ $spBg }} shadow-sm">
+                                                                            <div class="flex items-center gap-1.5 px-2 py-1 text-[9px] font-bold border {{ $spBg }} shadow-sm">
                                                                                 <i class="fa-solid {{ $spIcon }}"></i>
                                                                                 {{ optional($pProc->process)->process_name ?? 'Process ' . ($pIdx+1) }}
                                                                             </div>
@@ -491,7 +491,7 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                                                                     @endforeach
                                                                 </div>
                                                             @else
-                                                                <div class="text-[10px] text-gray-400 italic bg-gray-100/50 p-2 rounded w-max">No route mapping (Routing) yet for this part.</div>
+                                                                <div class="text-[10px] text-gray-400 italic bg-gray-100/50 p-2 w-max">No route mapping (Routing) yet for this part.</div>
                                                             @endif
                                                         </div>
                                                     </td>
@@ -504,7 +504,7 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                             
                             <!-- Footer -->
                             <div class="bg-gray-50 dark:bg-gray-800 px-6 py-3 border-t border-gray-200 dark:border-gray-700 flex flex-row-reverse">
-                                <button type="button" @click="{{ request('from_dashboard') ? "window.location.href='".route('dashboard')."'" : 'activeModal = null' }}" class="inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition-colors">Close</button>
+                                <button type="button" @click="{{ request('from_dashboard') ? "window.location.href='".route('dashboard')."'" : 'activeModal = null' }}" class="inline-flex w-full justify-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition-colors">Close</button>
                             </div>
                         </div>
                     </div>
@@ -535,7 +535,7 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                                 x-transition:leave="ease-in duration-200"
                                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                                class="relative transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+                                class="relative transform overflow-hidden bg-white dark:bg-gray-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
                                 
                                 <!-- Header -->
                                 <div class="bg-gray-50/80 dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -551,7 +551,7 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                                 <div class="p-6 max-h-[75vh] overflow-y-auto bg-gray-50/50 dark:bg-gray-900/50">
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         @foreach($part->processes->sortBy('sequence_order') as $idx => $p)
-                                            <div class="flex flex-col bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow transition-shadow group {{ $p->status === 'FINISHED' ? '' : 'opacity-60 saturate-50' }}">
+                                            <div class="flex flex-col bg-white dark:bg-gray-800 overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow transition-shadow group {{ $p->status === 'FINISHED' ? '' : 'opacity-60 saturate-50' }}">
                                                 <!-- Image Box -->
                                                 <div class="relative w-full aspect-video bg-gray-900 flex items-center justify-center border-b border-gray-100 dark:border-gray-700">
                                                     @if($p->photo_proof)
@@ -569,9 +569,9 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                                                     <!-- Status Floating Badge -->
                                                     <div class="absolute top-3 right-3 shadow-md">
                                                     @if($p->status === 'FINISHED')
-                                                        <span class="px-2.5 py-1 rounded bg-emerald-500 text-white text-[10px] font-black tracking-wider uppercase"><i class="fa-solid fa-check mr-1"></i> Done</span>
+                                                        <span class="px-2.5 py-1 bg-emerald-500 text-white text-[10px] font-black tracking-wider uppercase"><i class="fa-solid fa-check mr-1"></i> Done</span>
                                                     @else
-                                                        <span class="px-2.5 py-1 rounded bg-white/90 text-gray-700 text-[10px] font-bold tracking-wider shadow-sm uppercase">{{ $p->status }}</span>
+                                                        <span class="px-2.5 py-1 bg-white/90 text-gray-700 text-[10px] font-bold tracking-wider shadow-sm uppercase">{{ $p->status }}</span>
                                                     @endif
                                                     </div>
                                                 </div>
@@ -579,7 +579,7 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                                                 <!-- Content Box -->
                                                 <div class="p-4 flex flex-col flex-1">
                                                     <h4 class="font-bold text-base text-gray-800 dark:text-gray-100 mb-1 flex items-center gap-2">
-                                                        <span class="flex-shrink-0 w-6 h-6 inline-flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 text-xs shadow-sm">{{ $p->sequence_order }}</span>
+                                                        <span class="flex-shrink-0 w-6 h-6 inline-flex items-center justify-center bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 text-xs shadow-sm">{{ $p->sequence_order }}</span>
                                                         {{ optional($p->process)->process_name ?? 'Process ' . $p->sequence_order }}
                                                     </h4>
                                                     
@@ -616,7 +616,7 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                                 
                                 <!-- Footer -->
                                 <div class="bg-gray-50 dark:bg-gray-800 px-6 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                                    <button type="button" @click="activeGlobalPhotoModal = null" class="px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-50 transition">Close Report</button>
+                                    <button type="button" @click="activeGlobalPhotoModal = null" class="px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 transition">Close Report</button>
                                 </div>
                             </div>
                         </div>
