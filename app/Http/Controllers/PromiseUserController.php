@@ -7,10 +7,22 @@ use Illuminate\Support\Facades\Auth;
 
 class PromiseUserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = \App\Models\User::orderBy('name')->get();
-        return view('master.promise-users.index', compact('users'));
+        $search = $request->input('search');
+        
+        $query = \App\Models\User::query();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%')
+                  ->orWhere('nik', 'like', '%' . $search . '%');
+            });
+        }
+
+        $users = $query->orderBy('name')->get();
+        return view('master.promise-users.index', compact('users', 'search'));
     }
 
     public function create()

@@ -7,11 +7,22 @@ use Illuminate\Support\Facades\Auth;
 
 class NpcUserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Only show users who have at least one NPC Role
-        $users = \App\Models\User::whereHas('roles')->with('roles')->orderBy('name')->get();
-        return view('master.npc-users.index', compact('users'));
+        $search = $request->input('search');
+        
+        $query = \App\Models\User::whereHas('roles')->with('roles');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%')
+                  ->orWhere('nik', 'like', '%' . $search . '%');
+            });
+        }
+
+        $users = $query->orderBy('name')->get();
+        return view('master.npc-users.index', compact('users', 'search'));
     }
 
     public function create()
