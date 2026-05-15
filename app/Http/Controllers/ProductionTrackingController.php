@@ -142,14 +142,19 @@ class ProductionTrackingController extends Controller
     public function completeProcess(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
     {
         $request->validate([
-            'process_id' => 'required|exists:npc_part_processes,id',
-            'actual_completion_date' => 'required|date',
-            'actual_qty' => 'required|integer|min:0',
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'production_notes' => 'nullable|string|max:500',
+            'process_id'              => 'required',
+            'actual_completion_date'  => 'required|date',
+            'actual_qty'              => 'required|integer|min:0',
+            'photo'                   => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'production_notes'        => 'nullable|string|max:500',
         ]);
 
-        $process = \App\Models\NpcPartProcess::where('id', $request->process_id)
+        // Decode hashed process_id
+        $hashids    = new \Hashids\Hashids(env('APP_KEY'), 10);
+        $decodedIds = $hashids->decode($request->process_id);
+        $processId  = $decodedIds[0] ?? null;
+
+        $process = \App\Models\NpcPartProcess::where('id', $processId)
             ->where('npc_part_id', $part->id)
             ->firstOrFail();
 

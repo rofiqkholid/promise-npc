@@ -135,7 +135,7 @@
                                         $hasFinishedProcess = $part->processes->where('status', 'FINISHED')->count() > 0;
                                     @endphp
                                     <button type="button"
-                                        onclick="openCompleteModal({{ $part->hashed_id }}, {{ $activeProcess->hashed_id }}, '{{ optional($activeProcess->process)->process_name }}', '{{ optional($activeProcess->department)->name }}', '{{ route('tracking.process.complete', $part->hashed_id) }}')"
+                                        onclick="openCompleteModal('{{ $part->hashed_id }}', '{{ $activeProcess->hashed_id }}', '{{ optional($activeProcess->process)->process_name }}', '{{ optional($activeProcess->department)->name }}', '{{ route('tracking.process.complete', $part->hashed_id) }}')"
                                         class="inline-flex px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white shadow-sm font-bold transition items-center gap-2 text-[11px] mb-2 w-full justify-center" style="background-color: #f59e0b;">
                                         Complete {{ optional($activeProcess->process)->process_name }} <i class="fa-solid fa-forward-step"></i>
                                     </button>
