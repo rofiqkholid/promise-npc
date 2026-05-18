@@ -5,9 +5,9 @@
 
 @section('content')
 @php
-    $isMGM = $part ? $part->status === 'WAITING_MGM_CHECK' : false;
-    $role = $isMGM ? 'MGM' : 'QC';
-    $readonly = false; // Based on new flow, MGM checks the points, QC just uploads file
+    $readonly = request()->has('readonly') || in_array(optional($part)->status, ['WAITING_APPROVAL', 'FINISHED', 'CLOSED', 'OUTSTANDING']);
+    $isMGM = $part ? ($part->status === 'WAITING_MGM_CHECK' || $readonly) : false;
+    $role = $readonly ? 'READONLY' : ($isMGM ? 'MGM' : 'QC');
 @endphp
 
 <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 max-w-5xl mx-auto">
@@ -21,6 +21,9 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
+            <a href="{{ route('checksheets.preview', $checksheet->hashed_id) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition">
+                <i class="fa-solid fa-print"></i> Preview Report
+            </a>
             <a href="{{ route('checksheets.export', $checksheet->hashed_id) }}" class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold shadow-sm transition">
                 <i class="fa-regular fa-file-excel"></i> Export Excel
             </a>
@@ -165,6 +168,7 @@
                     </ul>
 
                     <!-- New History Input -->
+                    @if(!$readonly)
                     <div class="border-t border-red-200 dark:border-red-800/50 pt-4 mt-4">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Add New History Problem <span class="text-gray-500 text-xs font-normal">(Fill in if there are defect findings outside the checklist)</span>
@@ -178,6 +182,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
                 </div>
 
                 <div class="mb-4 mt-8">
@@ -186,7 +191,7 @@
                 </div>
 
                 @php
-                    $checkCount = max(1, min($part->qty, 10));
+                    $checkCount = max(1, min($part->qty, 12));
                 @endphp
                 <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
                     <table class="min-w-full text-left text-sm whitespace-nowrap">
@@ -229,7 +234,7 @@
                                 </td>
                                 @endfor
                                 <td class="px-4 py-2 text-center">
-                                    <select name="details[{{ $detail->id }}][row_result]" id="row-result-{{ $detail->id }}"
+                                    <select name="details[{{ $detail->id }}][row_result]" id="row-result-{{ $detail->id }}" {{ $readonly ? 'disabled' : '' }}
                                             class="w-full text-xs py-1.5 px-2 font-bold border-gray-300 dark:border-gray-600 shadow-sm focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white @if($detail->row_result == 'OK') text-green-600 bg-green-50 dark:bg-green-900/20 @elseif($detail->row_result == 'NG') text-red-600 bg-red-50 dark:bg-red-900/20 @endif">
                                         <option value="" class="text-gray-400">- Select -</option>
                                         <option value="OK" class="text-green-600 font-bold" {{ $detail->row_result === 'OK' ? 'selected' : '' }}>OK</option>
@@ -251,7 +256,7 @@
                 <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-purple-50 dark:bg-purple-900/10 p-4 border border-purple-100 dark:border-purple-800/30">
                     <div class="flex items-start gap-4 w-full">
                         <label class="font-bold text-gray-800 dark:text-white text-base whitespace-nowrap mt-2">Remark:</label>
-                        <textarea name="final_result" rows="2"
+                        <textarea name="final_result" rows="2" {{ $readonly ? 'disabled' : '' }}
                                 class="border-purple-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-base py-2 px-3 w-full text-gray-800 dark:bg-gray-800 dark:text-white dark:border-gray-600" placeholder="Add remark if necessary...">{{ $checksheet->final_result }}</textarea>
                     </div>
                 </div>
@@ -261,11 +266,13 @@
 
         <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
             <a href="{{ route('tracking.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm text-sm font-medium">
-                Cancel
+                {{ $readonly ? 'Back to Tracking' : 'Cancel' }}
             </a>
-            <button type="submit" class="px-5 py-2 {{ $isMGM ? 'bg-purple-600 hover:bg-purple-700' : 'bg-orange-600 hover:bg-orange-700' }} text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm">
-                <i class="fa-solid fa-floppy-disk"></i> {{ $isMGM ? 'Submit to Approval' : 'Submit Accuracy (QC)' }}
+            @if(!$readonly)
+            <button type="submit" id="submit-btn" data-role="{{ $role }}" class="px-5 py-2 {{ $isMGM ? 'bg-purple-600 hover:bg-purple-700' : 'bg-orange-600 hover:bg-orange-700' }} text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm">
+                <i class="fa-solid fa-floppy-disk"></i> <span id="submit-btn-text">{{ $isMGM ? 'Submit to Approval' : 'Submit Accuracy (QC)' }}</span>
             </button>
+            @endif
         </div>
     </form>
 </div>
@@ -317,7 +324,8 @@
         // Sample Check Toggle Logic
         document.querySelectorAll('.sample-cell').forEach(cell => {
             cell.addEventListener('click', function() {
-                if (this.closest('tr').querySelector('select[name$="[row_result]"]').disabled) return; // Prevent if readonly
+                const selectElement = this.closest('tr').querySelector('select[name$="[row_result]"]');
+                if (!selectElement || selectElement.disabled) return; // Prevent if readonly
                 
                 const detailId = this.dataset.detailId;
                 const input = this.querySelector('input[type="hidden"]');
@@ -369,6 +377,34 @@
                 resultSelect.value = '';
                 updateSelectStyle(resultSelect, '');
             }
+            
+            updateOverallFormStatus();
+        }
+
+        function updateOverallFormStatus() {
+            const submitBtn = document.getElementById('submit-btn');
+            if (!submitBtn || submitBtn.dataset.role !== 'MGM') return;
+
+            const allSelects = document.querySelectorAll('select[name$="[row_result]"]');
+            let hasNg = false;
+            allSelects.forEach(select => {
+                if (select.value === 'NG') hasNg = true;
+            });
+
+            const btnText = document.getElementById('submit-btn-text');
+            const icon = submitBtn.querySelector('i');
+
+            if (hasNg) {
+                btnText.textContent = 'Save Draft (NG Found)';
+                icon.className = 'fa-solid fa-save';
+                submitBtn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                submitBtn.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+            } else {
+                btnText.textContent = 'Submit to Approval';
+                icon.className = 'fa-solid fa-floppy-disk';
+                submitBtn.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
+                submitBtn.classList.add('bg-purple-600', 'hover:bg-purple-700');
+            }
         }
 
         function updateSelectStyle(select, value) {
@@ -379,6 +415,9 @@
                 select.classList.add('text-red-600', 'bg-red-50', 'dark:bg-red-900/20');
             }
         }
+
+        // Initialize button state on page load
+        updateOverallFormStatus();
     });
 </script>
 @endpush

@@ -19,6 +19,9 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
+            <a href="{{ route('checksheets.preview', $checksheet->hashed_id) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition">
+                <i class="fa-solid fa-print"></i> Preview Report
+            </a>
             <a href="{{ route('checksheets.export', $checksheet->hashed_id) }}" class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold shadow-sm transition">
                 <i class="fa-regular fa-file-excel"></i> Export Excel
             </a>
@@ -70,7 +73,16 @@
     <form action="{{ route('checksheet-approvals.store', $checksheet->hashed_id) }}" method="POST">
         @csrf
         @php
-            $levelName = str_replace('WAITING_', '', $checksheet->approval_status);
+            $levelMap = [
+                'WAITING_QE_STAFF' => 'QE Staff / SPV',
+                'WAITING_MGM_STAFF' => 'NPC Staff / SPV',
+                'WAITING_QE_SPV' => 'QE Asst Mgr',
+                'WAITING_MGM_SPV' => 'NPC Asst Mgr',
+                'WAITING_QE_MGR' => 'QE Mgr',
+                'WAITING_MGM_MGR' => 'NPC Mgr',
+                'APPROVED' => 'Fully Approved'
+            ];
+            $levelName = $levelMap[$checksheet->approval_status] ?? str_replace('WAITING_', '', $checksheet->approval_status);
         @endphp
 
         @if ($errors->any())
@@ -120,7 +132,7 @@
                 </div>
 
                 @php
-                    $checkCount = max(1, min($part->qty, 10));
+                    $checkCount = max(1, min($part->qty, 12));
                 @endphp
                 <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
                     <table class="min-w-full text-left text-sm whitespace-nowrap">

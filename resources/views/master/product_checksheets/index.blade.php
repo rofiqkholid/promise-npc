@@ -13,6 +13,11 @@
                 </h2>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 pl-7">Manage QC checkpoint specifications for each part number.</p>
             </div>
+            <div>
+                <a href="{{ route('master.checksheets.import') }}" class="px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-md shadow-emerald-500/20 font-medium text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-file-import"></i> Import Excel
+                </a>
+            </div>
         </div>
 
         <form id="searchForm" method="GET" action="{{ route('master.checksheets.index') }}" class="w-full">

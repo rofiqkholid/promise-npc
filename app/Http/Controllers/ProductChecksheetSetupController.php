@@ -9,6 +9,11 @@ use App\Models\ProductCheckpoint;
 use App\Models\NpcProductDetail;
 use App\Models\NpcSpecChildPart;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Exception;
 
 class ProductChecksheetSetupController extends Controller
 {
@@ -177,5 +182,126 @@ class ProductChecksheetSetupController extends Controller
         }
 
         return redirect()->route('master.checksheets.index')->with('success', 'Master Checksheet for Part ' . $product->part_no . ' successfully saved!');
+    }
+
+    public function importForm()
+    {
+        return view('master.product_checksheets.import');
+    }
+
+    public function downloadTemplate()
+    {
+        try {
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            
+            // Set Headers
+            $headers = ['PART NO', 'CHECKPOINT NUMBER', 'POINT CHECK NAME', 'CUSTOM STANDARD'];
+            foreach ($headers as $index => $header) {
+                $column = chr(65 + $index);
+                $sheet->setCellValue($column . '1', $header);
+                $sheet->getStyle($column . '1')->getFont()->setBold(true);
+            }
+            
+            // Add Sample Data
+            $sampleData = [
+                ['PART-001', '1', 'Visual Check', 'No Scratch'],
+                ['PART-001', '2', 'Dimension', 'Length 100mm +- 0.5'],
+                ['PART-002', '1', 'Visual Check', 'Surface Smooth'],
+            ];
+            
+            foreach ($sampleData as $rowIndex => $rowData) {
+                foreach ($rowData as $columnIndex => $value) {
+                    $column = chr(65 + $columnIndex);
+                    $sheet->setCellValue($column . ($rowIndex + 2), $value);
+                }
+            }
+            
+            // Auto size columns
+            foreach (range('A', 'D') as $columnID) {
+                $sheet->getColumnDimension($columnID)->setAutoSize(true);
+            }
+            
+            $writer = new Xlsx($spreadsheet);
+            $fileName = 'Routing_Checksheet_Import_Template_' . date('Ymd_His') . '.xlsx';
+            $tempFile = tempnam(sys_get_temp_dir(), $fileName);
+            $writer->save($tempFile);
+            
+            return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
+            
+        } catch (Exception $e) {
+            return back()->with('error', 'Failed generating template: ' . $e->getMessage());
+        }
+    }
+
+    public function importData(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        try {
+            $spreadsheet = IOFactory::load($request->file('file')->getRealPath());
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
+            
+            // Skip Header
+            $headers = array_shift($rows);
+
+            $importedCount = 0;
+            $partsProcessed = [];
+
+            DB::beginTransaction();
+
+            foreach ($rows as $row) {
+                if (empty($row[0])) continue; // Skip empty PART NO
+
+                $partNo = trim($row[0]);
+                $checkpointNum = trim($row[1] ?? '');
+                $pointCheckName = trim($row[2] ?? '');
+                $customStandard = trim($row[3] ?? '');
+
+                if (empty($checkpointNum) && empty($pointCheckName)) continue;
+
+                // 1. Resolve Product
+                $product = Product::where('part_no', $partNo)->first();
+                if (!$product) continue;
+
+                // 2. Resolve Master Checkpoint
+                $masterPointQuery = NpcMasterCheckpoint::query();
+                if (!empty($checkpointNum)) {
+                    $masterPointQuery->where('point_number', $checkpointNum);
+                } elseif (!empty($pointCheckName)) {
+                    $masterPointQuery->where('point_check', $pointCheckName);
+                }
+                
+                $masterPoint = $masterPointQuery->first();
+                if (!$masterPoint) continue;
+
+                // 3. Delete existing checksheet for this part if not processed yet in this loop
+                if (!in_array($product->id, $partsProcessed)) {
+                    ProductCheckpoint::where('product_id', $product->id)->delete();
+                    $partsProcessed[] = $product->id;
+                }
+
+                // 4. Insert checksheet routing
+                ProductCheckpoint::create([
+                    'product_id' => $product->id,
+                    'npc_master_checkpoint_id' => $masterPoint->id,
+                    'custom_standard' => $customStandard ?: null,
+                ]);
+
+                $importedCount++;
+            }
+
+            DB::commit();
+
+            $partCount = count($partsProcessed);
+            return redirect()->route('master.checksheets.index')->with('success', "Success! $importedCount checkpoints mapped for $partCount Part(s).");
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed processing Excel: ' . $e->getMessage());
+        }
     }
 }

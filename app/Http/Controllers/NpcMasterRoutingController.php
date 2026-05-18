@@ -7,6 +7,10 @@ use App\Models\Product;
 use App\Models\NpcProcess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Exception;
 
 class NpcMasterRoutingController extends Controller
 {
@@ -148,5 +152,123 @@ class NpcMasterRoutingController extends Controller
         });
 
         return response()->json(['success' => true, 'message' => 'Routing sequence successfully updated.']);
+    }
+
+    public function importForm()
+    {
+        return view('master.routings.import');
+    }
+
+    public function downloadTemplate()
+    {
+        try {
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            
+            // Set Headers
+            $headers = ['PART NO', 'PROCESS NAME', 'DEPARTMENT NAME', 'SEQUENCE ORDER'];
+            foreach ($headers as $index => $header) {
+                $column = chr(65 + $index);
+                $sheet->setCellValue($column . '1', $header);
+                $sheet->getStyle($column . '1')->getFont()->setBold(true);
+            }
+            
+            // Add Sample Data
+            $sampleData = [
+                ['PART-001', 'Laser Cutting', 'Produksi', 1],
+                ['PART-001', 'Bending', 'Produksi', 2],
+                ['PART-001', 'Welding', 'Produksi', 3],
+                ['PART-002', 'Bending', 'Produksi', 1],
+            ];
+            
+            foreach ($sampleData as $rowIndex => $rowData) {
+                foreach ($rowData as $columnIndex => $value) {
+                    $column = chr(65 + $columnIndex);
+                    $sheet->setCellValue($column . ($rowIndex + 2), $value);
+                }
+            }
+            
+            // Auto size columns
+            foreach (range('A', 'D') as $columnID) {
+                $sheet->getColumnDimension($columnID)->setAutoSize(true);
+            }
+            
+            $writer = new Xlsx($spreadsheet);
+            $fileName = 'Routing_Proses_Import_Template_' . date('Ymd_His') . '.xlsx';
+            $tempFile = tempnam(sys_get_temp_dir(), $fileName);
+            $writer->save($tempFile);
+            
+            return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
+            
+        } catch (Exception $e) {
+            return back()->with('error', 'Failed generating template: ' . $e->getMessage());
+        }
+    }
+
+    public function importData(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        try {
+            $spreadsheet = IOFactory::load($request->file('file')->getRealPath());
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
+            
+            // Skip Header
+            $headers = array_shift($rows);
+
+            $importedCount = 0;
+            $partsProcessed = [];
+
+            DB::beginTransaction();
+
+            foreach ($rows as $row) {
+                if (empty($row[0])) continue; // Skip empty PART NO
+
+                $partNo = trim($row[0]);
+                $processName = trim($row[1] ?? '');
+                $deptName = trim($row[2] ?? '');
+                $seqOrder = (int) ($row[3] ?? 1);
+
+                if (empty($processName) || empty($deptName)) continue;
+
+                // 1. Resolve IDs
+                $product = Product::where('part_no', $partNo)->first();
+                if (!$product) continue;
+
+                $process = \App\Models\NpcProcess::where('process_name', $processName)->first();
+                if (!$process) continue;
+
+                $department = \App\Models\NpcDepartment::where('name', $deptName)->first();
+                if (!$department) continue;
+
+                // 2. Delete existing routing for this part if not processed yet in this loop
+                if (!in_array($product->id, $partsProcessed)) {
+                    NpcMasterRouting::where('part_id', $product->id)->delete();
+                    $partsProcessed[] = $product->id;
+                }
+
+                // 3. Insert routing
+                NpcMasterRouting::create([
+                    'part_id' => $product->id,
+                    'process_id' => $process->id,
+                    'department_id' => $department->id,
+                    'sequence_order' => $seqOrder,
+                ]);
+
+                $importedCount++;
+            }
+
+            DB::commit();
+
+            $partCount = count($partsProcessed);
+            return redirect()->route('master.routings.index')->with('success', "Success! $importedCount routing steps imported for $partCount Part(s).");
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed processing Excel: ' . $e->getMessage());
+        }
     }
 }

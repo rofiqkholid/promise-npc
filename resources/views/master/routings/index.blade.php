@@ -20,9 +20,14 @@
         <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
             <i class="fa-solid fa-route text-blue-500"></i> Register Master Routing
         </h2>
-        <a href="{{ route('master.routings.create') }}" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 transition shadow-md shadow-blue-500/20 font-medium text-sm flex items-center gap-2">
-            <i class="fa-solid fa-plus"></i> Add Routing
-        </a>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('master.routings.import') }}" class="px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-md shadow-emerald-500/20 font-medium text-sm flex items-center gap-2">
+                <i class="fa-solid fa-file-import"></i> Import Excel
+            </a>
+            <a href="{{ route('master.routings.create') }}" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 transition shadow-md shadow-blue-500/20 font-medium text-sm flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> Add Routing
+            </a>
+        </div>
     </div>
 
     <div class="p-6">

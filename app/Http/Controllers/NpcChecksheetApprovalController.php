@@ -61,22 +61,22 @@ class NpcChecksheetApprovalController extends Controller
         if ($status === 'WAITING_QE_STAFF') {
             $updateData['qe_staff_id'] = $userId;
             $updateData['qe_staff_date'] = $now;
-            $updateData['approval_status'] = 'WAITING_QE_SPV';
-        } elseif ($status === 'WAITING_QE_SPV') {
-            $updateData['qe_spv_id'] = $userId;
-            $updateData['qe_spv_date'] = $now;
-            $updateData['approval_status'] = 'WAITING_QE_MGR';
-        } elseif ($status === 'WAITING_QE_MGR') {
-            $updateData['qe_mgr_id'] = $userId;
-            $updateData['qe_mgr_date'] = $now;
             $updateData['approval_status'] = 'WAITING_MGM_STAFF';
         } elseif ($status === 'WAITING_MGM_STAFF') {
             $updateData['mgm_staff_id'] = $userId;
             $updateData['mgm_staff_date'] = $now;
+            $updateData['approval_status'] = 'WAITING_QE_SPV';
+        } elseif ($status === 'WAITING_QE_SPV') {
+            $updateData['qe_spv_id'] = $userId;
+            $updateData['qe_spv_date'] = $now;
             $updateData['approval_status'] = 'WAITING_MGM_SPV';
         } elseif ($status === 'WAITING_MGM_SPV') {
             $updateData['mgm_spv_id'] = $userId;
             $updateData['mgm_spv_date'] = $now;
+            $updateData['approval_status'] = 'WAITING_QE_MGR';
+        } elseif ($status === 'WAITING_QE_MGR') {
+            $updateData['qe_mgr_id'] = $userId;
+            $updateData['qe_mgr_date'] = $now;
             $updateData['approval_status'] = 'WAITING_MGM_MGR';
         } elseif ($status === 'WAITING_MGM_MGR') {
             $updateData['mgm_mgr_id'] = $userId;

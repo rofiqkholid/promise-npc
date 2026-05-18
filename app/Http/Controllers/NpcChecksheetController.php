@@ -124,23 +124,24 @@ class NpcChecksheetController extends Controller
                 'details' => 'array'
             ]);
 
+            $hasNg = false;
+            $ngDescriptions = [];
             foreach ($request->input('details', []) as $id => $data) {
                 $detail = NpcChecksheetDetail::find($id);
                 if ($detail && $detail->npc_checksheet_id == $checksheet->id) {
+                    $rowResult = $data['row_result'] ?? null;
+                    if ($rowResult === 'NG') {
+                        $hasNg = true;
+                        $ngDescriptions[] = "NG found on point: " . $detail->point_check;
+                    }
                     $detail->update([
-                        'row_result' => $data['row_result'] ?? null,
+                        'row_result' => $rowResult,
                         'samples' => $data['samples'] ?? null,
                     ]);
                 }
             }
 
-            $checksheet->update([
-                'final_result' => $request->final_result,
-                'mgm_checked_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
-                'mgm_check_date' => Carbon::now(),
-                'approval_status' => 'WAITING_QE_STAFF' // Enter Approval Phase
-            ]);
-
+            // Save manual history problems first
             if ($request->has('new_history_problems') && is_array($request->new_history_problems)) {
                 $problems = array_filter($request->new_history_problems, function($val) {
                     return !empty(trim($val));
@@ -162,6 +163,48 @@ class NpcChecksheetController extends Controller
                 }
             }
 
+            if ($hasNg) {
+                $checksheet->update([
+                    'final_result' => $request->final_result,
+                    'mgm_checked_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
+                    'mgm_check_date' => Carbon::now(),
+                ]);
+
+                // Auto-record NG history problems
+                if (!empty($ngDescriptions) && $part->product) {
+                    $insertData = [];
+                    foreach ($ngDescriptions as $desc) {
+                        $exists = \App\Models\ProductHistoryProblem::where('product_id', $part->product->id)
+                            ->where('npc_part_id_finder', $part->id)
+                            ->where('problem_description', $desc)
+                            ->exists();
+
+                        if (!$exists) {
+                            $insertData[] = [
+                                'product_id' => $part->product->id,
+                                'problem_description' => $desc,
+                                'npc_part_id_finder' => $part->id,
+                                'created_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ];
+                        }
+                    }
+                    if (!empty($insertData)) {
+                        \App\Models\ProductHistoryProblem::insert($insertData);
+                    }
+                }
+
+                return redirect()->back()->with('warning', 'Data saved as Draft. NG history has been automatically recorded. Cannot submit to Approval Phase until all results are OK.');
+            }
+
+            $checksheet->update([
+                'final_result' => $request->final_result,
+                'mgm_checked_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
+                'mgm_check_date' => Carbon::now(),
+                'approval_status' => 'WAITING_QE_STAFF' // Enter Approval Phase
+            ]);
+
             // Instead of FINISHED, move part to WAITING_APPROVAL
             if ($part->status === 'WAITING_MGM_CHECK') {
                 $part->update(['status' => 'WAITING_APPROVAL']);
@@ -174,11 +217,23 @@ class NpcChecksheetController extends Controller
     }
 
     /**
+     * Preview checksheet as web layout
+     */
+    public function preview(NpcChecksheet $checksheet)
+    {
+        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.event.customerCategory', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail', 'qeStaff', 'qeSpv', 'qeMgr', 'mgmStaff', 'mgmSpv', 'mgmMgr', 'npcPart.processes.process');
+        $part = $checksheet->npcPart;
+        $product = $part->product;
+
+        return view('npc_checksheets.preview', compact('checksheet', 'part', 'product'));
+    }
+
+    /**
      * Export checksheet to Excel
      */
     public function export(NpcChecksheet $checksheet)
     {
-        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.event.customerCategory', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail', 'qeStaff', 'qeSpv', 'qeMgr', 'mgmStaff', 'mgmSpv', 'mgmMgr');
+        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.event.customerCategory', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail', 'qeStaff', 'qeSpv', 'qeMgr', 'mgmStaff', 'mgmSpv', 'mgmMgr', 'npcPart.processes.process');
         $part = $checksheet->npcPart;
         $product = $part->product;
 
@@ -289,7 +344,9 @@ class NpcChecksheetController extends Controller
         
         $sheet->mergeCells('A8:B8');
         $sheet->setCellValue('A8', 'Process');
-        $sheet->setCellValue('C8', 'SSW'); // Default or dynamic
+        $processNames = $part->processes ? $part->processes->map(function($p) { return optional($p->process)->process_name; })->filter()->implode(', ') : '-';
+        if (empty($processNames)) $processNames = '-';
+        $sheet->setCellValue('C8', $processNames);
         $sheet->setCellValue('D8', 'Manual');
         $sheet->mergeCells('E8:I8');
         $sheet->setCellValue('E8', 'Auto/Robot');
@@ -530,17 +587,17 @@ class NpcChecksheetController extends Controller
         $sheet->setCellValue('I' . $sigRow, 'NPC / MANAGEMENT');
         $sheet->getStyle('C' . $sigRow . ':Q' . $sigRow)->getFont()->setBold(true);
         
-        $sheet->setCellValue('C' . ($sigRow + 1), 'Mgr/Asst Mgr');
-        $sheet->setCellValue('D' . ($sigRow + 1), 'Spv/Leader');
+        $sheet->setCellValue('C' . ($sigRow + 1), 'Mgr');
+        $sheet->setCellValue('D' . ($sigRow + 1), 'Asst Mgr');
         $sheet->mergeCells('E' . ($sigRow + 1) . ':H' . ($sigRow + 1));
-        $sheet->setCellValue('E' . ($sigRow + 1), 'Staff/Opr');
+        $sheet->setCellValue('E' . ($sigRow + 1), 'Staff/SPV');
         
         $sheet->mergeCells('I' . ($sigRow + 1) . ':K' . ($sigRow + 1));
-        $sheet->setCellValue('I' . ($sigRow + 1), "Management\nMgr/Asst Mgr");
+        $sheet->setCellValue('I' . ($sigRow + 1), 'Mgr');
         $sheet->mergeCells('L' . ($sigRow + 1) . ':N' . ($sigRow + 1));
-        $sheet->setCellValue('L' . ($sigRow + 1), "Management\nSpv/Leader");
+        $sheet->setCellValue('L' . ($sigRow + 1), 'Asst Mgr');
         $sheet->mergeCells('O' . ($sigRow + 1) . ':Q' . ($sigRow + 1));
-        $sheet->setCellValue('O' . ($sigRow + 1), "Management\nStaff/Opr");
+        $sheet->setCellValue('O' . ($sigRow + 1), 'Staff/SPV');
         $sheet->getStyle('I' . ($sigRow + 1) . ':Q' . ($sigRow + 1))->getAlignment()->setWrapText(true);
         
         // Empty boxes for signature -> now filled with names

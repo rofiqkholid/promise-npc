@@ -442,11 +442,18 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                                                         <div class="ml-2">
                                                             <div class="flex items-center justify-between mb-2">
                                                                 <h5 class="text-[9px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5"><i class="fa-solid fa-route"></i> Rute Detail: Part Making</h5>
-                                                                @if($part->processes->where('status', 'FINISHED')->count() > 0)
-                                                                <button @click="activeGlobalPhotoModal = {{ $part->id }}" class="text-[9px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 transition flex items-center gap-1 shadow-sm">
-                                                                    <i class="fa-solid fa-camera"></i> Cek Qty & Foto
-                                                                </button>
-                                                                @endif
+                                                                <div class="flex gap-2">
+                                                                    @if($part->processes->where('status', 'FINISHED')->count() > 0)
+                                                                    <button @click="activeGlobalPhotoModal = {{ $part->id }}" class="text-[9px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 transition flex items-center gap-1 shadow-sm">
+                                                                        <i class="fa-solid fa-camera"></i> Cek Qty & Foto
+                                                                    </button>
+                                                                    @endif
+                                                                    @if($part->checksheet)
+                                                                    <a href="{{ route('checksheets.edit', ['checksheet' => $part->checksheet->hashed_id, 'readonly' => 1]) }}" class="text-[9px] font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2 py-0.5 transition flex items-center gap-1 shadow-sm">
+                                                                        <i class="fa-solid fa-clipboard-check"></i> Lihat Checksheet
+                                                                    </a>
+                                                                    @endif
+                                                                </div>
                                                             </div>
                                                             @if($part->processes && $part->processes->count() > 0)
                                                                 @php

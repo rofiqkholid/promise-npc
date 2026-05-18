@@ -72,7 +72,16 @@
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($checksheets as $index => $checksheet)
                         @php
-                            $levelName = str_replace('WAITING_', '', $checksheet->approval_status);
+                            $levelMap = [
+                                'WAITING_QE_STAFF' => 'QE Staff / SPV',
+                                'WAITING_MGM_STAFF' => 'NPC Staff / SPV',
+                                'WAITING_QE_SPV' => 'QE Asst Mgr',
+                                'WAITING_MGM_SPV' => 'NPC Asst Mgr',
+                                'WAITING_QE_MGR' => 'QE Mgr',
+                                'WAITING_MGM_MGR' => 'NPC Mgr',
+                                'APPROVED' => 'Fully Approved'
+                            ];
+                            $levelName = $levelMap[$checksheet->approval_status] ?? str_replace('WAITING_', '', $checksheet->approval_status);
                         @endphp
                         <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-gray-700/30 transition group">
                             <td class="px-6 py-4 text-slate-800 dark:text-slate-200 text-sm">

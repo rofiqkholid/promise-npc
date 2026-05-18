@@ -64,10 +64,16 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('std-parts', NpcMasterStdPartController::class)->except(['show']);
         Route::resource('departments', NpcMasterDepartmentController::class)->except(['show']);
         // Menambahkan Routings Route tapi dengan parameter part_id khusus
+        Route::get('routings/import/template', [\App\Http\Controllers\NpcMasterRoutingController::class, 'downloadTemplate'])->name('routings.import.template');
+        Route::get('routings/import', [\App\Http\Controllers\NpcMasterRoutingController::class, 'importForm'])->name('routings.import');
+        Route::post('routings/import', [\App\Http\Controllers\NpcMasterRoutingController::class, 'importData'])->name('routings.import.store');
         Route::post('routings/reorder', [\App\Http\Controllers\NpcMasterRoutingController::class, 'reorder'])->name('routings.reorder');
         Route::resource('routings', \App\Http\Controllers\NpcMasterRoutingController::class)->except(['show']);
         
         // Master Checksheet Mapping based on Product
+        Route::get('product-checksheets/import/template', [\App\Http\Controllers\ProductChecksheetSetupController::class, 'downloadTemplate'])->name('checksheets.import.template');
+        Route::get('product-checksheets/import', [\App\Http\Controllers\ProductChecksheetSetupController::class, 'importForm'])->name('checksheets.import');
+        Route::post('product-checksheets/import', [\App\Http\Controllers\ProductChecksheetSetupController::class, 'importData'])->name('checksheets.import.store');
         Route::get('product-checksheets', [\App\Http\Controllers\ProductChecksheetSetupController::class, 'index'])->name('checksheets.index');
 
         Route::resource('internal-categories', \App\Http\Controllers\NpcInternalCategoryController::class)->except(['show']);
@@ -195,6 +201,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/tracking/products/{product}/checksheet-setup', [ProductChecksheetSetupController::class, 'update'])->name('checksheets.setup.update');
     Route::get('/tracking/{part}/checksheet/create', [NpcChecksheetController::class, 'create'])->name('checksheets.create');
     Route::get('/tracking/{part}/print-label', [NpcChecksheetController::class, 'printLabel'])->name('checksheets.print-label');
+    Route::get('/checksheets/{checksheet}/preview', [NpcChecksheetController::class, 'preview'])->name('checksheets.preview');
     Route::get('/checksheets/{checksheet}/export', [NpcChecksheetController::class, 'export'])->name('checksheets.export');
     Route::get('/checksheets/{checksheet}/edit', [NpcChecksheetController::class, 'edit'])->name('checksheets.edit');
     Route::put('/checksheets/{checksheet}', [NpcChecksheetController::class, 'update'])->name('checksheets.update');
