@@ -41,7 +41,7 @@ class ActivityLogController extends Controller
             }
         }
 
-        $logs = $query->paginate(10)->withQueryString();
+        $logs = $query->limit(2000)->get();
 
         // Data for filter dropdowns
         $users = \App\Models\User::whereHas('roles')

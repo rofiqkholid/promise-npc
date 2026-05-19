@@ -87,7 +87,7 @@
     </div>
 
     <div class="overflow-x-auto" x-data="{ openModal: null }">
-        <table class="min-w-full table-fixed text-sm text-left">
+        <table id="activityTable" class="min-w-full table-fixed text-sm text-left">
             <thead class="bg-gray-50/80 text-gray-900 font-bold uppercase text-xs">
                 <tr>
                     <th scope="col" class="px-6 py-3 font-semibold w-[5%] text-center">No.</th>
@@ -97,11 +97,11 @@
                     <th scope="col" class="px-6 py-3 font-semibold w-[30%]">Subject</th>
                 </tr>
             </thead>
-            <tbody class="bg-white">
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                 @forelse($logs as $log)
-                    <tr class="hover:bg-gray-100 transition even:bg-gray-50">
+                    <tr class="hover:bg-gray-100 transition">
                         <td class="px-6 py-4 whitespace-nowrap text-center text-gray-500 dark:text-gray-400 font-medium">
-                            {{ $logs->firstItem() + $loop->index }}
+                            {{ $loop->iteration }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-200">
                             <div class="font-bold">{{ $log->created_at->timezone('Asia/Jakarta')->format('d M Y') }}</div>
@@ -224,8 +224,53 @@
         </table>
     </div>
 
-    <div class="px-6 py-4 flex justify-center mt-2 border-t border-gray-200">
-        {{ $logs->links() }}
-    </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        $('#activityTable').DataTable({
+            responsive: true,
+            pageLength: 10,
+            lengthChange: false, // Hide "Show 10 entries"
+            info: false,         // Hide "Showing 1 to 10..."
+            searching: false,    // Hide search box (we use custom filters)
+            ordering: false,     // Disable column sorting for now
+            stripeClasses: ['bg-white dark:bg-gray-800', 'bg-gray-50 dark:bg-gray-750'], // Native zebra striping
+            dom: 'rt<"flex justify-center mt-6 mb-2"p>', // Render Table -> Pagination
+            language: {
+                paginate: {
+                    previous: "Previous",
+                    next: "Next"
+                }
+            },
+            drawCallback: function() {
+                // Style the pagination container
+                $('.dataTables_paginate').addClass('inline-flex -space-x-px rounded-md shadow-sm');
+                
+                // Reset native datatables styles and apply Tailwind classes to all buttons
+                $('.dataTables_paginate .paginate_button')
+                    .removeClass('paginate_button current disabled') // Clean up existing
+                    .addClass('relative inline-flex items-center px-4 py-2 text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:z-20 cursor-pointer first:rounded-l-md last:rounded-r-md');
+                
+                // Style Active button (Page 1, 2, etc)
+                $('.dataTables_paginate .active')
+                    .removeClass('bg-white text-gray-700 hover:bg-gray-50')
+                    .addClass('z-10 bg-gray-100 border-gray-300 text-gray-900 font-bold');
+                
+                // Style Disabled buttons (Prev/Next when at end)
+                $('.dataTables_paginate .disabled')
+                    .removeClass('hover:bg-gray-50 cursor-pointer text-gray-700')
+                    .addClass('opacity-50 cursor-not-allowed text-gray-400');
+                    
+                // Fix classes applied by DataTables dynamically
+                $('#activityTable_paginate a').each(function() {
+                    $(this).removeClass('paginate_button');
+                });
+            }
+        });
+    });
+</script>
+@endpush

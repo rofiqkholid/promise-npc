@@ -7,9 +7,21 @@
 </div>
 
 @once
+<style>
+    /* Global DataTables Sorting Arrows styling */
+    table.dataTable thead th { position: relative; cursor: pointer; }
+    table.dataTable thead th.sorting:after, table.dataTable thead th.sorting_asc:after, table.dataTable thead th.sorting_desc:after {
+        font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: #9ca3af; opacity: 0.5;
+    }
+    table.dataTable thead th.sorting:after { content: "\f0dc"; } 
+    table.dataTable thead th.sorting_asc:after { content: "\f0de"; opacity: 1; color: #4b5563; }
+    table.dataTable thead th.sorting_desc:after { content: "\f0dd"; opacity: 1; color: #4b5563; }
+    table.dataTable thead th.no-sort { cursor: default; }
+    table.dataTable thead th.no-sort:after { display: none; }
+</style>
 <script>
     /**
-     * Global DataTable Helper
+     * Global DataTable Helper (Elegant Minimalist Template)
      */
     window.defaultDataTable = function (selector, userConfig = {}) {
         if (typeof $ === 'undefined') return console.error('jQuery required');
@@ -17,43 +29,41 @@
         const defaults = {
             processing: true,
             serverSide: false,
-            scrollCollapse: true,
-            autoWidth: false,
-            ordering: true,
-            order: [[0, 'desc']],
+            responsive: true,
+            lengthChange: false, // Hide "Show 10 entries" globally
+            info: false,         // Hide "Showing 1 to X" globally
+            searching: true,     // Keep search globally unless overridden
             pageLength: 10,
-            lengthMenu: [10, 25, 50, 100],
-            dom: "<'flex flex-col sm:flex-row justify-between items-center mb-6 gap-4'<'flex items-center gap-3'l B><'w-full sm:w-auto'f>>r<'overflow-x-auto w-full relative border border-gray-200 dark:border-gray-700 't><'flex flex-col md:flex-row justify-between items-center mt-6 gap-4 text-gray-500'i p>",
-            buttons: [
-                { extend: 'excel', text: '<i class="fa-solid fa-file-excel"></i>', className: 'dt-button buttons-excel' },
-                { extend: 'pdf', text: '<i class="fa-solid fa-file-pdf"></i>', className: 'dt-button buttons-pdf' },
-                { extend: 'print', text: '<i class="fa-solid fa-print"></i>', className: 'dt-button buttons-print' }
-            ],
+            stripeClasses: ['bg-white dark:bg-gray-800', 'bg-gray-50 dark:bg-gray-750'], // Native zebra striping
+            dom: "<'flex justify-end mb-4'f>rt<'flex justify-center mt-6 mb-2'p>", // Clean DOM
             language: {
-                processing: '<div class="inline-flex items-center"><span class="animate-spin mr-2"></span> Loading...</div>',
-                search: "_INPUT_",
+                search: "",
                 searchPlaceholder: "Search records...",
-                paginate: { previous: '<i class="fa-solid fa-chevron-left"></i>', next: '<i class="fa-solid fa-chevron-right"></i>' },
-                emptyTable: `
-                    <div class="py-16 flex flex-col items-center justify-center text-center w-full">
-                        <div>
-                            <i class="fa-solid fa-folder-open text-3xl text-slate-300 dark:text-gray-600 m-4"></i>
-                        </div>
-                        <h4 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-widest mb-2">No Records Found</h4>
-                        <p class="text-xs text-gray-400 dark:text-gray-500 max-w-xs mx-auto font-medium leading-relaxed">It looks like there are no records matching your current criteria. Try adding a new record or adjusting your filters.</p>
-                    </div>
-                `,
-                zeroRecords: `
-                    <div class="py-16 flex flex-col items-center justify-center text-center w-full">
-                        <div>
-                            <i class="fa-solid fa-magnifying-glass text-3xl text-slate-300 dark:text-gray-600 m-4"></i>
-                        </div>
-                        <h4 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-widest mb-2">No Matching Results</h4>
-                        <p class="text-xs text-gray-400 dark:text-gray-500 max-w-xs mx-auto font-medium leading-relaxed">We couldn't find any data matching your search. Try using different keywords or clearing your filters.</p>
-                    </div>
-                `,
-                lengthMenu: "_MENU_",
-                infoFiltered: ""
+                paginate: { previous: "Previous", next: "Next" },
+                emptyTable: `<div class="py-12 text-center text-gray-500"><i class="fa-solid fa-ghost text-4xl text-gray-300 mb-3 block"></i><p class="font-medium text-lg">No records found</p></div>`,
+                zeroRecords: `<div class="py-12 text-center text-gray-500"><i class="fa-solid fa-magnifying-glass text-4xl text-gray-300 mb-3 block"></i><p class="font-medium text-lg">No matching results</p></div>`
+            },
+            drawCallback: function() {
+                // Apply Tailwind styles to Pagination (Joined blocks, Gray active state)
+                $('.dataTables_paginate').addClass('inline-flex -space-x-px rounded-md shadow-sm');
+                $('.dataTables_paginate .paginate_button')
+                    .removeClass('paginate_button current disabled') 
+                    .addClass('relative inline-flex items-center px-4 py-2 text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:z-20 cursor-pointer first:rounded-l-md last:rounded-r-md');
+                $('.dataTables_paginate .active')
+                    .removeClass('bg-white text-gray-700 hover:bg-gray-50')
+                    .addClass('z-10 bg-gray-100 border-gray-300 text-gray-900 font-bold');
+                $('.dataTables_paginate .disabled')
+                    .removeClass('hover:bg-gray-50 cursor-pointer text-gray-700')
+                    .addClass('opacity-50 cursor-not-allowed text-gray-400');
+                    
+                // Clean up generic search box
+                $('.dataTables_filter input').addClass('block w-64 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md dark:bg-gray-700 dark:text-white py-1.5 px-3 ml-2');
+                $('.dataTables_filter label').addClass('flex items-center text-sm font-medium text-gray-700');
+                
+                // Fix classes applied dynamically
+                $(selector + '_wrapper .dataTables_paginate a').each(function() {
+                    $(this).removeClass('paginate_button');
+                });
             }
         };
 
@@ -65,7 +75,6 @@
         }
 
         const dt = $(selector).DataTable(options);
-
 
         return dt;
     };
