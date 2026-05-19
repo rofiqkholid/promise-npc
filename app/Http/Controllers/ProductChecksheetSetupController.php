@@ -180,6 +180,12 @@ class ProductChecksheetSetupController extends Controller
                 ProductCheckpoint::insert($insertData);
             }
         }
+        
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($product)
+            ->event('updated')
+            ->log('Part Checksheet Master');
 
         return redirect()->route('master.checksheets.index')->with('success', 'Master Checksheet for Part ' . $product->part_no . ' successfully saved!');
     }
@@ -295,6 +301,11 @@ class ProductChecksheetSetupController extends Controller
             }
 
             DB::commit();
+            
+            activity()
+                ->causedBy(auth()->user())
+                ->event('imported')
+                ->log("Part Checksheet Master - $importedCount checkpoints mapped for $partCount parts");
 
             $partCount = count($partsProcessed);
             return redirect()->route('master.checksheets.index')->with('success', "Success! $importedCount checkpoints mapped for $partCount Part(s).");

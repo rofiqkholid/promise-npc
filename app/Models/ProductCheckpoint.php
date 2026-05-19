@@ -2,12 +2,18 @@
 
 namespace App\Models;
 
+
+
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\HasHashedId;
 
 class ProductCheckpoint extends Model
 {
+
+    // Activity log removed in favor of manual controller logging
+
     use HasHashedId;
 
     use HasFactory;

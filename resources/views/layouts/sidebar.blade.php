@@ -103,7 +103,16 @@
     </nav>
 
     <!-- Footer Profile / Settings -->
-    <div class="p-4 border-t border-slate-200 dark:border-gray-700">
+    <div class="p-4 border-t border-slate-200 dark:border-gray-700 space-y-1">
+        <a href="{{ route('activity-logs.index') }}" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors group relative"
+            :class="!sidebarExpanded ? 'justify-center' : ''">
+            <i class="fa-solid fa-clock-rotate-left w-6 text-center text-lg text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300"></i>
+            <span x-show="sidebarExpanded" class="side-label text-sm font-medium whitespace-nowrap text-slate-600 dark:text-gray-400 group-hover:text-slate-900 dark:group-hover:text-white">Activity Logs</span>
+            {{-- Tooltip for Minimized --}}
+            <div x-show="!sidebarExpanded" x-cloak class="absolute left-full top-2 ml-2 bg-slate-800 dark:bg-black text-white text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none whitespace-nowrap">
+                Activity Logs
+            </div>
+        </a>
         <a href="#" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors group relative"
             :class="!sidebarExpanded ? 'justify-center' : ''">
             <i class="fa-solid fa-gear w-6 text-center text-lg text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300"></i>

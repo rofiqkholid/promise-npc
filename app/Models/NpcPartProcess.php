@@ -2,12 +2,27 @@
 
 namespace App\Models;
 
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
+
+
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\HasHashedId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class NpcPartProcess extends Model
 {
+
+    use LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges();
+    }
+
     use HasHashedId;
 
     use HasFactory;

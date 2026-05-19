@@ -69,6 +69,13 @@ class NpcMasterRoutingController extends Controller
                 ]);
             }
         });
+        
+        $part = Product::findOrFail($request->part_id);
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($part)
+            ->event('created')
+            ->log('Routing per Part ID');
 
         return redirect()->route('master.routings.index')->with('success', 'Routing Master successfully saved.');
     }
@@ -122,6 +129,13 @@ class NpcMasterRoutingController extends Controller
                 ]);
             }
         });
+        
+        $part = Product::findOrFail($request->part_id);
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($part)
+            ->event('updated')
+            ->log('Routing per Part ID');
 
         return redirect()->route('master.routings.index')->with('success', 'Routing Master successfully updated.');
     }
@@ -133,6 +147,13 @@ class NpcMasterRoutingController extends Controller
             $decoded = $hashids->decode($part_id);
             $part_id = !empty($decoded) ? $decoded[0] : abort(404);
         }
+
+        $part = Product::findOrFail($part_id);
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($part)
+            ->event('deleted')
+            ->log('Routing per Part ID');
 
         NpcMasterRouting::where('part_id', $part_id)->delete();
         return redirect()->route('master.routings.index')->with('success', 'Routing Master successfully deleted.');
@@ -262,6 +283,11 @@ class NpcMasterRoutingController extends Controller
             }
 
             DB::commit();
+            
+            activity()
+                ->causedBy(auth()->user())
+                ->event('imported')
+                ->log("Routing per Part ID - $importedCount rows for $partCount parts");
 
             $partCount = count($partsProcessed);
             return redirect()->route('master.routings.index')->with('success', "Success! $importedCount routing steps imported for $partCount Part(s).");
