@@ -337,7 +337,7 @@
             <tr>
                 <td colspan="2" class="font-bold">Checking Date</td>
                 <td colspan="2" class="text-center">{{ \Carbon\Carbon::now()->format('d-M-Y') }}</td>
-                <td colspan="13" class="text-center font-bold italic text-blue-sig">If had 1 point X, delivery will be postponed until improvement has been complised</td>
+                <td colspan="13" class="text-center font-bold italic text-blue-sig">If had 1 point X, delivery will be postponed until improvement has been completed</td>
             </tr>
             
             <!-- Footer Row 2 -->

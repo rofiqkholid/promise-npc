@@ -105,7 +105,7 @@
 
                 <div class="mb-4">
                     <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">History Problem</h3>
-                    <p class="text-xs text-gray-500 mt-1">List of problems previously found on this Product / Part Number ini di masa lampau.</p>
+                    <p class="text-xs text-gray-500 mt-1">List of problems previously found on this Product / Part Number in the past.</p>
                 </div>
 
                 <div class="mb-6 p-4 border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/50">
@@ -115,11 +115,11 @@
                             <li class="font-medium text-red-700 dark:text-red-400">
                                 {{ $history->problem_description }}
                                 <span class="text-xs text-gray-500 dark:text-gray-500 ml-2 font-normal italic">
-                                    (Ditemukan pada {{ $history->created_at->format('d M Y') }})
+                                    (Found on {{ $history->created_at->format('d M Y') }})
                                 </span>
                             </li>
                         @empty
-                            <li class="text-gray-500 italic text-sm">No defect history yet (History Problem) untuk part ini.</li>
+                            <li class="text-gray-500 italic text-sm">No defect history yet (History Problem) for this part.</li>
                         @endforelse
                     </ul>
 
@@ -245,7 +245,7 @@
                     const newRow = document.createElement('div');
                     newRow.className = 'flex items-center gap-2 history-row mt-2';
                     newRow.innerHTML = `
-                        <input type="text" name="new_history_problems[]" placeholder="Description masalah baru..." class="flex-1 text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-800 dark:text-white">
+                        <input type="text" name="new_history_problems[]" placeholder="Description of new problem..." class="flex-1 text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-800 dark:text-white">
                         <button type="button" class="px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-800/60 text-red-700 dark:text-red-400 transition remove-history-btn">
                             <i class="fa-solid fa-minus"></i>
                         </button>

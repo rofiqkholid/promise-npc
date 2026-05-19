@@ -267,21 +267,21 @@
     <div class="no-print">
         <div>
             <h2><i class="fa-solid fa-tags mr-2"></i>Quality Label Print Preview</h2>
-            <p class="info-text">Part: <strong style="color:#f1f5f9">{{ optional($part->product)->part_no ?? '-' }}</strong> &nbsp;|&nbsp; Total Qty: <strong style="color:#f1f5f9">{{ $part->qty }} PCS</strong> &nbsp;|&nbsp; {{ $part->qty }} label akan dicetak</p>
+            <p class="info-text">Part: <strong style="color:#f1f5f9">{{ optional($part->product)->part_no ?? '-' }}</strong> &nbsp;|&nbsp; Total Qty: <strong style="color:#f1f5f9">{{ $part->qty }} PCS</strong> &nbsp;|&nbsp; {{ $part->qty }} labels will be printed</p>
         </div>
         <div class="controls">
-            <label for="cols-select"><i class="fa-solid fa-grip mr-1"></i> Label per baris:</label>
+            <label for="cols-select"><i class="fa-solid fa-grip mr-1"></i> Labels per row:</label>
             <select id="cols-select" onchange="setColumns(this.value)">
-                <option value="1">1 label / baris</option>
-                <option value="2" selected>2 label / baris</option>
-                <option value="3">3 label / baris</option>
-                <option value="4">4 label / baris</option>
+                <option value="1">1 label / row</option>
+                <option value="2" selected>2 labels / row</option>
+                <option value="3">3 labels / row</option>
+                <option value="4">4 labels / row</option>
             </select>
             <button class="btn-print" onclick="window.print()">
-                <i class="fa-solid fa-print mr-2"></i> Print Sekarang
+                <i class="fa-solid fa-print mr-2"></i> Print Now
             </button>
             <button class="btn-close" onclick="window.history.back()">
-                <i class="fa-solid fa-arrow-left mr-1"></i> Kembali
+                <i class="fa-solid fa-arrow-left mr-1"></i> Back
             </button>
         </div>
     </div>

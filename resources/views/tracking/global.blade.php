@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $pageTitle ?? 'Global Tracking')
-@section('page_title', 'Transaksi / ' . ($pageTitle ?? 'Global Tracking'))
+@section('page_title', 'Transactions / ' . ($pageTitle ?? 'Global Tracking'))
 
 @section('content')
 <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -269,7 +269,7 @@
                             <td colspan="5" class="p-12 text-center text-gray-500 dark:text-gray-400">
                                 <div class="flex flex-col items-center justify-center gap-3">
                                     <i class="fa-regular fa-folder-open text-4xl text-gray-300 dark:text-gray-600"></i>
-                                    <p>No data PO / rute aktif.</p>
+                                    <p>No PO data / active route.</p>
                                 </div>
                             </td>
                         </tr>
@@ -306,7 +306,7 @@
                             <!-- Header -->
                             <div class="bg-gray-50/80 dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                                 <h3 class="text-base font-bold text-gray-800 dark:text-white flex items-center gap-2" id="modal-title">
-                                    <i class="fa-solid fa-list-check text-blue-500"></i> Rincian Part: {{ $po->po_no }}
+                                    <i class="fa-solid fa-list-check text-blue-500"></i> Part Details: {{ $po->po_no }}
                                 </h3>
                                 <button type="button" @click="{{ request('from_dashboard') ? "window.location.href='".route('dashboard')."'" : 'activeModal = null' }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                     <i class="fa-solid fa-xmark text-xl"></i>
@@ -335,7 +335,7 @@
                                                         <div class="font-bold text-gray-700">{{ number_format($part->qty) }} PCS</div>
                                                         @if($part->delivered_qty > 0)
                                                         <div class="text-[10px] font-bold text-blue-600 mt-0.5">
-                                                            <i class="fa-solid fa-truck-ramp-box"></i> Kirim: {{ number_format($part->delivered_qty) }} / {{ number_format($part->qty) }}
+                                                            <i class="fa-solid fa-truck-ramp-box"></i> Delivered: {{ number_format($part->delivered_qty) }} / {{ number_format($part->qty) }}
                                                         </div>
                                                         @endif
                                                         <div class="text-[10px] {{ \Carbon\Carbon::parse($part->delivery_date)->endOfDay()->isPast() && !in_array($part->status, ['CLOSED']) ? 'text-red-500 font-bold' : 'text-gray-500' }} mt-0.5">
@@ -410,7 +410,7 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                                                                     @endif
                                                                     
                                                                     @if($stepObj['title'] === 'Part Making')
-                                                                        <div @click="expandedPM = expandedPM === {{ $part->id }} ? null : {{ $part->id }}" class="z-10 relative border-2 {{ $circleBorder }} w-6 h-6 flex items-center justify-center text-[10px] transition-all duration-300 cursor-pointer hover:scale-125 hover:shadow-md" title="Klik untuk melihat Detail Rute Part Making">
+                                                                        <div @click="expandedPM = expandedPM === {{ $part->id }} ? null : {{ $part->id }}" class="z-10 relative border-2 {{ $circleBorder }} w-6 h-6 flex items-center justify-center text-[10px] transition-all duration-300 cursor-pointer hover:scale-125 hover:shadow-md" title="Click to view Part Making Route Details">
                                                                             <i class="fa-solid {{ $stepObj['icon'] }}"></i>
                                                                             @if($isPast || ($isReached && $sIdx == 4 && in_array($part->status, ['CLOSED'])))
                                                                                 <div class="absolute -bottom-1 -right-1 bg-white dark:bg-gray-800 w-3 h-3 flex items-center justify-center text-[8px] text-emerald-600 shadow-sm">
@@ -441,16 +441,16 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                                                     <td colspan="3" class="px-4 py-3 border-l-4 border-blue-400">
                                                         <div class="ml-2">
                                                             <div class="flex items-center justify-between mb-2">
-                                                                <h5 class="text-[9px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5"><i class="fa-solid fa-route"></i> Rute Detail: Part Making</h5>
+                                                                <h5 class="text-[9px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5"><i class="fa-solid fa-route"></i> Route Details: Part Making</h5>
                                                                 <div class="flex gap-2">
                                                                     @if($part->processes->where('status', 'FINISHED')->count() > 0)
                                                                     <button @click="activeGlobalPhotoModal = {{ $part->id }}" class="text-[9px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 transition flex items-center gap-1 shadow-sm">
-                                                                        <i class="fa-solid fa-camera"></i> Cek Qty & Foto
+                                                                        <i class="fa-solid fa-camera"></i> Check Qty & Photo
                                                                     </button>
                                                                     @endif
                                                                     @if($part->checksheet)
                                                                     <a href="{{ route('checksheets.edit', ['checksheet' => $part->checksheet->hashed_id, 'readonly' => 1]) }}" class="text-[9px] font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2 py-0.5 transition flex items-center gap-1 shadow-sm">
-                                                                        <i class="fa-solid fa-clipboard-check"></i> Lihat Checksheet
+                                                                        <i class="fa-solid fa-clipboard-check"></i> View Checksheet
                                                                     </a>
                                                                     @endif
                                                                 </div>
@@ -587,7 +587,7 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                                                     @if($p->photo_proof)
                                                         <img src="{{ Storage::url($p->photo_proof) }}" class="w-full h-full object-contain">
                                                         <a href="{{ Storage::url($p->photo_proof) }}" target="_blank" class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white font-bold text-sm gap-2 backdrop-blur-[2px]">
-                                                            <i class="fa-solid fa-expand"></i> Perbesar Foto
+                                                            <i class="fa-solid fa-expand"></i> Enlarge Photo
                                                         </a>
                                                     @else
                                                         <div class="text-gray-500 dark:text-gray-400 flex flex-col items-center gap-2">
@@ -619,7 +619,7 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
                                                             <span class="font-bold text-gray-700 dark:text-gray-200">{{ optional($p->department)->name ?? '-' }}</span>
                                                         </div>
                                                         <div class="flex items-center justify-between text-xs">
-                                                            <span class="text-gray-500 dark:text-gray-400 font-medium"><i class="fa-regular fa-calendar-check w-4"></i> Tgl Aktual:</span> 
+                                                            <span class="text-gray-500 dark:text-gray-400 font-medium"><i class="fa-regular fa-calendar-check w-4"></i> Actual Date:</span> 
                                                             <span class="font-bold text-gray-700 dark:text-gray-200">{{ $p->actual_completion_date ? \Carbon\Carbon::parse($p->actual_completion_date)->format('d M Y') : '-' }}</span>
                                                         </div>
                                                     </div>

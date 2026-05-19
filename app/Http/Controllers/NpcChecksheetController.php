@@ -566,7 +566,7 @@ class NpcChecksheetController extends Controller
         $sheet->setCellValue('C' . $footerRow, Carbon::now()->format('d-M-Y'));
         
         $sheet->mergeCells('E' . $footerRow . ':Q' . $footerRow);
-        $sheet->setCellValue('E' . $footerRow, 'If had 1 point X, delivery will be postponed until improvement has been complised');
+        $sheet->setCellValue('E' . $footerRow, 'If had 1 point X, delivery will be postponed until improvement has been completed');
         $sheet->getStyle('E' . $footerRow)->getFont()->getColor()->setARGB('FF0000FF'); // Blue
         $sheet->getStyle('E' . $footerRow)->getFont()->setItalic(true)->setBold(true);
         $sheet->getStyle('E' . $footerRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
