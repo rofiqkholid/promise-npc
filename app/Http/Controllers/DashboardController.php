@@ -53,7 +53,7 @@ class DashboardController extends Controller
 
         foreach ($recentEvents as $ev) {
             // Use Customer + PO No as label
-            $poLabel = $ev->po_no ? (strlen($ev->po_no) > 12 ? substr($ev->po_no, 0, 12).'...' : $ev->po_no) : 'EV-'.$ev->id;
+            $poLabel = $ev->po_no ? $ev->po_no : 'EV-'.$ev->id;
             $custName = $ev->customerCategory ? $ev->customerCategory->name : 'Unknown';
             
             // Get unique customers and models from parts
