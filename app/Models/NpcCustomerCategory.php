@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\Support\LogOptions;
+use Spatie\Activitylog\LogOptions;
 
 
 use Illuminate\Database\Eloquent\Model;
