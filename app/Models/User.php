@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
 
