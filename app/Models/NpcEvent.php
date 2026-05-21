@@ -20,7 +20,7 @@ class NpcEvent extends Model
         return LogOptions::defaults()
             ->logAll()
             ->logOnlyDirty()
-            ->dontLogEmptyChanges();
+            ->dontSubmitEmptyLogs();
     }
 
     use HasHashedId;
@@ -34,9 +34,11 @@ class NpcEvent extends Model
         parent::boot();
 
         static::deleting(function ($event) {
-            foreach ($event->parts as $part) {
-                $part->delete();
-            }
+            \Spatie\Activitylog\Facades\Activity::withoutLogs(function () use ($event) {
+                foreach ($event->parts as $part) {
+                    $part->delete();
+                }
+            });
         });
     }
 

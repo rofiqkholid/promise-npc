@@ -20,7 +20,7 @@ class NpcPart extends Model
         return LogOptions::defaults()
             ->logAll()
             ->logOnlyDirty()
-            ->dontLogEmptyChanges();
+            ->dontSubmitEmptyLogs();
     }
 
     use HasHashedId;
@@ -34,11 +34,13 @@ class NpcPart extends Model
         parent::boot();
 
         static::deleting(function ($part) {
-            $part->processes()->delete();
-            if ($part->checksheet) {
-                $part->checksheet->details()->delete();
-                $part->checksheet->delete();
-            }
+            \Spatie\Activitylog\Facades\Activity::withoutLogs(function () use ($part) {
+                $part->processes()->delete();
+                if ($part->checksheet) {
+                    $part->checksheet->details()->delete();
+                    $part->checksheet->delete();
+                }
+            });
         });
     }
 

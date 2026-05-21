@@ -151,14 +151,50 @@
                                     $displayModelName = $log->description;
                                 }
                                 
-                                // Find a readable identifier from attributes or old values
-                                $attrs = $log->attribute_changes['attributes'] ?? [];
-                                $oldAttrs = $log->attribute_changes['old'] ?? [];
+                                $props = is_iterable($log->properties) ? $log->properties : collect(json_decode($log->properties ?? '[]', true));
+                                $attrs = $props['attributes'] ?? [];
+                                $oldAttrs = $props['old'] ?? [];
                                 $combinedAttrs = array_merge($oldAttrs, $attrs);
                                 
                                 $identifier = null;
+                                
+                                if ($modelBasename === 'NpcEvent' && isset($combinedAttrs['po_no'])) {
+                                    $eventName = '';
+                                    if (!empty($combinedAttrs['customer_category_id'])) {
+                                        try {
+                                            $category = \App\Models\NpcCustomerCategory::find($combinedAttrs['customer_category_id']);
+                                            if ($category) {
+                                                $eventName = $category->category_name ?? $category->name ?? '';
+                                            }
+                                        } catch (\Exception $e) {}
+                                    }
+                                    $identifier = "PO: " . $combinedAttrs['po_no'] . ($eventName ? " - Event: " . $eventName : "");
+                                } elseif ($modelBasename === 'NpcChecksheet' && isset($combinedAttrs['npc_part_id'])) {
+                                    $partId = $combinedAttrs['npc_part_id'];
+                                    $part = \App\Models\NpcPart::find($partId);
+                                    if ($part && $part->product) {
+                                        $identifier = "Part: " . $part->product->part_no;
+                                    } else {
+                                        $partLog = \Spatie\Activitylog\Models\Activity::where('subject_type', \App\Models\NpcPart::class)->where('subject_id', $partId)->where('event', 'deleted')->first();
+                                        if ($partLog) {
+                                            $partProps = is_iterable($partLog->properties) ? $partLog->properties : collect(json_decode($partLog->properties ?? '[]', true));
+                                            $partOldAttrs = $partProps['old'] ?? [];
+                                            if (isset($partOldAttrs['product_id'])) {
+                                                $prod = \App\Models\Product::find($partOldAttrs['product_id']);
+                                                if ($prod) {
+                                                    $identifier = "Part: " . $prod->part_no;
+                                                }
+                                            }
+                                        }
+                                        if (!$identifier) {
+                                            $identifier = "Part ID: " . $partId;
+                                        }
+                                    }
+                                }
+                                
                                 // Try to resolve identifier by checking common name fields or resolving foreign keys
-                                foreach(['part_no', 'customer_name', 'process_name', 'name', 'title', 'role_name', 'po_number', 'po_no', 'point_check', 'part_id'] as $k) {
+                                if (!$identifier) {
+                                    foreach(['part_no', 'customer_name', 'process_name', 'name', 'title', 'role_name', 'po_number', 'po_no', 'point_check', 'part_id', 'product_id'] as $k) {
                                     if (isset($combinedAttrs[$k])) {
                                         // Use the resolveValue closure defined below in the Changes column if possible,
                                         // but since it's defined lower down, we'll implement a quick resolver here
@@ -192,6 +228,7 @@
                                         }
                                         
                                         if ($identifier) break;
+                                    }
                                     }
                                 }
                                 

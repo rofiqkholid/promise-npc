@@ -146,7 +146,7 @@
          */
         $(function () {
             const initSelect2 = (context = document) => {
-                $(context).find('select.select2:not(.no-select2)').each(function () {
+                $(context).find('select:not(.no-select2)').each(function () {
                     if ($(this).hasClass('select2-hidden-accessible') || $(this).closest('.dataTables_length').length) return;
 
                     const $this = $(this);

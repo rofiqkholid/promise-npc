@@ -49,8 +49,8 @@
                     <div class="w-full sm:w-44">
                         <select name="has_image" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all rounded-none" onchange="document.getElementById('filterForm').submit()">
                             <option value="">All Image Status</option>
-                            <option value="yes" {{ request('has_image') === 'yes' ? 'selected' : '' }}>✅ Has Image</option>
-                            <option value="no"  {{ request('has_image') === 'no'  ? 'selected' : '' }}>❌ No Image</option>
+                            <option value="yes" {{ request('has_image') === 'yes' ? 'selected' : '' }}>Have Label Image</option>
+                            <option value="no"  {{ request('has_image') === 'no'  ? 'selected' : '' }}>Not Have Label Image</option>
                         </select>
                     </div>
 
