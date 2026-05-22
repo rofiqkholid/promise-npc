@@ -82,6 +82,7 @@
                                     <th class="p-2 pl-3 text-[10px] font-semibold text-slate-500 uppercase">Customer</th>
                                     <th class="p-2 text-[10px] font-semibold text-slate-500 uppercase">Model</th>
                                     <th class="p-2 text-[10px] font-semibold text-slate-500 uppercase">Event</th>
+                                    <th class="p-2 text-[10px] font-semibold text-slate-500 uppercase">Batch</th>
                                     <th class="p-2 pr-3 text-[10px] font-semibold text-slate-500 uppercase text-right">Delv Date</th>
                                 </tr>
                             </thead>
@@ -96,6 +97,9 @@
                                         </td>
                                         <td class="p-2">
                                             <p class="text-[10px] text-slate-600 dark:text-slate-400">{{ $evt->event->customerCategory->name ?? '-' }}</p>
+                                        </td>
+                                        <td class="p-2">
+                                            <span class="text-[9px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{{ $evt->event->deliveryGroup->name ?? '-' }}</span>
                                         </td>
                                         <td class="p-2 pr-3 text-right">
                                             <span class="text-[10px] font-bold {{ \Carbon\Carbon::parse($evt->delivery_date)->isPast() ? 'text-rose-500' : 'text-slate-700 dark:text-slate-300' }}">
