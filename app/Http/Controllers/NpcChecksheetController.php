@@ -96,10 +96,13 @@ class NpcChecksheetController extends Controller
                 'attachment_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240'
             ]);
 
+            $userId = auth()->check() ? auth()->user()->getAttribute('id') : 1;
             $updateData = [
                 'accuracy_percentage' => $request->accuracy_percentage,
-                'qe_checked_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
-                'qe_check_date' => Carbon::now()
+                'qe_checked_by' => $userId,
+                'qe_check_date' => Carbon::now(),
+                'qe_staff_id' => $userId,
+                'qe_staff_date' => Carbon::now(),
             ];
 
             if ($request->hasFile('attachment_file')) {
@@ -202,7 +205,7 @@ class NpcChecksheetController extends Controller
                 'final_result' => $request->final_result,
                 'mgm_checked_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
                 'mgm_check_date' => Carbon::now(),
-                'approval_status' => 'WAITING_QE_STAFF' // Enter Approval Phase
+                'approval_status' => 'WAITING_MGM_STAFF' // Enter Approval Phase
             ]);
 
             // Instead of FINISHED, move part to WAITING_APPROVAL
@@ -608,13 +611,13 @@ class NpcChecksheetController extends Controller
         $sheet->mergeCells('L' . ($sigRow + 2) . ':N' . ($sigRow + 3));
         $sheet->mergeCells('O' . ($sigRow + 2) . ':Q' . ($sigRow + 3));
         
-        $sheet->setCellValue('C' . ($sigRow + 2), optional($checksheet->qeMgr)->name ?? '');
-        $sheet->setCellValue('D' . ($sigRow + 2), optional($checksheet->qeSpv)->name ?? '');
-        $sheet->setCellValue('E' . ($sigRow + 2), optional($checksheet->qeStaff)->name ?? '');
+        $sheet->setCellValue('C' . ($sigRow + 2), $checksheet->qe_mgr_id ? "✔ Approved\n" . optional($checksheet->qeMgr)->name : (optional($checksheet->qeMgr)->name ?? ''));
+        $sheet->setCellValue('D' . ($sigRow + 2), $checksheet->qe_spv_id ? "✔ Approved\n" . optional($checksheet->qeSpv)->name : (optional($checksheet->qeSpv)->name ?? ''));
+        $sheet->setCellValue('E' . ($sigRow + 2), ($checksheet->qe_staff_id || $checksheet->qe_check_date) ? "✔ Approved\n" . (optional($checksheet->qeStaff)->name ?? optional($checksheet->qeChecker)->name ?? '') : (optional($checksheet->qeStaff)->name ?? optional($checksheet->qeChecker)->name ?? ''));
         
-        $sheet->setCellValue('I' . ($sigRow + 2), optional($checksheet->mgmMgr)->name ?? '');
-        $sheet->setCellValue('L' . ($sigRow + 2), optional($checksheet->mgmSpv)->name ?? '');
-        $sheet->setCellValue('O' . ($sigRow + 2), optional($checksheet->mgmStaff)->name ?? '');
+        $sheet->setCellValue('I' . ($sigRow + 2), $checksheet->mgm_mgr_id ? "✔ Approved\n" . optional($checksheet->mgmMgr)->name : (optional($checksheet->mgmMgr)->name ?? ''));
+        $sheet->setCellValue('L' . ($sigRow + 2), $checksheet->mgm_spv_id ? "✔ Approved\n" . optional($checksheet->mgmSpv)->name : (optional($checksheet->mgmSpv)->name ?? ''));
+        $sheet->setCellValue('O' . ($sigRow + 2), $checksheet->mgm_staff_id ? "✔ Approved\n" . optional($checksheet->mgmStaff)->name : (optional($checksheet->mgmStaff)->name ?? ''));
 
         $sheet->getRowDimension($sigRow + 2)->setRowHeight(30);
         $sheet->getRowDimension($sigRow + 3)->setRowHeight(30);
