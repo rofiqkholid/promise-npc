@@ -196,6 +196,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/tracking/{part}/setup-rollback', [\App\Http\Controllers\ProductionTrackingController::class, 'rollbackSetup'])->name('tracking.setup.rollback');
     Route::post('/tracking/{part}/process-complete', [\App\Http\Controllers\ProductionTrackingController::class, 'completeProcess'])->name('tracking.process.complete');
     Route::post('/tracking/{part}/process-rollback', [\App\Http\Controllers\ProductionTrackingController::class, 'rollbackProcess'])->name('tracking.process.rollback');
+    Route::post('/tracking/{part}/qc-rollback', [\App\Http\Controllers\ProductionTrackingController::class, 'rollbackQc'])->name('tracking.qc.rollback');
+    Route::post('/tracking/{part}/mgm-rollback', [\App\Http\Controllers\ProductionTrackingController::class, 'rollbackMgm'])->name('tracking.mgm.rollback');
     Route::post('/tracking/{part}/deliver', [\App\Http\Controllers\ProductionTrackingController::class, 'deliver'])->name('tracking.deliver');
     Route::post('/parts/{part}/apply-ecn', [\App\Http\Controllers\NpcPartController::class, 'applyEcn'])->name('parts.apply-ecn');
 

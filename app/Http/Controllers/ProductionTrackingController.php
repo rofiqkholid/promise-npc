@@ -276,6 +276,51 @@ class ProductionTrackingController extends Controller
         return back()->with('success', 'Success rollback process ' . optional($lastFinishedProcess->process)->process_name . '.');
     }
 
+    public function rollbackQc(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
+    {
+        // Only allow rollback if the part is in WAITING_MGM_CHECK
+        if ($part->status !== 'WAITING_MGM_CHECK') {
+            return back()->with('error', 'Only parts waiting for MGM check can be rolled back to QC.');
+        }
+
+        // Check if MGM has started checking (signed the checksheet)
+        if ($part->checksheet && $part->checksheet->mgm_checked_by) {
+            return back()->with('error', 'No rollback because MGM has already signed the checksheet.');
+        }
+        
+        $part->update([
+            'status' => 'WAITING_QE_CHECK',
+            'mgm_target_date' => null, // Reset MGM target date if any
+        ]);
+
+        return back()->with('success', 'Successfully rolled back part from MGM to QC Check stage.');
+    }
+
+    public function rollbackMgm(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
+    {
+        // Only allow rollback if the part is in WAITING_APPROVAL or FINISHED
+        if (!in_array($part->status, ['WAITING_APPROVAL', 'FINISHED'])) {
+            return back()->with('error', 'Only parts in Approval or Finished stock can be rolled back to MGM.');
+        }
+
+        // Check if Approval has already progressed
+        // For checksheet approval, we check if it has advanced beyond WAITING_MGM_STAFF
+        if ($part->checksheet && $part->checksheet->approval_status !== null && $part->checksheet->approval_status !== 'WAITING_MGM_STAFF') {
+            return back()->with('error', 'Cannot rollback because Checksheet Approval has already started/progressed.');
+        }
+
+        // If it's FINISHED, check if it has already started being delivered
+        if ($part->status === 'FINISHED' && $part->delivered_qty > 0) {
+            return back()->with('error', 'Cannot rollback because part has already started delivery.');
+        }
+
+        $part->update([
+            'status' => 'WAITING_MGM_CHECK',
+        ]);
+
+        return back()->with('success', 'Successfully rolled back part to Management Check stage.');
+    }
+
     public function deliver(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
     {
         $request->validate([

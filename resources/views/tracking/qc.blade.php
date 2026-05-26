@@ -116,6 +116,20 @@
                                     <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full max-w-[150px]">
                                         <i class="fa-solid fa-lock text-[8px]"></i> Already Inspected
                                     </div>
+                                    @if($part->status === 'WAITING_MGM_CHECK')
+                                    @php
+                                        $checksheet = $part->checksheet;
+                                        $canRollback = !$checksheet || !$checksheet->mgm_checked_by;
+                                    @endphp
+                                    @if($canRollback)
+                                    <form action="{{ route('tracking.qc.rollback', $part->hashed_id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold transition mt-1" onclick="confirmAction(event, 'Are you sure you want to rollback this part from MGM to QC Check stage?')">
+                                            <i class="fa-solid fa-rotate-left"></i> Rollback QC
+                                        </button>
+                                    </form>
+                                    @endif
+                                    @endif
                                     @if($part->checksheet)
                                     <a href="{{ route('checksheets.print-label', $part->hashed_id) }}" target="_blank" class="inline-flex px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
                                         <i class="fa-solid fa-print"></i> Print QC Label

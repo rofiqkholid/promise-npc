@@ -17,7 +17,7 @@ class NpcChecksheetApprovalController extends Controller
             'npcPart.event.deliveryGroup'
         ])
             ->whereHas('npcPart', function($q) {
-                $q->whereIn('status', ['WAITING_APPROVAL', 'FINISHED']);
+                $q->whereIn('status', ['WAITING_APPROVAL', 'FINISHED', 'OUTSTANDING', 'CLOSED']);
             });
 
         if ($request->filled('search')) {
@@ -51,12 +51,46 @@ class NpcChecksheetApprovalController extends Controller
 
     public function store(Request $request, NpcChecksheet $checksheet)
     {
+        $action = $request->input('action', 'approve');
         $status = $checksheet->approval_status;
         $userId = auth()->check() ? auth()->user()->getAttribute('id') : 1;
         $now = Carbon::now();
         $part = $checksheet->npcPart;
 
         $updateData = [];
+
+        if ($action === 'reject') {
+            if ($status === 'WAITING_MGM_MGR') {
+                $updateData['approval_status'] = 'WAITING_QE_MGR';
+                $updateData['qe_mgr_id'] = null;
+                $updateData['qe_mgr_date'] = null;
+            } elseif ($status === 'WAITING_QE_MGR') {
+                $updateData['approval_status'] = 'WAITING_MGM_SPV';
+                $updateData['mgm_spv_id'] = null;
+                $updateData['mgm_spv_date'] = null;
+            } elseif ($status === 'WAITING_MGM_SPV') {
+                $updateData['approval_status'] = 'WAITING_QE_SPV';
+                $updateData['qe_spv_id'] = null;
+                $updateData['qe_spv_date'] = null;
+            } elseif ($status === 'WAITING_QE_SPV') {
+                $updateData['approval_status'] = 'WAITING_MGM_STAFF';
+                $updateData['mgm_staff_id'] = null;
+                $updateData['mgm_staff_date'] = null;
+            } elseif ($status === 'WAITING_MGM_STAFF') {
+                $updateData['approval_status'] = 'WAITING_QE_STAFF';
+                $updateData['mgm_checked_by'] = null;
+                $updateData['mgm_check_date'] = null;
+                if ($part) {
+                    $part->update(['status' => 'WAITING_MGM_CHECK']);
+                }
+            } else {
+                return redirect()->back()->with('error', 'Cannot reject at this state.');
+            }
+
+            $checksheet->update($updateData);
+
+            return redirect()->route('checksheet-approvals.index')->with('success', 'Checksheet successfully rejected and returned to the previous step.');
+        }
 
         if ($status === 'WAITING_QE_STAFF') {
             $updateData['qe_staff_id'] = $userId;

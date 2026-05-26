@@ -100,6 +100,20 @@
                                     <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full max-w-[150px]">
                                         <i class="fa-solid fa-lock text-[8px]"></i> Completed
                                     </div>
+                                    @if(in_array($part->status, ['WAITING_APPROVAL', 'FINISHED']) && $part->delivered_qty == 0)
+                                    @php
+                                        $checksheet = $part->checksheet;
+                                        $canRollback = !$checksheet || $checksheet->approval_status === null || $checksheet->approval_status === 'WAITING_MGM_STAFF';
+                                    @endphp
+                                    @if($canRollback)
+                                    <form action="{{ route('tracking.mgm.rollback', $part->hashed_id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold transition mt-1" onclick="confirmAction(event, 'Are you sure you want to rollback this part to MGM Check stage?')">
+                                            <i class="fa-solid fa-rotate-left"></i> Rollback MGM
+                                        </button>
+                                    </form>
+                                    @endif
+                                    @endif
                                     @if($part->checksheet)
                                     <a href="{{ route('checksheets.export', $part->checksheet->hashed_id) }}" class="inline-flex px-4 py-2 bg-green-500 hover:bg-green-600 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
                                         <i class="fa-solid fa-file-excel"></i> Export Excel
