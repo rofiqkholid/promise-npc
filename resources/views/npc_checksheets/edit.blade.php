@@ -234,12 +234,10 @@
                                 </td>
                                 @endfor
                                 <td class="px-4 py-2 text-center">
-                                    <select name="details[{{ $detail->id }}][row_result]" id="row-result-{{ $detail->id }}" {{ $readonly ? 'disabled' : '' }}
-                                            class="w-full text-xs py-1.5 px-2 font-bold border-gray-300 dark:border-gray-600 shadow-sm focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white @if($detail->row_result == 'OK') text-green-600 bg-green-50 dark:bg-green-900/20 @elseif($detail->row_result == 'NG') text-red-600 bg-red-50 dark:bg-red-900/20 @endif">
-                                        <option value="" class="text-gray-400">- Select -</option>
-                                        <option value="OK" class="text-green-600 font-bold" {{ $detail->row_result === 'OK' ? 'selected' : '' }}>OK</option>
-                                        <option value="NG" class="text-red-600 font-bold" {{ $detail->row_result === 'NG' ? 'selected' : '' }}>NG</option>
-                                    </select>
+                                    <input type="hidden" name="details[{{ $detail->id }}][row_result]" id="row-result-{{ $detail->id }}" value="{{ $detail->row_result }}" {{ $readonly ? 'disabled' : '' }}>
+                                    <div id="row-result-display-{{ $detail->id }}" class="w-full text-xs py-1.5 px-2 font-bold border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-800 dark:text-white @if($detail->row_result == 'OK') text-green-600 bg-green-50 dark:bg-green-900/20 @elseif($detail->row_result == 'NG') text-red-600 bg-red-50 dark:bg-red-900/20 @else text-gray-400 @endif">
+                                        {{ $detail->row_result ?: '- Auto -' }}
+                                    </div>
                                 </td>
                             </tr>
                             @empty
@@ -324,8 +322,8 @@
         // Sample Check Toggle Logic
         document.querySelectorAll('.sample-cell').forEach(cell => {
             cell.addEventListener('click', function() {
-                const selectElement = this.closest('tr').querySelector('select[name$="[row_result]"]');
-                if (!selectElement || selectElement.disabled) return; // Prevent if readonly
+                const resultElement = this.closest('tr').querySelector('input[name$="[row_result]"]');
+                if (!resultElement || resultElement.disabled) return; // Prevent if readonly
                 
                 const detailId = this.dataset.detailId;
                 const input = this.querySelector('input[type="hidden"]');
@@ -364,18 +362,22 @@
                 if (input.value === '') hasEmpty = true;
             });
 
-            const resultSelect = document.getElementById(`row-result-${detailId}`);
-            if (!resultSelect) return;
+            const resultInput = document.getElementById(`row-result-${detailId}`);
+            const resultDisplay = document.getElementById(`row-result-display-${detailId}`);
+            if (!resultInput || !resultDisplay) return;
 
             if (hasNg) {
-                resultSelect.value = 'NG';
-                updateSelectStyle(resultSelect, 'NG');
+                resultInput.value = 'NG';
+                resultDisplay.textContent = 'NG';
+                updateSelectStyle(resultDisplay, 'NG');
             } else if (allOk && !hasEmpty && inputs.length > 0) {
-                resultSelect.value = 'OK';
-                updateSelectStyle(resultSelect, 'OK');
+                resultInput.value = 'OK';
+                resultDisplay.textContent = 'OK';
+                updateSelectStyle(resultDisplay, 'OK');
             } else {
-                resultSelect.value = '';
-                updateSelectStyle(resultSelect, '');
+                resultInput.value = '';
+                resultDisplay.textContent = '- Auto -';
+                updateSelectStyle(resultDisplay, '');
             }
             
             updateOverallFormStatus();
@@ -385,7 +387,7 @@
             const submitBtn = document.getElementById('submit-btn');
             if (!submitBtn || submitBtn.dataset.role !== 'MGM') return;
 
-            const allSelects = document.querySelectorAll('select[name$="[row_result]"]');
+            const allSelects = document.querySelectorAll('input[name$="[row_result]"]');
             let hasNg = false;
             allSelects.forEach(select => {
                 if (select.value === 'NG') hasNg = true;
@@ -407,12 +409,14 @@
             }
         }
 
-        function updateSelectStyle(select, value) {
-            select.classList.remove('text-green-600', 'bg-green-50', 'dark:bg-green-900/20', 'text-red-600', 'bg-red-50', 'dark:bg-red-900/20');
+        function updateSelectStyle(element, value) {
+            element.classList.remove('text-green-600', 'bg-green-50', 'dark:bg-green-900/20', 'text-red-600', 'bg-red-50', 'dark:bg-red-900/20', 'text-gray-400');
             if (value === 'OK') {
-                select.classList.add('text-green-600', 'bg-green-50', 'dark:bg-green-900/20');
+                element.classList.add('text-green-600', 'bg-green-50', 'dark:bg-green-900/20');
             } else if (value === 'NG') {
-                select.classList.add('text-red-600', 'bg-red-50', 'dark:bg-red-900/20');
+                element.classList.add('text-red-600', 'bg-red-50', 'dark:bg-red-900/20');
+            } else {
+                element.classList.add('text-gray-400');
             }
         }
 

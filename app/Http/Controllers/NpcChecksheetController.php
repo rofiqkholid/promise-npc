@@ -31,7 +31,7 @@ class NpcChecksheetController extends Controller
         if (!$checksheet) {
             $checksheet = NpcChecksheet::create([
                 'npc_part_id' => $part->id,
-                'final_result' => 'Pending'
+                'final_result' => null
             ]);
 
             $this->generateChecksheetDetails($checksheet, $part);
