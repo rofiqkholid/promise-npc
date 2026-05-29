@@ -231,58 +231,39 @@ class ProductChecksheetSetupController extends Controller
         try {
             $spreadsheet = new Spreadsheet();
             
-            // --- Sheet 1: Input Template ---
             $sheet = $spreadsheet->getActiveSheet();
             $sheet->setTitle('Template Import');
             
-            // Set Headers
-            $headers = ['PART NO', 'CHECKPOINT NUMBER', 'CUSTOM STANDARD'];
-            foreach ($headers as $index => $header) {
-                $column = chr(65 + $index);
-                $sheet->setCellValue($column . '1', $header);
-                $sheet->getStyle($column . '1')->getFont()->setBold(true);
-            }
-            
-            // Add Sample Data
-            $sampleData = [
-                ['PART-001', '1', 'No Scratch'],
-                ['PART-001', '2', 'Length 100mm +- 0.5'],
-                ['PART-002', '1', 'Surface Smooth'],
-            ];
-            
-            foreach ($sampleData as $rowIndex => $rowData) {
-                foreach ($rowData as $columnIndex => $value) {
-                    $column = chr(65 + $columnIndex);
-                    $sheet->setCellValue($column . ($rowIndex + 2), $value);
-                }
-            }
-
-            // --- Right Side: Master Data Reference ---
-            // Set Headers for Reference starting at column E
-            $sheet->setCellValue('E1', 'REFERENCE NUMBER');
-            $sheet->setCellValue('F1', 'REFERENCE CHECKPOINT NAME');
-            $sheet->getStyle('E1:F1')->getFont()->setBold(true);
-            
-            // Set light gray background for reference headers to distinguish them
-            $sheet->getStyle('E1:F1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                  ->getStartColor()->setARGB('FFF0F0F0');
-
             // Fetch actual Master Checkpoint Data
             $masterPoints = \App\Models\NpcMasterCheckpoint::where('is_active', true)
                                 ->orderBy('sequence_order')
                                 ->orderBy('point_number')
                                 ->get();
+                                
+            // Set Headers
+            $sheet->setCellValue('A1', 'PART NO');
+            $sheet->getStyle('A1')->getFont()->setBold(true);
             
-            $rowRef = 2;
+            $colIndex = 1;
             foreach ($masterPoints as $mp) {
-                $sheet->setCellValue('E' . $rowRef, $mp->point_number);
-                $sheet->setCellValue('F' . $rowRef, $mp->check_item);
-                $rowRef++;
+                $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(++$colIndex);
+                $sheet->setCellValue($column . '1', $mp->check_item);
+                $sheet->getStyle($column . '1')->getFont()->setBold(true);
+            }
+            
+            // Add Sample Data
+            $sheet->setCellValue('A2', 'PART-001');
+            if ($masterPoints->count() > 0) {
+                $sheet->setCellValue('B2', 'No Scratch');
+                if ($masterPoints->count() > 1) {
+                    $sheet->setCellValue('C2', '-');
+                }
             }
             
             // Auto size columns
-            foreach (['A', 'B', 'C', 'E', 'F'] as $colID) {
-                $sheet->getColumnDimension($colID)->setAutoSize(true);
+            for ($i = 1; $i <= $colIndex; $i++) {
+                $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
+                $sheet->getColumnDimension($column)->setAutoSize(true);
             }
             
             $writer = new Xlsx($spreadsheet);
@@ -316,18 +297,30 @@ class ProductChecksheetSetupController extends Controller
             $rowErrors = [];
             $validRows = [];
 
+            // Mapping Headers to Master Checkpoints
+            $masterPoints = \App\Models\NpcMasterCheckpoint::where('is_active', true)->get();
+            $headerMap = [];
+            foreach ($headers as $colIndex => $headerText) {
+                if ($colIndex == 0) continue; // Skip PART NO
+                
+                $headerText = trim($headerText ?? '');
+                if (empty($headerText)) continue;
+
+                // Match by exact check_item string (case-insensitive if needed)
+                $matchedPoint = $masterPoints->first(function($point) use ($headerText) {
+                    return strtolower(trim($point->check_item)) === strtolower($headerText);
+                });
+
+                if ($matchedPoint) {
+                    $headerMap[$colIndex] = $matchedPoint->id;
+                }
+            }
+
             foreach ($rows as $index => $row) {
                 if (empty($row[0])) continue; // Skip empty PART NO
 
                 $actualRowNumber = $index + 2; // +1 for 0-index, +1 for header
                 $partNo = trim($row[0]);
-                $checkpointNum = trim($row[1] ?? '');
-                $customStandard = trim($row[2] ?? ''); // Now in column C (index 2)
-
-                if (empty($checkpointNum)) {
-                    $rowErrors[] = "Row {$actualRowNumber}: Checkpoint Number must be provided.";
-                    continue;
-                }
 
                 // 1. Resolve Product
                 $product = Product::where('part_no', $partNo)->first();
@@ -336,19 +329,25 @@ class ProductChecksheetSetupController extends Controller
                     continue;
                 }
 
-                // 2. Resolve Master Checkpoint
-                $masterPoint = NpcMasterCheckpoint::where('point_number', $checkpointNum)->first();
-                
-                if (!$masterPoint) {
-                    $rowErrors[] = "Row {$actualRowNumber}: Master Checkpoint not found (Num: '{$checkpointNum}').";
-                    continue;
+                if (!in_array($product->id, $partsProcessed)) {
+                    $partsProcessed[] = $product->id;
                 }
 
-                $validRows[] = [
-                    'product_id' => $product->id,
-                    'npc_master_checkpoint_id' => $masterPoint->id,
-                    'custom_standard' => $customStandard ?: null
-                ];
+                // 2. Iterate through columns and prepare valid checkpoints
+                foreach ($headerMap as $colIndex => $masterPointId) {
+                    $cellValue = trim($row[$colIndex] ?? '');
+
+                    // Skip empty or dash (-) values
+                    if ($cellValue === '' || $cellValue === '-') {
+                        continue;
+                    }
+
+                    $validRows[] = [
+                        'product_id' => $product->id,
+                        'npc_master_checkpoint_id' => $masterPointId,
+                        'custom_standard' => $cellValue
+                    ];
+                }
             }
 
             if (!empty($rowErrors)) {
@@ -365,14 +364,12 @@ class ProductChecksheetSetupController extends Controller
 
             DB::beginTransaction();
 
-            foreach ($validRows as $valid) {
-                // 3. Delete existing checksheet for this part if not processed yet in this loop
-                if (!in_array($valid['product_id'], $partsProcessed)) {
-                    ProductCheckpoint::where('product_id', $valid['product_id'])->delete();
-                    $partsProcessed[] = $valid['product_id'];
-                }
+            // Delete existing checkpoints for processed parts
+            foreach ($partsProcessed as $productId) {
+                ProductCheckpoint::where('product_id', $productId)->delete();
+            }
 
-                // 4. Insert checksheet routing
+            foreach ($validRows as $valid) {
                 ProductCheckpoint::create([
                     'product_id' => $valid['product_id'],
                     'npc_master_checkpoint_id' => $valid['npc_master_checkpoint_id'],
