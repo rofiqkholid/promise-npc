@@ -141,15 +141,15 @@
 
                 <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
                     <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
-                        <thead class="bg-gray-100 dark:bg-gray-700/80 text-gray-800 dark:text-gray-200 uppercase text-xs tracking-wider">
+                        <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                             <tr>
-                                <th class="px-4 py-3 w-12 text-center">Use</th>
-                                <th class="px-4 py-3 w-16 text-center">No</th>
-                                <th class="px-4 py-3">Point Check</th>
-                                <th class="px-4 py-3 w-[400px]">Standard / Parameter</th>
+                                <th scope="col" class="px-6 py-4 w-12 text-center font-semibold">Use</th>
+                                <th scope="col" class="px-6 py-4 font-semibold w-16 text-center">Sequence</th>
+                                <th scope="col" class="px-6 py-4 font-semibold">Point Check</th>
+                                <th scope="col" class="px-6 py-4 font-semibold w-[400px]">Standard / Parameter</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody>
                             @php 
                                 $currentCategory = null; 
                                 $rowCounter = 1;
@@ -158,8 +158,8 @@
                             @foreach($masterPoints as $point)
                                 @if($currentCategory !== $point->category)
                                     @php $currentCategory = $point->category; @endphp
-                                    <tr class="bg-slate-200/50 dark:bg-slate-700/50">
-                                        <td colspan="4" class="px-4 py-2 font-bold text-slate-800 dark:text-slate-200 uppercase text-xs">
+                                    <tr class="bg-slate-200/50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-gray-700">
+                                        <td colspan="4" class="px-6 py-3 font-bold text-slate-800 dark:text-slate-200 uppercase text-xs">
                                             {{ $currentCategory ?: 'General / Uncategorized' }}
                                         </td>
                                     </tr>
@@ -174,13 +174,13 @@
                                     }
                                     $stdText = $mappedData[$point->id] ?? '';
                                 @endphp
-                                <tr class="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
-                                    <td class="px-4 py-3 text-center">
+                                <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-gray-700/30 transition group">
+                                    <td class="px-6 py-4 text-center">
                                         <input type="checkbox" name="points[{{ $point->id }}][is_checked]" value="1" {{ $isChecked ? 'checked' : '' }} class="row-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                                     </td>
-                                    <td class="px-4 py-3 text-center font-bold text-gray-500">{{ $rowCounter++ }}</td>
-                                    <td class="px-4 py-3 font-semibold text-gray-800 dark:text-gray-200">{{ $point->check_item }}</td>
-                                    <td class="px-4 py-3">
+                                    <td class="px-6 py-4 font-bold text-center text-lg text-indigo-600 dark:text-indigo-400">{{ $rowCounter++ }}</td>
+                                    <td class="px-6 py-4 font-semibold text-slate-900 dark:text-white">{{ $point->check_item }}</td>
+                                    <td class="px-6 py-4">
                                         <input type="text" name="points[{{ $point->id }}][custom_standard]" value="{{ $stdText }}" placeholder="Leave blank if no standard" class="w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:text-white form-input p-2 {{ $isChecked ? '' : 'opacity-50' }}" {{ $isChecked ? '' : 'readonly' }} onfocus="this.select()">
                                     </td>
                                 </tr>

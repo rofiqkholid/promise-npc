@@ -92,6 +92,7 @@
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
+                        <th scope="col" class="px-6 py-4 font-semibold w-16">No</th>
                         <th scope="col" class="px-6 py-4 font-semibold w-1/4">Event & PO Number</th>
                         <th scope="col" class="px-6 py-4 font-semibold w-1/12 text-center">Part Count</th>
                         <th scope="col" class="px-6 py-4 font-semibold w-1/12">Nearest</th>
@@ -162,16 +163,12 @@
                         @endphp
                         
                         <tr @click="activeModal = {{ $po->id }}" class="cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition group text-sm">
+                            <td class="px-6 py-4 text-slate-800 dark:text-slate-200 text-sm">
+                                {{ method_exists($pos, 'currentPage') ? ($pos->currentPage() - 1) * $pos->perPage() + $loop->iteration : $loop->iteration }}
+                            </td>
                             <td class="px-6 py-4">
-                                <div class="flex items-start gap-4">
-                                    <div class="mt-1 w-6 h-6 bg-blue-100 text-blue-500 dark:bg-blue-900/50 dark:text-blue-400 flex items-center justify-center shrink-0">
-                                        <i class="fa-solid fa-expand text-xs"></i>
-                                    </div>
-                                    <div>
-                                        <div class="text-blue-600 dark:text-blue-400 font-bold text-[11px] uppercase tracking-wide bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 px-2 py-0.5 inline-block mb-1">{{ optional($po->customerCategory)->name ?? 'Unknown Event' }}</div>
-                                        <div class="text-gray-800 dark:text-gray-200 font-bold text-sm">{{ $po->po_no }}</div>
-                                    </div>
-                                </div>
+                                <div class="text-blue-600 dark:text-blue-400 font-bold text-[11px] uppercase tracking-wide bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 px-2 py-0.5 inline-block mb-1">{{ optional($po->customerCategory)->name ?? 'Unknown Event' }}</div>
+                                <div class="text-gray-800 dark:text-gray-200 font-bold text-sm">{{ $po->po_no }}</div>
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <span class="bg-gray-100 border border-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 px-3 py-1 font-bold text-xs">{{ $totalParts }}</span>
@@ -259,14 +256,14 @@
                                     @if($poParts->where('status', 'CLOSED')->count() === $totalParts && $totalParts > 0)
                                         <span class="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 px-2 py-1 border border-emerald-200 shadow-sm mt-1 font-bold"><i class="fa-solid fa-check-double"></i> COMPLETE</span>
                                     @else
-                                        <span class="text-amber-600 font-bold mt-1 tracking-wide"><i class="fa-solid fa-spinner fa-spin"></i> ACTIVE</span>
+                                        <span class="text-amber-600 font-bold mt-1 tracking-wide">ACTIVE</span>
                                     @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="p-12 text-center text-gray-500 dark:text-gray-400">
+                            <td colspan="6" class="p-12 text-center text-gray-500 dark:text-gray-400">
                                 <div class="flex flex-col items-center justify-center gap-3">
                                     <i class="fa-regular fa-folder-open text-4xl text-gray-300 dark:text-gray-600"></i>
                                     <p>No PO data / active route.</p>
@@ -500,7 +497,7 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
         $spBg = $isSpLate 
             ? "bg-red-100/80 text-red-700 border-red-300 ring-1 ring-red-300 shadow-sm" 
             : "bg-amber-100/80 text-amber-700 border-amber-300 ring-1 ring-amber-300 shadow-sm";
-        $spIcon = "fa-spinner fa-spin";
+        $spIcon = "fa-circle-dot";
     } else {
         // Render queue processes that haven't started
         $spBg = $isSpLate
@@ -657,11 +654,9 @@ $pOverdue = ($isDeliveryOverdue || $hasLateProcess) && !in_array($part->status, 
 
     </div>
 
-    @if($pos->hasPages())
     <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
         {{ $pos->links() }}
     </div>
-    @endif
 </div>
 @endsection
 

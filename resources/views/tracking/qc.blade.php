@@ -54,15 +54,19 @@
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
-                        <th scope="col" class="px-6 py-4 font-semibold w-72">Product Identity</th>
-                        <th scope="col" class="px-6 py-4 font-semibold text-center">Production Handover</th>
-                        <th scope="col" class="px-6 py-4 font-semibold text-center">Inspection Status</th>
-                        <th scope="col" class="px-6 py-4 font-semibold text-right w-48">Action Quality</th>
+                        <th scope="col" class="px-6 py-4 font-semibold w-16">No</th>
+                        <th scope="col" class="px-6 py-4 font-semibold w-64">Part Info / PO</th>
+                        <th scope="col" class="px-6 py-4 font-semibold text-center w-32">Status PO</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">QC Progress</th>
+                        <th scope="col" class="px-6 py-4 font-semibold text-right w-48">Action QC</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($parts as $part)
                     <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-gray-700/30 transition text-sm">
+                        <td class="px-6 py-4 text-slate-800 dark:text-slate-200 text-sm">
+                            {{ ($parts->currentPage() - 1) * $parts->perPage() + $loop->iteration }}
+                        </td>
                         <td class="px-6 py-4">
                             <div class="text-gray-800 dark:text-gray-200 font-bold text-sm">{{ optional($part->product)->part_no }}</div>
                             <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5">{{ optional($part->product)->part_name }}</div>
@@ -141,7 +145,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="p-12 text-center text-gray-500 dark:text-gray-400">
+                        <td colspan="5" class="p-12 text-center text-gray-500 dark:text-gray-400">
                             <div class="flex flex-col items-center justify-center gap-3">
                                 <i class="fa-solid fa-microscope text-4xl text-gray-300 dark:text-gray-600"></i>
                                 <p>No parts in the quality inspection queue currently.</p>
@@ -268,11 +272,9 @@
 
     </div>
 
-    @if($parts->hasPages())
     <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
         {{ $parts->links() }}
     </div>
-    @endif
 </div>
 @endsection
 

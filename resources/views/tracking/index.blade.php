@@ -102,6 +102,7 @@
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
+                        <th scope="col" class="px-6 py-4 font-semibold w-16">No</th>
                         <th scope="col" class="px-6 py-4 font-semibold">Event</th>
                         <th scope="col" class="px-6 py-4 font-semibold">PO Number</th>
                         <th scope="col" class="px-6 py-4 font-semibold">Part Info</th>
@@ -113,6 +114,9 @@
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($parts as $part)
                     <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-gray-700/30 transition group text-sm">
+                        <td class="px-6 py-4 text-slate-800 dark:text-slate-200 text-sm">
+                            {{ ($parts->currentPage() - 1) * $parts->perPage() + $loop->iteration }}
+                        </td>
                         <td class="px-6 py-4">
                             <div class="text-blue-600 dark:text-blue-400 font-bold text-xs uppercase tracking-wide border border-blue-100 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 inline-block mb-1">{{ optional(optional($part->event)->customerCategory)->name ?? 'Unknown Event' }}</div>
                             @if($part->has_ecn_update)
@@ -249,7 +253,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="p-12 text-center text-gray-500 dark:text-gray-400">
+                        <td colspan="8" class="p-12 text-center text-gray-500 dark:text-gray-400">
                             <div class="flex flex-col items-center justify-center gap-3">
                                 <i class="fa-regular fa-folder-open text-4xl text-gray-300 dark:text-gray-600"></i>
                                 <p>No routing / tracking data in this status.</p>
@@ -262,11 +266,9 @@
         </div>
     </div>
 
-    @if($parts->hasPages())
     <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
         {{ $parts->links() }}
     </div>
-    @endif
 </div>
 
 {{-- Modal: Production Done --}}
