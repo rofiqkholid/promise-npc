@@ -48,8 +48,10 @@
                 </div>
             </form>
         </div>
-        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
-            <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
                         <th scope="col" class="px-6 py-4 font-semibold">Title</th>
@@ -116,9 +118,11 @@
                         </td>
                     </tr>
                     @endforelse
-                </tbody>
-            </table>
-        </div>
+        </tbody>
+        </table>
+    </div>
+
+    <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
     </div>
 </div>
 @endsection

@@ -21,7 +21,7 @@ class NpcUserController extends Controller
             });
         }
 
-        $users = $query->orderBy('name')->get();
+        $users = $query->orderBy('name')->paginate(10);
         return view('master.npc-users.index', compact('users', 'search'));
     }
 

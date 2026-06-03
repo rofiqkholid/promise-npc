@@ -136,6 +136,31 @@
                 color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
             }).then((result) => {
                 if (result.isConfirmed && form) {
+                    let $btn = null;
+                    if (targetElement.tagName === 'BUTTON' || targetElement.tagName === 'INPUT') {
+                        $btn = $(targetElement);
+                        // Append hidden input to ensure button's value is submitted
+                        if (targetElement.name) {
+                            $(form).append('<input type="hidden" name="' + targetElement.name + '" value="' + (targetElement.value || '') + '">');
+                        }
+                    } else {
+                        $btn = $(form).find('button[type="submit"]');
+                    }
+
+                    // Manually trigger spinner UI since form.submit() bypasses jQuery submit handlers
+                    if ($btn && $btn.length) {
+                        $btn.each(function() {
+                            const $b = $(this);
+                            $b.prop('disabled', true).addClass('opacity-75 cursor-not-allowed');
+                            const $icon = $b.find('i.fa-solid, i.fas, i.far, i.fal');
+                            if ($icon.length > 0) {
+                                $icon.attr('class', 'fa-solid fa-spinner fa-spin');
+                            } else {
+                                $b.prepend('<i class="fa-solid fa-spinner fa-spin mr-2"></i>');
+                            }
+                        });
+                    }
+
                     form.submit();
                 }
             });
@@ -186,6 +211,10 @@
         /**
          * Global Form Submit Spinner & Disable Double Submit
          */
+        $(document).on('click', 'form button[type="submit"], form input[type="submit"]', function() {
+            $(this).closest('form').data('clicked-btn', $(this));
+        });
+
         $(document).on('submit', 'form', function(e) {
             // If the form fails HTML5 validation, don't show spinner
             if (this.checkValidity && !this.checkValidity()) {
@@ -196,11 +225,20 @@
             // Skip if the form has data-no-spinner attribute
             if ($form.data('no-spinner')) return;
 
-            // Find the submit button(s)
-            let $submitBtn = $form.find('button[type="submit"]');
+            // Find the clicked submit button, or fallback to all submit buttons
+            let $submitBtn = $form.data('clicked-btn');
+            if (!$submitBtn || $submitBtn.length === 0) {
+                $submitBtn = $form.find('button[type="submit"]');
+            }
 
             $submitBtn.each(function() {
                 const $btn = $(this);
+                
+                // Preserve the button's name and value by appending a hidden input before disabling
+                if ($btn.attr('name')) {
+                    $form.append('<input type="hidden" name="' + $btn.attr('name') + '" value="' + ($btn.attr('value') || '') + '">');
+                }
+
                 // Disable button to prevent double-clicks
                 $btn.prop('disabled', true).addClass('opacity-75 cursor-not-allowed');
 

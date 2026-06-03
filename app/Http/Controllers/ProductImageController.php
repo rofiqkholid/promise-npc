@@ -46,7 +46,7 @@ class ProductImageController extends Controller
             }
         }
 
-        $products  = $query->paginate(20)->withQueryString();
+        $products  = $query->paginate(10)->withQueryString();
         $customers = Customer::orderBy('code')->get();
         $models    = VehicleModel::orderBy('name')->get();
 

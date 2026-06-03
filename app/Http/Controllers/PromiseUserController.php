@@ -21,7 +21,7 @@ class PromiseUserController extends Controller
             });
         }
 
-        $users = $query->orderBy('name')->get();
+        $users = $query->orderBy('name')->paginate(10);
         return view('master.promise-users.index', compact('users', 'search'));
     }
 

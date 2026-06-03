@@ -12,17 +12,7 @@
     </div>
 
     <div class="p-6">
-        @if(session('success'))
-            <div class="mb-4 p-4 text-green-700 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800" role="alert">
-                <i class="fa-solid fa-circle-check mr-1"></i> {{ session('success') }}
-            </div>
-        @endif
 
-        @if(session('error'))
-            <div class="mb-4 p-4 text-red-700 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800" role="alert">
-                <i class="fa-solid fa-circle-exclamation mr-1"></i> {{ session('error') }}
-            </div>
-        @endif
 
         <!-- Search Form -->
         <div class="mb-4" x-data="{

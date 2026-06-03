@@ -48,15 +48,16 @@
                             let newPagination = doc.querySelector('.mt-4 nav') || doc.querySelector('.p-4.border-t nav');
                             
                             if(pagination && newPagination) {
-                                pagination.parentElement.innerHTML = newPagination.parentElement.innerHTML;
+                                pagination.innerHTML = newPagination.innerHTML;
                             } else if (newPagination) {
-                                let container = document.querySelector('.bg-white.shadow-sm');
-                                let div = document.createElement('div');
-                                div.className = 'p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50';
-                                div.appendChild(newPagination.parentElement.children[0]);
-                                container.appendChild(div);
+                                let container = document.getElementById('pagination-container');
+                                if (container) {
+                                    container.innerHTML = '';
+                                    container.appendChild(newPagination.children[0]);
+                                }
                             } else if (pagination) {
-                                pagination.parentElement.innerHTML = '';
+                                let container = document.getElementById('pagination-container');
+                                if (container) container.innerHTML = '';
                             }
                             
                             // Re-initialize sortable
@@ -91,7 +92,9 @@
                 </div>
             </form>
         </div>
-        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
+    </div>
+    
+    <div class="overflow-x-auto">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
@@ -158,13 +161,11 @@
                 </tbody>
             </table>
         </div>
-    </div>
     
-    @if($routings->hasPages())
-    <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+
+    <div id="pagination-container" class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
         {{ $routings->links() }}
     </div>
-    @endif
 </div>
 @endsection
 

@@ -34,16 +34,17 @@
                             let doc = new DOMParser().parseFromString(html, 'text/html');
                             document.querySelector('tbody').innerHTML = doc.querySelector('tbody').innerHTML;
                             
-                            let pagination = document.querySelector('.mt-4 nav');
-                            let newPagination = doc.querySelector('.mt-4 nav');
+                            let pagination = document.querySelector('#pagination-container nav');
+                            let newPagination = doc.querySelector('#pagination-container nav');
+                            let container = document.getElementById('pagination-container');
+                            
                             if(pagination && newPagination) {
                                 pagination.innerHTML = newPagination.innerHTML;
-                            } else if (newPagination) {
-                                let container = document.querySelector('.p-6');
-                                let div = document.createElement('div');
-                                div.className = 'mt-4';
-                                div.appendChild(newPagination);
-                                container.appendChild(div);
+                            } else if (newPagination && container) {
+                                container.innerHTML = '';
+                                container.appendChild(newPagination);
+                            } else if (!newPagination && container) {
+                                container.innerHTML = '';
                             }
                             
                             window.history.pushState(null, '', '?search=' + this.searchQuery);
@@ -66,7 +67,9 @@
                 </div>
             </form>
         </div>
-        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
+    </div>
+    
+    <div class="overflow-x-auto">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
@@ -120,9 +123,10 @@
                 </tbody>
             </table>
         </div>
-        <div class="mt-4">
-            {{ $stdParts->links() }}
-        </div>
+    <div id="pagination-container" class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+        {{ $stdParts->links() }}
+    </div>
+    
     </div>
 
     <!-- Import Modal -->

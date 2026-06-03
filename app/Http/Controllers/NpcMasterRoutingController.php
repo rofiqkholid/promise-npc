@@ -16,9 +16,9 @@ class NpcMasterRoutingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = NpcMasterRouting::with(['part', 'process'])
+        $query = NpcMasterRouting::with(['part'])
             ->select('part_id')
-            ->groupBy('part_id');
+            ->distinct();
 
         if ($request->has('search') && $request->search != '') {
             $query->whereHas('part', function($q) use ($request) {
