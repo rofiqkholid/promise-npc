@@ -209,6 +209,64 @@
         });
 
         /**
+         * Global DataTables Initialization Helper
+         */
+        window.initPromiseDataTable = function(selector, options = {}) {
+            const defaultOptions = {
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                pageLength: 15,
+                lengthMenu: [[10, 15, 25, 50, 100], [10, 15, 25, 50, 100]],
+                stripeClasses: ['bg-white dark:bg-gray-800', 'bg-gray-50 dark:bg-gray-750'],
+                dom: '<"flex flex-col md:flex-row justify-between items-center mb-4 gap-4"<"w-full md:w-auto"l><"w-full md:w-80"f>>rt<"flex flex-col md:flex-row justify-between items-center mt-6 gap-4"ip>',
+                language: {
+                    search: "",
+                    searchPlaceholder: "Search...",
+                    lengthMenu: "Show _MENU_ entries",
+                    paginate: {
+                        previous: "Prev",
+                        next: "Next"
+                    }
+                },
+                drawCallback: function() {
+                    $('.dataTables_paginate').addClass('inline-flex -space-x-px rounded-md shadow-sm');
+                    $('.dataTables_paginate .paginate_button')
+                        .removeClass('paginate_button current disabled')
+                        .addClass('relative inline-flex items-center px-4 py-2 text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:z-20 cursor-pointer first:rounded-l-md last:rounded-r-md');
+                    $('.dataTables_paginate .active')
+                        .removeClass('bg-white text-gray-700 hover:bg-gray-50')
+                        .addClass('z-10 bg-gray-100 border-gray-300 text-gray-900 font-bold');
+                    $('.dataTables_paginate .disabled')
+                        .removeClass('hover:bg-gray-50 cursor-pointer text-gray-700')
+                        .addClass('opacity-50 cursor-not-allowed text-gray-400');
+                        
+                    $(selector + '_paginate a').each(function() {
+                        $(this).removeClass('paginate_button');
+                    });
+                    
+                    $('.dataTables_filter input')
+                        .addClass('!pl-3 !pr-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-md')
+                        .css('margin-left', '0');
+                    $('.dataTables_length select')
+                        .addClass('py-2 pl-3 pr-8 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm rounded-md shadow-sm');
+                }
+            };
+
+            // Merge user options with default options
+            // DrawCallback needs to be merged carefully to allow user custom callbacks if needed
+            const userDrawCallback = options.drawCallback;
+            if (userDrawCallback) {
+                options.drawCallback = function(settings) {
+                    defaultOptions.drawCallback.call(this, settings);
+                    userDrawCallback.call(this, settings);
+                };
+            }
+
+            return $(selector).DataTable($.extend(true, {}, defaultOptions, options));
+        };
+
+        /**
          * Global Form Submit Spinner & Disable Double Submit
          */
         $(document).on('click', 'form button[type="submit"], form input[type="submit"]', function() {

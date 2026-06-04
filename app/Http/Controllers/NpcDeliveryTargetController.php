@@ -9,14 +9,29 @@ class NpcDeliveryTargetController extends Controller
 {
     public function index(Request $request)
     {
-        $query = NpcDeliveryTarget::orderBy('target_name', 'asc');
-        
-        if ($request->has('search') && $request->search != '') {
-            $query->where('target_name', 'like', '%' . $request->search . '%');
+        if ($request->ajax()) {
+            $query = NpcDeliveryTarget::query();
+            
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->addIndexColumn()
+                ->editColumn('is_active', function ($target) {
+                    if ($target->is_active) {
+                        return '<span class="px-2.5 py-1 border text-xs font-semibold bg-green-100 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800">Active</span>';
+                    }
+                    return '<span class="px-2.5 py-1 border text-xs font-semibold bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">Inactive</span>';
+                })
+                ->addColumn('action', function ($target) {
+                    return view('components.datatable-actions', [
+                        'editUrl' => route('master.delivery-targets.edit', $target->hashed_id),
+                        'deleteUrl' => route('master.delivery-targets.destroy', $target->hashed_id),
+                        'deleteMessage' => 'Permanently delete this delivery target?'
+                    ])->render();
+                })
+                ->rawColumns(['is_active', 'action'])
+                ->make(true);
         }
 
-        $targets = $query->paginate(20);
-        return view('master.delivery_targets.index', compact('targets'));
+        return view('master.delivery_targets.index');
     }
 
     public function create()

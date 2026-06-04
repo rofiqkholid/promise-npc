@@ -12,15 +12,32 @@ class NpcMasterDepartmentController extends Controller
      */
     public function index(Request $request)
     {
-        $query = NpcDepartment::orderBy('name');
-        
-        if ($request->has('search') && $request->search != '') {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('full_name', 'like', '%' . $request->search . '%');
+        if ($request->ajax()) {
+            $query = NpcDepartment::query();
+            
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->addIndexColumn()
+                ->editColumn('full_name', function ($dept) {
+                    return $dept->full_name ?? '-';
+                })
+                ->editColumn('is_active', function ($dept) {
+                    if ($dept->is_active) {
+                        return '<span class="px-2.5 py-1 border text-xs font-semibold bg-green-100 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800">Active</span>';
+                    }
+                    return '<span class="px-2.5 py-1 border text-xs font-semibold bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">Inactive</span>';
+                })
+                ->addColumn('action', function ($dept) {
+                    return view('components.datatable-actions', [
+                        'editUrl' => route('master.departments.edit', $dept->hashed_id),
+                        'deleteUrl' => route('master.departments.destroy', $dept->hashed_id),
+                        'deleteMessage' => 'Permanently delete this department?'
+                    ])->render();
+                })
+                ->rawColumns(['is_active', 'action'])
+                ->make(true);
         }
 
-        $departments = $query->paginate(20);
-        return view('master.departments.index', compact('departments'));
+        return view('master.departments.index');
     }
 
     /**

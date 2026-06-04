@@ -19,38 +19,74 @@ class ProductChecksheetSetupController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with('mappedCheckpoints', 'customer', 'vehicleModel')->orderBy('part_no');
-        
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('part_no', 'like', "%{$search}%")
-                  ->orWhere('part_name', 'like', "%{$search}%");
-            });
-        }
+        if ($request->ajax()) {
+            $query = Product::with('mappedCheckpoints', 'customer', 'vehicleModel');
 
-        if ($request->has('customer_id') && $request->customer_id != '') {
-            $query->where('customer_id', $request->customer_id);
-        }
-
-        if ($request->has('model_id') && $request->model_id != '') {
-            $query->where('model_id', $request->model_id);
-        }
-
-        if ($request->has('status') && $request->status != '') {
-            if ($request->status == 'mapped') {
-                $query->whereHas('mappedCheckpoints');
-            } elseif ($request->status == 'unmapped') {
-                $query->whereDoesntHave('mappedCheckpoints');
+            if ($request->has('customer_id') && $request->customer_id != '') {
+                $query->where('customer_id', $request->customer_id);
             }
+
+            if ($request->has('model_id') && $request->model_id != '') {
+                $query->where('model_id', $request->model_id);
+            }
+
+            if ($request->has('status') && $request->status != '') {
+                if ($request->status == 'mapped') {
+                    $query->whereHas('mappedCheckpoints');
+                } elseif ($request->status == 'unmapped') {
+                    $query->whereDoesntHave('mappedCheckpoints');
+                }
+            }
+
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->order(function ($q) {
+                    $q->orderBy('part_no', 'asc');
+                })
+                ->addIndexColumn()
+                ->addColumn('customer', function ($product) {
+                    return '<div class="text-sm font-bold text-gray-900 dark:text-gray-100">' . (optional($product->customer)->code ?? '-') . '</div>';
+                })
+                ->addColumn('model', function ($product) {
+                    return '<div class="text-sm font-medium text-gray-800 dark:text-gray-200">' . (optional($product->vehicleModel)->name ?? '-') . '</div>';
+                })
+                ->addColumn('part_no', function ($product) {
+                    return '<div class="text-blue-600 dark:text-blue-400 font-bold text-sm">' . $product->part_no . '</div>';
+                })
+                ->addColumn('part_name', function ($product) {
+                    return '<div class="text-gray-800 dark:text-gray-200 font-bold">' . $product->part_name . '</div>';
+                })
+                ->addColumn('mapping_status', function ($product) {
+                    if ($product->mappedCheckpoints->isNotEmpty()) {
+                        return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50 text-[10px] font-bold uppercase tracking-wider"><i class="fa-solid fa-check-circle"></i> Mapped (' . $product->mappedCheckpoints->count() . ' Points)</span>';
+                    } else {
+                        return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600 text-[10px] font-bold uppercase tracking-wider"><i class="fa-solid fa-minus"></i> Unmapped</span>';
+                    }
+                })
+                ->addColumn('action', function ($product) {
+                    $buttons = '';
+                    if ($product->mappedCheckpoints->isNotEmpty()) {
+                        $buttons .= '<a href="' . route('checksheets.setup.preview', $product->hashed_id) . '" target="_blank" class="inline-flex px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-500 font-medium transition items-center gap-1.5 text-xs shadow-sm border border-emerald-200 dark:border-emerald-800/50 hover:border-transparent mr-2" title="Preview Checksheet"><i class="fa-solid fa-eye"></i> Preview</a>';
+                    }
+                    $buttons .= '<a href="' . route('checksheets.setup.edit', $product->hashed_id) . '" class="inline-flex px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 font-medium transition items-center gap-1.5 text-xs shadow-sm border border-blue-200 dark:border-blue-800/50 hover:border-transparent"><i class="fa-solid fa-pencil"></i> Mapping Checksheet</a>';
+                    return '<div class="flex items-center justify-end gap-2">' . $buttons . '</div>';
+                })
+                ->filter(function ($query) use ($request) {
+                    if ($request->has('search') && !empty($request->search['value'])) {
+                        $search = $request->search['value'];
+                        $query->where(function ($q) use ($search) {
+                            $q->where('part_no', 'like', "%{$search}%")
+                              ->orWhere('part_name', 'like', "%{$search}%");
+                        });
+                    }
+                })
+                ->rawColumns(['customer', 'model', 'part_no', 'part_name', 'mapping_status', 'action'])
+                ->make(true);
         }
-        
-        $products = $query->paginate(20);
 
         $customers = \App\Models\Customer::orderBy('code')->get();
         $models = \App\Models\VehicleModel::orderBy('name')->get();
 
-        return view('master.product_checksheets.index', compact('products', 'customers', 'models'));
+        return view('master.product_checksheets.index', compact('customers', 'models'));
     }
 
     public function edit(Product $product)

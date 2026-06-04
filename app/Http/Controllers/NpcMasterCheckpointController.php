@@ -9,15 +9,31 @@ class NpcMasterCheckpointController extends Controller
 {
     public function index(Request $request)
     {
-        $query = NpcMasterCheckpoint::orderBy('point_number', 'asc');
-        
-        if ($request->has('search') && $request->search != '') {
-            $query->where('check_item', 'like', '%' . $request->search . '%')
-                  ->orWhere('point_number', 'like', '%' . $request->search . '%');
+        if ($request->ajax()) {
+            $query = NpcMasterCheckpoint::query();
+            
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->editColumn('point_number', function ($cp) {
+                    return '<div class="font-bold text-center text-lg text-indigo-600 dark:text-indigo-400">' . $cp->point_number . '</div>';
+                })
+                ->editColumn('is_active', function ($cp) {
+                    if ($cp->is_active) {
+                        return '<span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 border border-green-200 dark:border-green-800">Active</span>';
+                    }
+                    return '<span class="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">Omit</span>';
+                })
+                ->addColumn('action', function ($cp) {
+                    return view('components.datatable-actions', [
+                        'editUrl' => route('master.checkpoints.edit', $cp->hashed_id),
+                        'deleteUrl' => route('master.checkpoints.destroy', $cp->hashed_id),
+                        'deleteMessage' => 'Permanently delete this check point?'
+                    ])->render();
+                })
+                ->rawColumns(['point_number', 'is_active', 'action'])
+                ->make(true);
         }
 
-        $checkpoints = $query->paginate(20);
-        return view('master.checkpoints.index', compact('checkpoints'));
+        return view('master.checkpoints.index');
     }
 
     public function create()

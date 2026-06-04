@@ -16,28 +16,68 @@ class NpcMasterRoutingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = NpcMasterRouting::with(['part'])
-            ->select('part_id')
-            ->distinct();
+        if ($request->ajax()) {
+            $query = NpcMasterRouting::with(['part', 'part.vehicleModel', 'part.vehicleModel.customer'])
+                ->select('part_id')
+                ->distinct();
 
-        if ($request->has('search') && $request->search != '') {
-            $query->whereHas('part', function($q) use ($request) {
-                $q->where('part_no', 'like', '%' . $request->search . '%')
-                  ->orWhere('part_name', 'like', '%' . $request->search . '%');
-            });
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('part_no', function ($routing) {
+                    return '<span class="text-blue-600 dark:text-blue-400 font-semibold text-sm">' . (optional($routing->part)->part_no ?? 'N/A') . '</span>';
+                })
+                ->addColumn('part_name', function ($routing) {
+                    $html = '<div class="text-slate-600 dark:text-slate-400 text-sm font-medium">' . (optional($routing->part)->part_name ?? '-') . '</div>';
+                    $html .= '<div class="text-xs text-slate-500 mt-1 flex items-center gap-1">';
+                    $html .= '<i class="fa-solid fa-car text-gray-400"></i> ';
+                    $html .= optional(optional($routing->part)->vehicleModel)->name ?? 'Unknown Model';
+                    $html .= '<span class="text-gray-400 mx-1">|</span>';
+                    $html .= '<i class="fa-solid fa-building text-gray-400 text-[10px]"></i> ';
+                    $html .= optional(optional(optional($routing->part)->vehicleModel)->customer)->code ?? 'Unknown Customer';
+                    $html .= '</div>';
+                    return $html;
+                })
+                ->addColumn('flow_process', function ($routing) {
+                    $processes = NpcMasterRouting::with('process')
+                        ->where('part_id', $routing->part_id)
+                        ->orderBy('sequence_order')
+                        ->get();
+                        
+                    $html = '<div class="flex flex-wrap gap-2 items-center sortable-container" data-part-id="' . $routing->part_id . '">';
+                    foreach ($processes as $procRouting) {
+                        $html .= '<div class="sortable-item flex items-center gap-2 cursor-move group/badge" data-id="' . $procRouting->id . '">';
+                        $html .= '<span class="inline-flex items-center px-2.5 py-1 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-300 group-hover/badge:bg-blue-50 dark:group-hover/badge:bg-blue-900/30 group-hover/badge:border-blue-300 dark:group-hover/badge:border-blue-700 transition" title="Drag to change sequence">';
+                        $html .= '<i class="fa-solid fa-grip-vertical text-slate-400 mr-1.5 group-hover/badge:text-blue-500"></i>';
+                        $html .= optional($procRouting->process)->process_name ?? 'Unknown';
+                        $html .= '</span>';
+                        $html .= '<i class="fa-solid fa-arrow-right text-slate-300 dark:text-slate-500 text-xs process-arrow"></i>';
+                        $html .= '</div>';
+                    }
+                    $html .= '</div>';
+                    return $html;
+                })
+                ->addColumn('action', function ($routing) {
+                    return view('components.datatable-actions', [
+                        'editUrl' => route('master.routings.edit', $routing->part_id),
+                        'deleteUrl' => route('master.routings.destroy', $routing->part_id),
+                        'deleteMessage' => 'Are you sure you want to delete routing for this part?'
+                    ])->render();
+                })
+                ->filterColumn('part_no', function($query, $keyword) {
+                    $query->whereHas('part', function($q) use ($keyword) {
+                        $q->where('part_no', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('part_name', function($query, $keyword) {
+                    $query->whereHas('part', function($q) use ($keyword) {
+                        $q->where('part_name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->rawColumns(['part_no', 'part_name', 'flow_process', 'action'])
+                ->make(true);
         }
 
-        $routings = $query->paginate(10);
-            
-        // We grouped by part_id, so now we fetch the processes for each part
-        foreach ($routings as $routing) {
-            $routing->processes = NpcMasterRouting::with('process')
-                ->where('part_id', $routing->part_id)
-                ->orderBy('sequence_order')
-                ->get();
-        }
-
-        return view('master.routings.index', compact('routings'));
+        return view('master.routings.index');
     }
 
     public function create()

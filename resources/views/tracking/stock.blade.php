@@ -18,41 +18,8 @@
 
     <!-- Table -->
     <div class="p-6">
-
-        <!-- Search Form -->
-        <div class="mb-4" x-data="{
-            searchQuery: '{{ request('search') }}',
-            performSearch() {
-                fetch('{{ route('tracking.stock') }}?search=' + encodeURIComponent(this.searchQuery))
-                .then(res => res.text())
-                .then(html => {
-                    let doc = new DOMParser().parseFromString(html, 'text/html');
-                    document.querySelector('tbody').innerHTML = doc.querySelector('tbody').innerHTML;
-                    let pagination = document.querySelector('.p-4.border-t nav');
-                    let newPagination = doc.querySelector('.p-4.border-t nav');
-                    if(pagination && newPagination) pagination.parentElement.innerHTML = newPagination.parentElement.innerHTML;
-                    window.history.pushState(null, '', '?search=' + encodeURIComponent(this.searchQuery));
-                });
-            }
-        }">
-            <div class="relative w-full sm:w-80">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
-                </div>
-                <input type="text" x-model="searchQuery" x-ref="searchInput"
-                    placeholder="Search Part No, Part Name, PO No..."
-                    @input.debounce.500ms="performSearch()"
-                    class="!pl-10 !pr-10 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-none">
-                <button type="button" x-show="searchQuery.length > 0" style="display:none;"
-                    @click="searchQuery=''; performSearch(); $refs.searchInput.focus()"
-                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-red-500 transition">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-        </div>
-
         <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
-            <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
+            <table id="stockTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
                         <th scope="col" class="px-6 py-4 font-semibold w-16">No</th>
@@ -64,138 +31,10 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                    @forelse($parts as $part)
-                    @php
-                        // Countdown remaining days
-                        $now = \Carbon\Carbon::now()->startOfDay();
-                        $target = \Carbon\Carbon::parse($part->delivery_date)->startOfDay();
-                        $diffDays = $now->diffInDays($target, false);
-                        
-                        $isOverdue = $diffDays < 0;
-                        $isUrgent = $diffDays >= 0 && $diffDays <= 3;
-                        
-                        $timeStatusClass = $isOverdue ? 'bg-red-100 text-red-700 border-red-200' : ($isUrgent ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-green-100 text-green-700 border-green-200');
-                        $timeStatusText = $isOverdue ? 'Overdue ' . abs($diffDays) . ' Days' : ($diffDays == 0 ? 'Deliver Today' : 'Remaining ' . $diffDays . ' Days');
-                        $timeStatusIcon = $isOverdue ? 'fa-triangle-exclamation' : 'fa-clock';
-                        
-                        // Retrieve customer info
-                        $customerName = optional(optional(optional($part->product)->vehicleModel)->customer)->code ?? 'Unknown Customer';
-                        $modelName = optional(optional($part->product)->vehicleModel)->name ?? '-';
-                        
-                        $categoryName = optional(optional($part->event)->customerCategory)->name ?? '-';
-                        $grName = optional(optional($part->event)->deliveryGroup)->name ?? '-';
-                    @endphp
-                    <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-gray-700/30 transition text-sm">
-                        
-                        <td class="px-6 py-4 text-slate-800 dark:text-slate-200 text-sm">
-                            {{ ($parts->currentPage() - 1) * $parts->perPage() + $loop->iteration }}
-                        </td>
-
-                        {{-- Delivery Target --}}
-                        <td class="px-6 py-4">
-                            <div class="font-bold text-gray-800 dark:text-gray-100 mb-1 flex items-center gap-1.5">
-                                <i class="fa-solid fa-building text-gray-400"></i> {{ $customerName }}
-                            </div>
-                            <div class="text-xs text-gray-500 font-medium mb-2 pl-4">
-                                <div class="mb-1">Model: <span class="text-blue-600 dark:text-blue-400">{{ $modelName }}</span></div>
-                                <div class="flex items-center gap-1.5">
-                                    <span class="px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 text-[9px] font-bold tracking-wider" title="Category Customer">{{ $categoryName }}</span>
-                                    <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 text-[9px] font-bold tracking-wider" title="Delivery Group (GR)">{{ $grName }}</span>
-                                </div>
-                            </div>
-                            
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border {{ $timeStatusClass }}">
-                                <i class="fa-solid {{ $timeStatusIcon }}"></i> {{ $timeStatusText }}
-                            </span>
-                        </td>
-                        
-                        {{-- Part Info --}}
-                        <td class="px-6 py-4">
-                            <div class="text-gray-800 dark:text-gray-200 font-bold text-sm">{{ optional($part->product)->part_no }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium">{{ optional($part->product)->part_name }}</div>
-                            <div class="text-[10px] text-gray-400 mt-1 uppercase">PO: {{ optional($part->event)->po_no }}</div>
-                        </td>
-                        
-                        {{-- Qty & Target Date --}}
-                        <td class="px-6 py-4">
-                            <div class="text-gray-800 dark:text-gray-300 font-black text-lg mb-0.5">{{ number_format($part->qty) }} <span class="text-xs font-semibold text-gray-500">PCS</span></div>
-                            @if($part->delivered_qty > 0)
-                            <div class="text-[11px] font-bold text-blue-600 dark:text-blue-400 mb-1">
-                                <i class="fa-solid fa-truck-ramp-box"></i> Delivered: {{ number_format($part->delivered_qty) }} / {{ number_format($part->qty) }}
-                            </div>
-                            @endif
-                            <div class="text-[11px] font-medium text-gray-500">
-                                Target: {{ \Carbon\Carbon::parse($part->delivery_date)->format('d M Y') }}
-                            </div>
-                        </td>
-                        
-                        {{-- Approval Info --}}
-                        <td class="px-6 py-4 align-top">
-                            @if(in_array($part->status, ['FINISHED', 'OUTSTANDING', 'CLOSED']))
-                                <div class="flex flex-col gap-1.5 mt-1">
-                                    <span class="text-[11px] font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1.5 line-through decoration-slate-300 opacity-60">
-                                        <i class="fa-solid fa-check text-green-500"></i> Production Done
-                                    </span>
-                                    @if($part->qc_target_date)
-                                    <span class="text-[11px] font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                                        <i class="fa-solid fa-check-double text-emerald-500"></i> QC Passed: {{ \Carbon\Carbon::parse($part->qc_target_date)->format('d M y') }}
-                                    </span>
-                                    @endif
-                                    @if($part->mgm_target_date)
-                                    <span class="text-[11px] font-medium text-purple-700 dark:text-purple-400 flex items-center gap-1.5">
-                                        <i class="fa-solid fa-check-double text-purple-500"></i> MGM Check: {{ \Carbon\Carbon::parse($part->mgm_target_date)->format('d M y') }}
-                                    </span>
-                                    @endif
-                                </div>
-                            @else
-                                <div class="mt-2 text-slate-400 text-[10px] font-medium italic">
-                                    Not yet finished ({{ str_replace('_', ' ', $part->status) }})
-                                </div>
-                            @endif
-                        </td>
-                        
-                        {{-- Action --}}
-                        <td class="px-6 py-4 text-right pointer-events-auto">
-                            <div class="flex flex-col items-end gap-2 text-sm">
-                            @if($part->status === 'CLOSED')
-                                <div class="px-3 py-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-[10px] text-blue-600 dark:text-blue-400 italic flex items-center gap-1.5 cursor-not-allowed font-bold">
-                                    <i class="fa-solid fa-check-double text-[10px]"></i> Already Delivered (Closed)
-                                </div>
-                            @elseif(!in_array($part->status, ['FINISHED', 'OUTSTANDING']))
-                                <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center gap-1.5 cursor-not-allowed">
-                                    <i class="fa-solid fa-lock text-[8px]"></i> Waiting for Process to Complete
-                                </div>
-                            @else
-                                <button type="button" onclick="openDeliverModal('{{ $part->hashed_id }}', '{{ $part->qty - $part->delivered_qty }}', '{{ route('tracking.deliver', $part->hashed_id) }}', '{{ optional($part->product)->part_no }}')" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-sm font-medium transition text-xs flex items-center justify-center gap-2 w-full">
-                                    <i class="fa-solid fa-truck-fast"></i> Deliver Parts
-                                </button>
-                                @if($part->checksheet)
-                                <a href="{{ route('checksheets.print-label', $part->hashed_id) }}" target="_blank" class="px-4 py-2 bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 shadow-sm font-medium transition text-xs flex items-center justify-center gap-2 w-full">
-                                    <i class="fa-solid fa-print"></i> Print QC Label
-                                </a>
-                                @endif
-                                <p class="text-[9px] text-gray-400 italic text-right w-full">Remaining: {{ number_format($part->qty - $part->delivered_qty) }} PCS</p>
-                            @endif
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="p-12 text-center text-gray-500 dark:text-gray-400">
-                            <div class="flex flex-col items-center justify-center gap-3">
-                                <i class="fa-solid fa-box-open text-4xl text-gray-300 dark:text-gray-600"></i>
-                                <p>Warehouse empty / No parts ready to deliver.</p>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
+                    <!-- DataTables Data -->
                 </tbody>
             </table>
         </div>
-    </div>
-
-    <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-        {{ $parts->links() }}
     </div>
 </div>
 
@@ -255,6 +94,20 @@
 
 @push('scripts')
 <script>
+    $(document).ready(function() {
+        initPromiseDataTable('#stockTable', {
+            ajax: "{{ route('tracking.stock') }}",
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-6 py-4 text-slate-800 dark:text-slate-200 text-sm' },
+                { data: 'delivery_target', name: 'delivery_target', className: 'px-6 py-4', orderable: false },
+                { data: 'part_info', name: 'part_info', className: 'px-6 py-4', orderable: false },
+                { data: 'qty_target', name: 'qty_target', className: 'px-6 py-4', orderable: false },
+                { data: 'approval_info', name: 'approval_info', className: 'px-6 py-4 align-top', orderable: false, searchable: false },
+                { data: 'action_stock', name: 'action_stock', orderable: false, searchable: false, className: 'px-6 py-4 text-right pointer-events-auto' }
+            ]
+        });
+    });
+
     function openDeliverModal(id, maxQty, url, partNo) {
         const modal = document.getElementById('deliverModal');
         const modalContent = document.getElementById('deliverModalContent');

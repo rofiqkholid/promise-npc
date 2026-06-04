@@ -8,7 +8,7 @@ class ProductionTrackingController extends Controller
 {
     private function buildQuery($statusParam, $search = null)
     {
-        $query = \App\Models\NpcPart::with(['event.customerCategory', 'event.deliveryGroup', 'processes.process', 'processes.department', 'checkpoints', 'checksheet', 'product.vehicleModel.customer'])->latest();
+        $query = \App\Models\NpcPart::with(['event.customerCategory', 'event.deliveryGroup', 'processes.process', 'processes.department', 'checkpoints', 'checksheet', 'product.vehicleModel.customer']);
 
         if ($statusParam !== 'all') {
             if ($statusParam === 'CLOSED') {
@@ -41,8 +41,72 @@ class ProductionTrackingController extends Controller
 
     private function renderTrackingPage($statusParam, $pageTitle, $pageIcon, $pageDesc, $viewFile = 'tracking.index')
     {
-        $search = request('search');
-        $parts = $this->buildQuery($statusParam, $search)->paginate(15);
+        if (request()->ajax()) {
+            $search = request('search')['value'] ?? null; // Datatables sends search in search[value]
+            $query = $this->buildQuery($statusParam, $search);
+
+            $dt = \Yajra\DataTables\Facades\DataTables::of($query)
+                ->order(function ($query) {
+                    $query->orderBy('created_at', 'desc');
+                })
+                ->addIndexColumn()
+                ->addColumn('part_info', function ($part) {
+                    return view('tracking.columns.part_info', compact('part'))->render();
+                });
+                
+            // Specific columns based on statusParam / viewFile
+            if ($viewFile === 'tracking.qc') {
+                $dt->addColumn('status_po', function ($part) {
+                    return view('tracking.columns.status_po', compact('part'))->render();
+                })
+                ->addColumn('qc_progress', function ($part) {
+                    return view('tracking.columns.qc_progress', compact('part'))->render();
+                })
+                ->addColumn('action_qc', function ($part) {
+                    return view('tracking.columns.action_qc', compact('part'))->render();
+                });
+                $dt->rawColumns(['part_info', 'status_po', 'qc_progress', 'action_qc']);
+            } elseif ($viewFile === 'tracking.production') {
+                $dt->addColumn('status_po', function ($part) {
+                    return view('tracking.columns.status_production', compact('part'))->render();
+                })
+                ->addColumn('routing_execution', function ($part) {
+                    return view('tracking.columns.production_routing', compact('part'))->render();
+                })
+                ->addColumn('action_production', function ($part) {
+                    return view('tracking.columns.action_production', compact('part'))->render();
+                });
+                $dt->rawColumns(['part_info', 'status_po', 'routing_execution', 'action_production']);
+            } elseif ($viewFile === 'tracking.stock') {
+                $dt->addColumn('delivery_target', function ($part) {
+                    return view('tracking.columns.stock_delivery_target', compact('part'))->render();
+                })
+                ->addColumn('qty_target', function ($part) {
+                    return view('tracking.columns.stock_qty_target', compact('part'))->render();
+                })
+                ->addColumn('approval_info', function ($part) {
+                    return view('tracking.columns.stock_approval_info', compact('part'))->render();
+                })
+                ->addColumn('action_stock', function ($part) {
+                    return view('tracking.columns.stock_action', compact('part'))->render();
+                });
+                $dt->rawColumns(['part_info', 'delivery_target', 'qty_target', 'approval_info', 'action_stock']);
+            }
+            
+            // Add other pages when ready
+            
+            return $dt->make(true);
+        }
+
+        // For DataTables views, we don't need the actual parts data on initial load.
+        if (in_array($viewFile, ['tracking.qc', 'tracking.production'])) {
+            $parts = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
+        } else {
+            // For other views that still use normal Laravel pagination
+            $search = request('search');
+            $parts = $this->buildQuery($statusParam, $search)->latest()->paginate(15);
+        }
+        
         return view($viewFile, compact('parts', 'statusParam', 'pageTitle', 'pageIcon', 'pageDesc'));
     }
 
@@ -55,25 +119,55 @@ class ProductionTrackingController extends Controller
             'total_po_close' => \App\Models\NpcPart::where('status', 'CLOSED')->count(),
         ];
 
-        $query = \App\Models\NpcEvent::with(['customerCategory', 'parts.product'])
-                ->whereHas('parts');
-        
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('po_no', 'like', "%{$search}%")
-                  ->orWhere('delivery_to', 'like', "%{$search}%")
-                  ->orWhereHas('customerCategory', function ($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%")
-                        ->orWhereHas('customer', function ($q) use ($search) {
-                            $q->where('code', 'like', "%{$search}%")
-                              ->orWhere('name', 'like', "%{$search}%");
+        if ($request->ajax()) {
+            $query = \App\Models\NpcEvent::with(['customerCategory', 'parts.product', 'parts.processes.process', 'parts.processes.department', 'parts.checksheet'])->whereHas('parts');
+            
+            // Note: DataTables search is usually handled by $request->search['value'] but we will let Yajra handle it.
+            // Custom search logic if we want to search in related tables:
+            
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->order(function ($q) {
+                    $q->orderBy('created_at', 'desc');
+                })
+                ->addIndexColumn()
+                ->addColumn('po_info', function ($po) {
+                    return view('tracking.columns.global_po_info', compact('po'))->render();
+                })
+                ->addColumn('part_count', function ($po) {
+                    return view('tracking.columns.global_part_count', compact('po'))->render();
+                })
+                ->addColumn('nearest', function ($po) {
+                    return view('tracking.columns.global_nearest', compact('po'))->render();
+                })
+                ->addColumn('overall_progress', function ($po) {
+                    return view('tracking.columns.global_progress', compact('po'))->render();
+                })
+                ->addColumn('system_duration', function ($po) {
+                    return view('tracking.columns.global_system_duration', compact('po'))->render();
+                })
+                ->filter(function ($query) use ($request) {
+                    if ($request->has('search') && !empty($request->search['value'])) {
+                        $search = $request->search['value'];
+                        $query->where(function ($q) use ($search) {
+                            $q->where('po_no', 'like', "%{$search}%")
+                              ->orWhere('delivery_to', 'like', "%{$search}%")
+                              ->orWhereHas('customerCategory', function ($q) use ($search) {
+                                  $q->where('name', 'like', "%{$search}%")
+                                    ->orWhereHas('customer', function ($q) use ($search) {
+                                        $q->where('code', 'like', "%{$search}%")
+                                          ->orWhere('name', 'like', "%{$search}%");
+                                    });
+                              });
                         });
-                  });
-            });
+                    }
+                })
+                ->rawColumns(['po_info', 'part_count', 'nearest', 'overall_progress', 'system_duration'])
+                ->make(true);
         }
-        
-        $pos = $query->latest()->paginate(10);
+
+        // Just pass an empty paginator to avoid breaking any blade view that might still expect it (if we didn't remove it)
+        // Or simply empty collection
+        $pos = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
 
         return view('tracking.global', [
             'pos' => $pos,

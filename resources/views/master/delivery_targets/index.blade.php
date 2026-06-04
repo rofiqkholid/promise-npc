@@ -16,52 +16,8 @@
 
     <div class="p-6">
 
-        <!-- Search Form -->
-        <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <form action="{{ route('master.delivery-targets.index') }}" method="GET" class="w-full sm:w-auto"
-                x-data="{ 
-                    searchQuery: '{{ request('search') }}',
-                    performSearch() {
-                        fetch('?search=' + this.searchQuery)
-                        .then(res => res.text())
-                        .then(html => {
-                            let doc = new DOMParser().parseFromString(html, 'text/html');
-                            document.querySelector('tbody').innerHTML = doc.querySelector('tbody').innerHTML;
-                            
-                            let pagination = document.querySelector('.mt-4 nav');
-                            let newPagination = doc.querySelector('.mt-4 nav');
-                            if(pagination && newPagination) {
-                                pagination.innerHTML = newPagination.innerHTML;
-                            } else if (newPagination) {
-                                let container = document.querySelector('.p-6');
-                                let div = document.createElement('div');
-                                div.className = 'mt-4';
-                                div.appendChild(newPagination);
-                                container.appendChild(div);
-                            }
-                            
-                            window.history.pushState(null, '', '?search=' + this.searchQuery);
-                        });
-                    }
-                }" @submit.prevent="performSearch()">
-                <div class="relative w-full sm:w-64">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </div>
-                    <input type="text" name="search" x-model="searchQuery" x-ref="searchInput" placeholder="Search target name..." 
-                        @input.debounce.500ms="performSearch()"
-                        class="!pl-10 !pr-10 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-none">
-                    
-                    <button type="button" x-show="searchQuery.length > 0" style="display: none;"
-                        @click="searchQuery = ''; performSearch(); $refs.searchInput.focus()"
-                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-red-500 transition outline-none">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
         <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
-            <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
+            <table id="deliveryTargetsTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
                         <th scope="col" class="px-6 py-4 font-semibold w-16">No</th>
@@ -71,53 +27,27 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($targets as $target)
-                    <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-gray-700/30 transition group">
-                        <td class="px-6 py-4 font-medium text-slate-500 dark:text-slate-400">{{ ($targets->currentPage() - 1) * $targets->perPage() + $loop->iteration }}</td>
-                        <td class="px-6 py-4 font-bold text-slate-900 dark:text-white">{{ $target->target_name }}</td>
-                        <td class="px-6 py-4">
-                            @if($target->is_active)
-                                <span class="px-2.5 py-1 border text-xs font-semibold bg-green-100 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800">
-                                    Active
-                                </span>
-                            @else
-                                <span class="px-2.5 py-1 border text-xs font-semibold bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">
-                                    Inactive
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            <div class="flex justify-end gap-1 opacity-50 group-hover:opacity-100 transition">
-                                <a href="{{ route('master.delivery-targets.edit', $target->hashed_id) }}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 transition" title="Edit">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
-                                <form action="{{ route('master.delivery-targets.destroy', $target->hashed_id) }}" method="POST" class="inline" onsubmit="confirmAction(event, 'Permanently delete this delivery target?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 transition" title="Delete">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="4" class="p-12 text-center text-gray-500 dark:text-gray-400">
-                            <div class="flex flex-col items-center justify-center gap-3">
-                                <i class="fa-regular fa-folder-open text-4xl text-gray-300 dark:text-gray-600"></i>
-                                <p>No delivery targets registered yet.</p>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
+                    <!-- DataTables will fill this -->
                 </tbody>
             </table>
-        </div>
-        <div class="mt-4">
-            {{ $targets->links() }}
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        initPromiseDataTable('#deliveryTargetsTable', {
+            ajax: "{{ route('master.delivery-targets.index') }}",
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-6 py-4 font-medium text-slate-500 dark:text-slate-400' },
+                { data: 'target_name', name: 'target_name', className: 'px-6 py-4 font-bold text-slate-900 dark:text-white' },
+                { data: 'is_active', name: 'is_active', className: 'px-6 py-4', searchable: false },
+                { data: 'action', name: 'action', orderable: false, searchable: false, className: 'px-6 py-4 text-right' }
+            ]
+        });
+    });
+</script>
+@endpush
 

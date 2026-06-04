@@ -9,14 +9,26 @@ class NpcDeliveryGroupController extends Controller
 {
     public function index(Request $request)
     {
-        $query = NpcDeliveryGroup::latest();
-        
-        if ($request->has('search') && $request->search != '') {
-            $query->where('name', 'like', '%' . $request->search . '%');
+        if ($request->ajax()) {
+            $query = NpcDeliveryGroup::query();
+            
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->addIndexColumn()
+                ->editColumn('name', function ($group) {
+                    return '<span class="font-bold text-slate-900 dark:text-white">' . $group->name . '</span>';
+                })
+                ->addColumn('action', function ($group) {
+                    return view('components.datatable-actions', [
+                        'editUrl' => route('master.delivery-groups.edit', $group->hashed_id),
+                        'deleteUrl' => route('master.delivery-groups.destroy', $group->hashed_id),
+                        'deleteMessage' => 'Delete grup ini secara permanen?'
+                    ])->render();
+                })
+                ->rawColumns(['name', 'action'])
+                ->make(true);
         }
 
-        $groups = $query->paginate(20);
-        return view('master.delivery_groups.index', compact('groups'));
+        return view('master.delivery_groups.index');
     }
 
     public function create()

@@ -9,20 +9,45 @@ class NpcUserController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->input('search');
-        
-        $query = \App\Models\User::whereHas('roles')->with('roles');
+        if ($request->ajax()) {
+            $query = \App\Models\User::whereHas('roles')->with('roles');
 
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
-                  ->orWhere('email', 'like', '%' . $search . '%')
-                  ->orWhere('nik', 'like', '%' . $search . '%');
-            });
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('name_email', function ($user) {
+                    $html = '<div class="text-blue-900 dark:text-blue-400 font-semibold text-sm">' . $user->name . '</div>';
+                    $html .= '<div class="text-xs text-slate-500 font-normal mt-0.5">' . $user->email . '</div>';
+                    return $html;
+                })
+                ->addColumn('nik', function ($user) {
+                    return '<span class="text-gray-600 dark:text-gray-400 text-sm font-medium">' . ($user->nik ?? '-') . '</span>';
+                })
+                ->addColumn('roles', function ($user) {
+                    $html = '<div class="flex flex-wrap gap-1">';
+                    foreach ($user->roles as $role) {
+                        $html .= '<span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border border-blue-200 dark:border-blue-800">';
+                        $html .= $role->name;
+                        $html .= '</span>';
+                    }
+                    $html .= '</div>';
+                    return $html;
+                })
+                ->addColumn('action', function ($user) {
+                    return view('components.datatable-actions', [
+                        'editUrl' => route('master.npc-users.edit', $user->hashed_id),
+                        'deleteUrl' => route('master.npc-users.destroy', $user->hashed_id),
+                        'deleteMessage' => 'Are you sure you want to revoke NPC access for this user?'
+                    ])->render();
+                })
+                ->filterColumn('name_email', function($query, $keyword) {
+                    $query->where('name', 'like', "%{$keyword}%")
+                          ->orWhere('email', 'like', "%{$keyword}%");
+                })
+                ->rawColumns(['name_email', 'nik', 'roles', 'action'])
+                ->make(true);
         }
 
-        $users = $query->orderBy('name')->paginate(10);
-        return view('master.npc-users.index', compact('users', 'search'));
+        return view('master.npc-users.index');
     }
 
     public function create()

@@ -82,7 +82,7 @@
     <!-- Table -->
     <div class="p-6">
         <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
-            <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
+            <table id="checksheetSetupTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
                         <th scope="col" class="px-6 py-4 font-semibold w-12 text-center">No</th>
@@ -95,95 +95,62 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                    @forelse($products as $index => $product)
-                    <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-gray-700/30 transition group text-sm">
-                        <td class="px-6 py-4 text-center text-gray-500">{{ $products->firstItem() + $index }}</td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm font-bold text-gray-900 dark:text-gray-100">
-                                {{ optional($product->customer)->code ?? '-' }}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-800 dark:text-gray-200">
-                                {{ optional($product->vehicleModel)->name ?? '-' }}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-blue-600 dark:text-blue-400 font-bold text-sm">{{ $product->part_no }}</div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-gray-800 dark:text-gray-200 font-bold">{{ $product->part_name }}</div>
-                        </td>
-                        <td class="px-6 py-4 text-center">
-                            @if($product->mappedCheckpoints->isNotEmpty())
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50 text-[10px] font-bold uppercase tracking-wider">
-                                    <i class="fa-solid fa-check-circle"></i> Mapped ({{ $product->mappedCheckpoints->count() }} Points)
-                                </span>
-                            @else
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600 text-[10px] font-bold uppercase tracking-wider">
-                                    <i class="fa-solid fa-minus"></i> Unmapped
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 text-right align-middle">
-                            <div class="flex items-center justify-end gap-2">
-                                @if($product->mappedCheckpoints->isNotEmpty())
-                                    <a href="{{ route('checksheets.setup.preview', $product->hashed_id) }}" target="_blank" class="inline-flex px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-500 font-medium transition items-center gap-1.5 text-xs shadow-sm border border-emerald-200 dark:border-emerald-800/50 hover:border-transparent" title="Preview Checksheet">
-                                        <i class="fa-solid fa-eye"></i> Preview
-                                    </a>
-                                @endif
-                                <a href="{{ route('checksheets.setup.edit', $product->hashed_id) }}" class="inline-flex px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 font-medium transition items-center gap-1.5 text-xs shadow-sm border border-blue-200 dark:border-blue-800/50 hover:border-transparent">
-                                    <i class="fa-solid fa-pencil"></i> Mapping Checksheet
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="7" class="p-12 text-center text-gray-500 dark:text-gray-400">
-                            <div class="flex flex-col items-center justify-center gap-3">
-                                <i class="fa-regular fa-folder-open text-4xl text-gray-300 dark:text-gray-600"></i>
-                                <p>No part data found.</p>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
+                    <!-- DataTables Data -->
                 </tbody>
             </table>
         </div>
     </div>
-
-    @if($products->hasPages())
-    <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-        {{ $products->appends(request()->query())->links() }}
-    </div>
-    @endif
 </div>
 @endsection
 
-@section('js')
+@push('scripts')
 <script>
     $(document).ready(function() {
-        let typingTimer;
-        const doneTypingInterval = 500; // time in ms, 500ms delay
-        const $input = $('#searchInput');
-        const $form = $('#searchForm');
+        // Initialize DataTables
+        var table = initPromiseDataTable('#checksheetSetupTable', {
+            ajax: {
+                url: "{{ route('master.checksheets.index') }}",
+                data: function (d) {
+                    d.customer_id = $('select[name="customer_id"]').val();
+                    d.model_id = $('select[name="model_id"]').val();
+                    d.status = $('select[name="status"]').val();
+                    // Optional: Custom search if we use the top search input instead of DT default
+                    d.search = { value: $('#searchInput').val(), regex: false };
+                }
+            },
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-6 py-4 text-center text-slate-500 text-sm' },
+                { data: 'customer', name: 'customer.code', className: 'px-6 py-4', orderable: false },
+                { data: 'model', name: 'vehicleModel.name', className: 'px-6 py-4', orderable: false },
+                { data: 'part_no', name: 'part_no', className: 'px-6 py-4' },
+                { data: 'part_name', name: 'part_name', className: 'px-6 py-4' },
+                { data: 'mapping_status', name: 'mapping_status', className: 'px-6 py-4 text-center', searchable: false, orderable: false },
+                { data: 'action', name: 'action', orderable: false, searchable: false, className: 'px-6 py-4 text-right align-middle' }
+            ],
+            // Since we use custom filters and search box:
+            dom: '<"flex justify-between items-center mb-4"<"text-sm"l>>rt<"flex justify-between items-center mt-4 text-sm"ip>'
+        });
 
-        // on keyup, start the countdown
+        // Search trigger
+        let typingTimer;
+        const doneTypingInterval = 500;
+        const $input = $('#searchInput');
+
         $input.on('keyup', function () {
             clearTimeout(typingTimer);
             typingTimer = setTimeout(doneTyping, doneTypingInterval);
         });
-
-        // on keydown, clear the countdown 
         $input.on('keydown', function () {
             clearTimeout(typingTimer);
         });
-
-        // user is "finished typing," do something
         function doneTyping () {
-            $form.submit();
+            table.ajax.reload();
         }
+
+        // Dropdown triggers
+        $('select[name="customer_id"], select[name="model_id"], select[name="status"]').on('change', function() {
+            table.ajax.reload();
+        });
     });
 </script>
-@endsection
+@endpush

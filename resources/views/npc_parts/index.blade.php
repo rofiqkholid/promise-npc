@@ -47,7 +47,7 @@
 
     <div class="p-6">
         <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
-            <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
+            <table id="eventPartsTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
                         <th scope="col" class="px-6 py-4 font-semibold w-16">#</th>
@@ -63,92 +63,33 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                    @forelse($parts as $index => $part)
-                    <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-gray-700/30 transition group">
-                        <td class="px-6 py-4 text-slate-800 dark:text-slate-200 text-sm">{{ $parts->firstItem() + $index }}</td>
-                        <td class="px-6 py-4 text-slate-800 dark:text-slate-200 font-medium text-sm">{{ optional($part->event)->po_no }}</td>
-                        <td class="px-6 py-4 text-blue-600 dark:text-blue-400 text-sm font-semibold">{{ optional($part->product)->part_no }}</td>
-                        <td class="px-6 py-4 text-slate-600 dark:text-slate-400 text-sm">{{ optional($part->product)->part_name }}</td>
-                        <td class="px-6 py-4 text-slate-600 dark:text-slate-400 text-sm font-medium">{{ $part->qty }}</td>
-                        <td class="px-6 py-4 text-slate-600 dark:text-slate-400 text-sm font-medium">{{ \Carbon\Carbon::parse($part->delivery_date)->format('d M Y') }}</td>
-                        <td class="px-6 py-4 text-slate-700 dark:text-slate-300 text-sm">
-                            @php
-                                $processLabel = match($part->status) {
-                                    'PO_REGISTERED'       => ['label' => 'Registrasi', 'color' => 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'],
-                                    'WAITING_DEPT_CONFIRM'=> ['label' => 'Production', 'color' => 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300'],
-                                    'WAITING_QE_CHECK'    => ['label' => 'Quality Check', 'color' => 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300'],
-                                    'WAITING_MGM_CHECK'   => ['label' => 'Mgm Review', 'color' => 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300'],
-                                    'FINISHED'            => ['label' => 'Done', 'color' => 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300'],
-                                    default               => ['label' => $part->process ?: '-', 'color' => 'bg-slate-100 dark:bg-slate-700 text-slate-400'],
-                                };
-                            @endphp
-                            <span class="p-1 px-2 text-xs font-medium {{ $processLabel['color'] }}">{{ $processLabel['label'] }}</span>
-                        </td>
-                        <td class="px-6 py-4 text-slate-700 dark:text-slate-300 text-sm font-semibold">
-                            @php
-                                $deptLabel = match($part->status) {
-                                    'PO_REGISTERED'        => '-',
-                                    'WAITING_DEPT_CONFIRM' => $part->department ?: 'Dept',
-                                    'WAITING_QE_CHECK'     => 'QE / QC',
-                                    'WAITING_MGM_CHECK'    => 'Management',
-                                    'FINISHED'             => 'Done',
-                                    default                => $part->department ?: '-',
-                                };
-                            @endphp
-                            @if($deptLabel === '-')
-                                <span class="text-slate-300 dark:text-slate-600 text-xs italic">—</span>
-                            @else
-                                <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">{{ $deptLabel }}</span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 text-sm">
-                            @if($part->status === 'WAITING_DEPT_CONFIRM')
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium">WAITING DEPT</span>
-                            @elseif($part->status === 'WAITING_QE_CHECK')
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-orange-100 text-orange-800 text-xs font-medium">WAITING QE</span>
-                            @elseif($part->status === 'WAITING_MGM_CHECK')
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 text-purple-800 text-xs font-medium">WAITING MGM</span>
-                            @elseif($part->status === 'FINISHED')
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-800 text-xs font-medium">FINISHED</span>
-                            @else
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-800 text-xs font-medium">{{ $part->status }}</span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            <div class="flex items-center justify-end gap-1 opacity-50 group-hover:opacity-100 transition">
-                                <a href="{{ route('events.parts.edit', [$event->hashed_id, $part->hashed_id]) }}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 transition" title="Edit">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
-                                <form action="{{ route('events.parts.destroy', [$event->hashed_id, $part->hashed_id]) }}" method="POST" class="inline" onsubmit="confirmAction(event, 'Are you sure you want to delete this data?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 transition" title="Delete">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="10" class="p-12 text-center text-gray-500 dark:text-gray-400">
-                            <div class="flex flex-col items-center justify-center gap-3">
-                                <i class="fa-regular fa-folder-open text-4xl text-gray-300 dark:text-gray-600"></i>
-                                <p>No parts registered for this event yet.</p>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
+                    <!-- DataTables Data -->
                 </tbody>
             </table>
         </div>
     </div>
-    
-    @if($parts->hasPages())
-    <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-        {{ $parts->links() }}
-    </div>
-    @endif
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        initPromiseDataTable('#eventPartsTable', {
+            ajax: "{{ route('events.parts.index', $event->hashed_id) }}",
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-6 py-4 text-slate-800 dark:text-slate-200 text-sm' },
+                { data: 'po_no', name: 'po_no', className: 'px-6 py-4', orderable: false },
+                { data: 'part_no', name: 'part_no', className: 'px-6 py-4', orderable: false },
+                { data: 'part_name', name: 'part_name', className: 'px-6 py-4', orderable: false },
+                { data: 'qty', name: 'qty', className: 'px-6 py-4', orderable: false },
+                { data: 'delv_date', name: 'delv_date', className: 'px-6 py-4', orderable: false },
+                { data: 'process_label', name: 'process_label', className: 'px-6 py-4', orderable: false },
+                { data: 'dept_label', name: 'dept_label', className: 'px-6 py-4', orderable: false },
+                { data: 'status_label', name: 'status_label', className: 'px-6 py-4 text-sm', orderable: false },
+                { data: 'action', name: 'action', orderable: false, searchable: false, className: 'px-6 py-4 text-right' }
+            ]
+        });
+    });
+</script>
+@endpush
 

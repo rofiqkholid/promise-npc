@@ -10,14 +10,26 @@ class NpcProcessController extends Controller
 {
     public function index(Request $request)
     {
-        $query = NpcProcess::orderBy('process_name', 'asc');
-        
-        if ($request->has('search') && $request->search != '') {
-            $query->where('process_name', 'like', '%' . $request->search . '%');
+        if ($request->ajax()) {
+            $query = NpcProcess::with('departments');
+            
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('departments', function ($process) {
+                    return view('master.processes.columns.departments', compact('process'))->render();
+                })
+                ->addColumn('action', function ($process) {
+                    return view('components.datatable-actions', [
+                        'editUrl' => route('master.processes.edit', $process->hashed_id),
+                        'deleteUrl' => route('master.processes.destroy', $process->hashed_id),
+                        'deleteMessage' => 'Permanently delete this process?'
+                    ])->render();
+                })
+                ->rawColumns(['departments', 'action'])
+                ->make(true);
         }
 
-        $processes = $query->paginate(20);
-        return view('master.processes.index', compact('processes'));
+        return view('master.processes.index');
     }
 
     public function create()

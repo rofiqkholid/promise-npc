@@ -18,28 +18,71 @@ class NpcEventController extends Controller
      */
     public function index(Request $request)
     {
-        $query = \App\Models\NpcEvent::with(['customerCategory.customer', 'deliveryGroup', 'parts.product.vehicleModel'])->latest();
+        if ($request->ajax()) {
+            $query = \App\Models\NpcEvent::with(['customerCategory.customer', 'deliveryGroup', 'parts.product.vehicleModel']);
 
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('po_no', 'like', "%{$search}%")
-                  ->orWhere('delivery_to', 'like', "%{$search}%")
-                  ->orWhereHas('customerCategory', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%")
-                        ->orWhereHas('customer', function($q) use ($search) {
-                            $q->where('name', 'like', "%{$search}%")
-                              ->orWhere('code', 'like', "%{$search}%");
-                        });
-                  })
-                  ->orWhereHas('deliveryGroup', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  });
-            });
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('event_name', function ($event) {
+                    $html = '<div class="text-blue-900 dark:text-blue-400 font-semibold text-sm">' . $event->po_no . '</div>';
+                    $html .= '<div class="text-xs text-slate-500 font-normal mt-0.5">' . (optional($event->customerCategory)->name ?? '-') . '</div>';
+                    return $html;
+                })
+                ->addColumn('customer', function ($event) {
+                    return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium">' . (optional(optional($event->customerCategory)->customer)->code ?? '-') . '</span>';
+                })
+                ->addColumn('model', function ($event) {
+                    return '<span class="text-gray-600 dark:text-gray-400 text-sm font-medium">' . (optional(optional(optional($event->parts->first())->product)->vehicleModel)->name ?? '-') . '</span>';
+                })
+                ->addColumn('category', function ($event) {
+                    return '<span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">' . (optional($event->customerCategory)->name ?? '-') . '</span>';
+                })
+                ->addColumn('gr', function ($event) {
+                    return '<span class="text-gray-600 dark:text-gray-400 text-sm font-medium">' . (optional($event->deliveryGroup)->name ?? '-') . '</span>';
+                })
+                ->addColumn('delivery_to', function ($event) {
+                    return '<span class="text-gray-600 dark:text-gray-400 text-sm font-medium">' . ($event->delivery_to ?? '-') . '</span>';
+                })
+                ->addColumn('action', function ($event) {
+                    return view('components.datatable-actions', [
+                        'editUrl' => route('events.edit', $event->hashed_id),
+                        'deleteUrl' => route('events.destroy', $event->hashed_id),
+                        'deleteMessage' => 'Are you sure you want to delete this data?',
+                        'extraButtons' => '<a href="' . route('events.parts.index', $event->hashed_id) . '" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 transition" title="Parts List"><i class="fa-solid fa-list-check"></i></a>'
+                    ])->render();
+                })
+                ->filterColumn('event_name', function($query, $keyword) {
+                    $query->where('po_no', 'like', "%{$keyword}%")
+                          ->orWhereHas('customerCategory', function($q) use ($keyword) {
+                              $q->where('name', 'like', "%{$keyword}%");
+                          });
+                })
+                ->filterColumn('customer', function($query, $keyword) {
+                    $query->whereHas('customerCategory.customer', function($q) use ($keyword) {
+                        $q->where('code', 'like', "%{$keyword}%")
+                          ->orWhere('name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('model', function($query, $keyword) {
+                    $query->whereHas('parts.product.vehicleModel', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('category', function($query, $keyword) {
+                    $query->whereHas('customerCategory', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('gr', function($query, $keyword) {
+                    $query->whereHas('deliveryGroup', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->rawColumns(['event_name', 'customer', 'model', 'category', 'gr', 'delivery_to', 'action'])
+                ->make(true);
         }
 
-        $events = $query->paginate(20);
-        return view('npc_events.index', compact('events'));
+        return view('npc_events.index');
     }
 
     public function create()

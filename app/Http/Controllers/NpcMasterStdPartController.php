@@ -10,14 +10,32 @@ class NpcMasterStdPartController extends Controller
 {
     public function index(Request $request)
     {
-        $query = NpcMasterStdPart::orderBy('name', 'asc');
-        
-        if ($request->has('search') && $request->search != '') {
-            $query->where('name', 'like', '%' . $request->search . '%');
+        if ($request->ajax()) {
+            $query = NpcMasterStdPart::query();
+            
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->addIndexColumn()
+                ->editColumn('name', function ($part) {
+                    return '<span class="font-semibold text-slate-900 dark:text-white">' . $part->name . '</span>';
+                })
+                ->editColumn('is_active', function ($part) {
+                    if ($part->is_active) {
+                        return '<span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 border border-green-200 dark:border-green-800">Active</span>';
+                    }
+                    return '<span class="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">Inactive</span>';
+                })
+                ->addColumn('action', function ($part) {
+                    return view('components.datatable-actions', [
+                        'editUrl' => route('master.std-parts.edit', $part->hashed_id),
+                        'deleteUrl' => route('master.std-parts.destroy', $part->hashed_id),
+                        'deleteMessage' => 'Permanently delete this STD part?'
+                    ])->render();
+                })
+                ->rawColumns(['name', 'is_active', 'action'])
+                ->make(true);
         }
 
-        $stdParts = $query->paginate(20);
-        return view('master.std_parts.index', compact('stdParts'));
+        return view('master.std_parts.index');
     }
 
     public function create()

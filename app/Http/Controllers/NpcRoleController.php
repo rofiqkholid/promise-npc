@@ -8,15 +8,35 @@ class NpcRoleController extends Controller
 {
     public function index(Request $request)
     {
-        $query = \App\Models\NpcRole::orderBy('name');
-        
-        if ($request->has('search') && $request->search != '') {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('code', 'like', '%' . $request->search . '%');
+        if ($request->ajax()) {
+            $query = \App\Models\NpcRole::query();
+
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('code', function ($role) {
+                    return '<span class="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">' . $role->code . '</span>';
+                })
+                ->addColumn('name', function ($role) {
+                    return '<span class="font-semibold text-slate-900 dark:text-white">' . $role->name . '</span>';
+                })
+                ->addColumn('description', function ($role) {
+                    return '<span class="text-sm">' . ($role->description ?: '-') . '</span>';
+                })
+                ->addColumn('users_count', function ($role) {
+                    return '<span class="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">' . $role->users()->count() . ' Users</span>';
+                })
+                ->addColumn('action', function ($role) {
+                    return view('components.datatable-actions', [
+                        'editUrl' => route('master.roles.edit', $role->id),
+                        'deleteUrl' => route('master.roles.destroy', $role->id),
+                        'deleteMessage' => 'Are you sure you want to delete this role?'
+                    ])->render();
+                })
+                ->rawColumns(['code', 'name', 'description', 'users_count', 'action'])
+                ->make(true);
         }
 
-        $roles = $query->paginate(20);
-        return view('master.roles.index', compact('roles'));
+        return view('master.roles.index');
     }
 
     public function create()

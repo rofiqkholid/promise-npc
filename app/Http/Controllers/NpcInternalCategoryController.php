@@ -9,14 +9,26 @@ class NpcInternalCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = NpcInternalCategory::latest();
-        
-        if ($request->has('search') && $request->search != '') {
-            $query->where('name', 'like', '%' . $request->search . '%');
+        if ($request->ajax()) {
+            $query = NpcInternalCategory::query();
+            
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->addIndexColumn()
+                ->editColumn('name', function ($category) {
+                    return '<span class="font-bold text-slate-900 dark:text-white">' . $category->name . '</span>';
+                })
+                ->addColumn('action', function ($category) {
+                    return view('components.datatable-actions', [
+                        'editUrl' => route('master.internal-categories.edit', $category->hashed_id),
+                        'deleteUrl' => route('master.internal-categories.destroy', $category->hashed_id),
+                        'deleteMessage' => 'Permanently delete this category?'
+                    ])->render();
+                })
+                ->rawColumns(['name', 'action'])
+                ->make(true);
         }
 
-        $categories = $query->paginate(20);
-        return view('master.internal_categories.index', compact('categories'));
+        return view('master.internal_categories.index');
     }
 
     public function create()

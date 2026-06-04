@@ -9,20 +9,34 @@ class PromiseUserController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->input('search');
-        
-        $query = \App\Models\User::query();
+        if ($request->ajax()) {
+            $query = \App\Models\User::query();
 
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
-                  ->orWhere('email', 'like', '%' . $search . '%')
-                  ->orWhere('nik', 'like', '%' . $search . '%');
-            });
+            return \Yajra\DataTables\Facades\DataTables::of($query)
+                ->addIndexColumn()
+                ->editColumn('name', function($user) {
+                    return '<div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-slate-100 dark:bg-gray-700 text-slate-500 dark:text-gray-400 flex items-center justify-center border border-slate-200 dark:border-gray-600">
+                                    <i class="fa-solid fa-user text-xs"></i>
+                                </div>
+                                ' . htmlspecialchars($user->name) . '
+                            </div>';
+                })
+                ->editColumn('created_at', function($user) {
+                    return $user->created_at ? $user->created_at->format('d M Y') : '-';
+                })
+                ->addColumn('action', function($user) {
+                    return view('components.datatable-actions', [
+                        'editUrl' => route('master.promise-users.edit', $user->nik),
+                        'deleteUrl' => route('master.promise-users.destroy', $user->nik),
+                        'deleteMessage' => 'Are you sure you want to delete ' . $user->name . '?'
+                    ])->render();
+                })
+                ->rawColumns(['name', 'action'])
+                ->make(true);
         }
 
-        $users = $query->orderBy('name')->paginate(10);
-        return view('master.promise-users.index', compact('users', 'search'));
+        return view('master.promise-users.index');
     }
 
     public function create()
