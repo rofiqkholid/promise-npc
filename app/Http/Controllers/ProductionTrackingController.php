@@ -311,6 +311,14 @@ class ProductionTrackingController extends Controller
             'mgm_target_date' => null
         ]);
 
+        $latestActivity = $part->activities()->latest()->first();
+        if ($latestActivity && $latestActivity->event === 'updated') {
+            $latestActivity->update([
+                'event' => 'rollbacked',
+                'description' => 'Rollback Setup Routing'
+            ]);
+        }
+
         return back()->with('success', 'Successfully canceled (rollback) setup routing. Part returns to the setup queue.');
     }
 
@@ -352,6 +360,14 @@ class ProductionTrackingController extends Controller
             'photo_proof' => null
         ]);
 
+        $latestProcessActivity = $lastFinishedProcess->activities()->latest()->first();
+        if ($latestProcessActivity && $latestProcessActivity->event === 'updated') {
+            $latestProcessActivity->update([
+                'event' => 'rollbacked',
+                'description' => 'Rollback Process Production'
+            ]);
+        }
+
         // Kembalikan status part jika sebelumnya sudah dilempar ke QC
         if ($part->status === 'WAITING_QE_CHECK') {
             $part->update([
@@ -359,6 +375,14 @@ class ProductionTrackingController extends Controller
                 'actual_completion_date' => null,
                 'production_notes' => null,
             ]);
+
+            $latestPartActivity = $part->activities()->latest()->first();
+            if ($latestPartActivity && $latestPartActivity->event === 'updated') {
+                $latestPartActivity->update([
+                    'event' => 'rollbacked',
+                    'description' => 'Rollback Process Production'
+                ]);
+            }
             
             // Delete checksheet pending jika ada
             if ($part->checksheet) {
@@ -387,6 +411,14 @@ class ProductionTrackingController extends Controller
             'mgm_target_date' => null, // Reset MGM target date if any
         ]);
 
+        $latestActivity = $part->activities()->latest()->first();
+        if ($latestActivity && $latestActivity->event === 'updated') {
+            $latestActivity->update([
+                'event' => 'rollbacked',
+                'description' => 'Rollback QC Check'
+            ]);
+        }
+
         return back()->with('success', 'Successfully rolled back part from MGM to QC Check stage.');
     }
 
@@ -411,6 +443,14 @@ class ProductionTrackingController extends Controller
         $part->update([
             'status' => 'WAITING_MGM_CHECK',
         ]);
+
+        $latestActivity = $part->activities()->latest()->first();
+        if ($latestActivity && $latestActivity->event === 'updated') {
+            $latestActivity->update([
+                'event' => 'rollbacked',
+                'description' => 'Rollback Management Check'
+            ]);
+        }
 
         return back()->with('success', 'Successfully rolled back part to Management Check stage.');
     }

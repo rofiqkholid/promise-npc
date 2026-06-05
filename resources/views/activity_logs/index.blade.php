@@ -48,6 +48,7 @@
                         <option value="updated" {{ request('event') == 'updated' ? 'selected' : '' }}>Updated</option>
                         <option value="deleted" {{ request('event') == 'deleted' ? 'selected' : '' }}>Deleted</option>
                         <option value="imported" {{ request('event') == 'imported' ? 'selected' : '' }}>Imported</option>
+                        <option value="rollbacked" {{ request('event') == 'rollbacked' ? 'selected' : '' }}>Rollbacked</option>
                     </select>
                 </div>
 
@@ -120,6 +121,7 @@
                                 if($log->event === 'created') $badgeClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
                                 if($log->event === 'updated') $badgeClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
                                 if($log->event === 'deleted') $badgeClass = 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+                                if($log->event === 'rollbacked') $badgeClass = 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400';
                             @endphp
                             <span class="inline-flex items-center justify-center min-w-[90px] px-3 py-1 rounded-full text-xs font-bold {{ $badgeClass }} uppercase tracking-wider">
                                 {{ $log->event ?? $log->description }}
@@ -131,30 +133,72 @@
                                 
                                 // Map Model to Menu Name
                                 $menuNameMap = [
-                                    'Customer' => 'Customer Mapping',
+                                    'Customer' => 'Customer Mapping Master',
                                     'NpcProcess' => 'Process Master',
                                     'NpcMasterRouting' => 'Routing per Part ID',
                                     'NpcMasterCheckpoint' => 'QE Point Master',
                                     'ProductCheckpoint' => 'Part Checksheet Master',
                                     'NpcEvent' => 'Event Data (PO)',
-                                    'NpcRole' => 'NPC Role',
+                                    'NpcRole' => 'NPC Roles',
                                     'User' => 'NPC User Access',
-                                    'NpcPart' => 'Part Transaction',
-                                    'NpcChecksheet' => 'Checksheet Transaction',
+                                    'NpcPart' => 'Transaction',
+                                    'NpcChecksheet' => 'Quality Check (QC)',
                                     'NpcChecksheetDetail' => 'Checksheet Details',
-                                    'NpcPartProcess' => 'Part Process Progress',
+                                    'NpcPartProcess' => 'Production Process',
                                 ];
                                 
-                                $displayModelName = $menuNameMap[$modelBasename] ?? $modelBasename;
-                                // Override with custom description if it's a manual log
-                                if (!in_array($log->description, ['created', 'updated', 'deleted', 'imported']) && !empty($log->description)) {
-                                    $displayModelName = $log->description;
-                                }
+                                $baseMenuName = $menuNameMap[$modelBasename] ?? $modelBasename;
                                 
                                 $props = is_iterable($log->properties) ? $log->properties : collect(json_decode($log->properties ?? '[]', true));
                                 $attrs = $props['attributes'] ?? [];
                                 $oldAttrs = $props['old'] ?? [];
                                 $combinedAttrs = array_merge($oldAttrs, $attrs);
+                                
+                                // Make NpcPart menu specific based on its status
+                                if ($modelBasename === 'NpcPart' && isset($combinedAttrs['status'])) {
+                                    $status = $combinedAttrs['status'];
+                                    if ($status === 'PO_REGISTERED') {
+                                        $baseMenuName = 'Production Routing Setup';
+                                    } elseif (in_array($status, ['WAITING_DEPT_CONFIRM', 'IN_PRODUCTION'])) {
+                                        $baseMenuName = 'Production Process';
+                                    } elseif ($status === 'WAITING_QE_CHECK') {
+                                        $baseMenuName = 'Quality Check (QC)';
+                                    } elseif (in_array($status, ['WAITING_MGM_CHECK', 'WAITING_APPROVAL'])) {
+                                        $baseMenuName = 'Management Check';
+                                    } elseif ($status === 'FINISHED') {
+                                        $baseMenuName = 'Finished Goods Stock';
+                                    } elseif (in_array($status, ['OUTSTANDING', 'CLOSED'])) {
+                                        $baseMenuName = 'Delivery History';
+                                    }
+                                }
+                                
+                                $displayModelName = $baseMenuName;
+                                $isRollback = false;
+                                
+                                // Override with custom description if it's a manual log
+                                if (!in_array($log->description, ['created', 'updated', 'deleted', 'imported']) && !empty($log->description)) {
+                                    if ($log->event === 'rollbacked') {
+                                        $displayModelName = $log->description;
+                                        $isRollback = true;
+                                    } else {
+                                        $displayModelName = $log->description;
+                                    }
+                                }
+
+                                $iconClass = 'fa-file-lines text-gray-500';
+                                if ($log->event === 'created') $iconClass = 'fa-plus-circle text-emerald-500';
+                                if ($log->event === 'updated') $iconClass = 'fa-pen-to-square text-blue-500';
+                                if ($log->event === 'deleted') $iconClass = 'fa-trash-can text-red-500';
+                                if ($log->event === 'rollbacked') $iconClass = 'fa-arrow-rotate-left text-orange-500';
+                                
+                                $changedFieldsStr = '';
+                                if ($log->event === 'updated' && !empty($attrs) && is_array($attrs)) {
+                                    $keys = array_keys($attrs);
+                                    $keys = array_filter($keys, fn($k) => !in_array($k, ['updated_at', 'created_at']));
+                                    if (!empty($keys)) {
+                                        $changedFieldsStr = 'Updated: ' . implode(', ', $keys);
+                                    }
+                                }
                                 
                                 $identifier = null;
                                 $subject = $log->subject;
@@ -226,10 +270,25 @@
                                 
                                 if (!$identifier) $identifier = "";
                             @endphp
-                            <div class="font-bold text-gray-800 dark:text-gray-200">{{ $displayModelName }}</div>
-                            @if($identifier)
-                            <div class="font-mono text-xs mt-0.5 text-blue-600 dark:text-blue-400 font-semibold">{{ $identifier }}</div>
-                            @endif
+                            <div class="flex items-start gap-2.5">
+                                <div class="mt-0.5">
+                                    <i class="fa-solid {{ $iconClass }} text-sm"></i>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-gray-800 dark:text-gray-200 text-[13px]">{{ $displayModelName }}</div>
+                                    @if($isRollback)
+                                        <div class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 font-medium">Menu: {{ $baseMenuName }}</div>
+                                    @endif
+                                    @if($identifier)
+                                    <div class="font-mono text-xs mt-1 text-gray-600 dark:text-gray-400 font-medium">{{ $identifier }}</div>
+                                    @endif
+                                    @if($changedFieldsStr)
+                                    <div class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 max-w-xs truncate" title="{{ $changedFieldsStr }}">
+                                        {{ $changedFieldsStr }}
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 @endforeach
