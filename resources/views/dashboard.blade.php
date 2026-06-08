@@ -16,44 +16,44 @@
 
     <!-- KPI Cards (Row 1) -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 flex-none">
-        <!-- Active Events -->
+        <!-- Total PO -->
         <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center">
             <div>
                 <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Total Active Projects</p>
-                <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['active_events'] }}</h3>
+                <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['total_po'] }}</h3>
             </div>
             <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-lg">
-                <i class="fa-solid fa-folder-open"></i>
+                <i class="fa-solid fa-file-invoice"></i>
             </div>
         </div>
 
-        <!-- In Production -->
+        <!-- PO on hand -->
         <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center">
             <div>
-                <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Parts in Production</p>
-                <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['in_production'] }}</h3>
+                <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">PO on hand</p>
+                <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['po_on_hand'] }}</h3>
             </div>
             <div class="w-10 h-10 bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 text-lg">
-                <i class="fa-solid fa-industry"></i>
+                <i class="fa-solid fa-clipboard-list"></i>
             </div>
         </div>
 
-        <!-- Pending QC -->
+        <!-- PO Complete -->
         <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center">
             <div>
-                <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Pending QC Checks</p>
-                <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['pending_qc'] }}</h3>
+                <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">PO Complete</p>
+                <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['po_complete'] }}</h3>
             </div>
             <div class="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 text-lg">
-                <i class="fa-solid fa-microscope"></i>
+                <i class="fa-solid fa-file-circle-check"></i>
             </div>
         </div>
 
-        <!-- Ready to Deliver -->
+        <!-- Stock -->
         <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center">
             <div>
-                <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Stock (Ready to Deliver)</p>
-                <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['ready_deliver'] }}</h3>
+                <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Stock</p>
+                <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['stock'] }}</h3>
             </div>
             <div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-lg">
                 <i class="fa-solid fa-boxes-stacked"></i>
@@ -61,71 +61,89 @@
         </div>
     </div>
 
-    <!-- Main Content Area (Row 2, flex-1 to fill space) -->
-    <div class="flex-1 flex gap-4 min-h-0">
+    <!-- Main Content Area -->
+    <div class="flex-1 flex gap-4 min-h-0 overflow-hidden">
         
         <!-- Left Column: Pipeline & Charts -->
-        <div class="w-2/3 flex flex-col gap-4 min-h-0">
+        <div class="w-3/5 flex flex-col gap-4 min-h-0">
             
-            <!-- Nearest Events -->
-            <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0 shadow-sm flex-none overflow-hidden">
-                <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-white"><i class="fa-regular fa-calendar-check text-slate-400 mr-2"></i> Upcoming Events</h3>
-                    <a href="{{ route('events.index') }}" class="text-[10px] text-primary-600 font-medium">View All</a>
-                </div>
-                
-                <div class="overflow-x-auto overflow-y-auto max-h-[220px]">
-                    @if($nearestEvents->count() > 0)
-                        <table class="w-full text-left border-collapse">
-                            <thead class="sticky top-0 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 z-10">
-                                <tr>
-                                    <th class="p-2 pl-3 text-[10px] font-semibold text-slate-500 uppercase">Customer</th>
-                                    <th class="p-2 text-[10px] font-semibold text-slate-500 uppercase">Model</th>
-                                    <th class="p-2 text-[10px] font-semibold text-slate-500 uppercase">Event</th>
-                                    <th class="p-2 text-[10px] font-semibold text-slate-500 uppercase">Batch</th>
-                                    <th class="p-2 pr-3 text-[10px] font-semibold text-slate-500 uppercase text-right">Delv Date</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
-                                @foreach($nearestEvents as $evt)
-                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors" onclick="window.location.href='{{ route('tracking.index', ['search' => $evt->event->po_no, 'open_event' => $evt->npc_event_id, 'from_dashboard' => 1]) }}'">
-                                        <td class="p-2 pl-3">
-                                            <p class="text-[10px] font-semibold text-slate-800 dark:text-white">{{ $evt->product->customer->code ?? '-' }}</p>
-                                        </td>
-                                        <td class="p-2">
-                                            <p class="text-[10px] text-slate-600 dark:text-slate-400">{{ $evt->product->vehicleModel->name ?? '-' }}</p>
-                                        </td>
-                                        <td class="p-2">
-                                            <p class="text-[10px] text-slate-600 dark:text-slate-400">{{ $evt->event->customerCategory->name ?? '-' }}</p>
-                                        </td>
-                                        <td class="p-2">
-                                            <span class="text-[9px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{{ $evt->event->deliveryGroup->name ?? '-' }}</span>
-                                        </td>
-                                        <td class="p-2 pr-3 text-right">
-                                            <span class="text-[10px] font-bold {{ \Carbon\Carbon::parse($evt->delivery_date)->isPast() ? 'text-rose-500' : 'text-slate-700 dark:text-slate-300' }}">
-                                                {{ \Carbon\Carbon::parse($evt->delivery_date)->format('d M Y') }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    @else
-                        <div class="p-6 text-center text-slate-400">
-                            <i class="fa-regular fa-calendar-xmark text-2xl mb-2"></i>
-                            <p class="text-xs">No upcoming events found.</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
+
 
             <!-- Charts Row -->
-            <div class="flex-1 grid grid-cols-1 gap-4 min-h-0">
+            <div class="flex-1 flex flex-col min-h-0">
                 <!-- Trend Chart -->
-                <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col relative min-h-0">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-white flex-none mb-2">Event Progress (Items)</h3>
+                <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col relative min-h-0">
+                    @php 
+                        $hasFilter = ($filterYear != date('Y') || $filterMonth || $filterCustomer || !empty($filterPo) || !empty($filterModel)); 
+                    @endphp
+                    <div class="flex justify-between items-center mb-2 flex-none">
+                        <h3 class="text-sm font-bold text-slate-800 dark:text-white">Plan vs Actual</h3>
+                        <button type="button" onclick="document.getElementById('chartFilterForm').classList.toggle('hidden')" class="text-slate-500 hover:text-primary-600 focus:outline-none transition-colors" title="Toggle Filters">
+                            <i class="fa-solid fa-filter {{ $hasFilter ? 'text-primary-500' : '' }}"></i>
+                        </button>
+                    </div>
+                    
+                    <form id="chartFilterForm" method="GET" action="{{ route('dashboard') }}" class="{{ $hasFilter ? '' : 'hidden' }} mb-3 bg-slate-50 dark:bg-slate-700/50 p-2 rounded border border-slate-200 dark:border-slate-600">
+                        <div class="flex flex-wrap md:flex-nowrap items-end gap-2 text-[10px] pb-1">
+                            <div class="flex-1 min-w-[90px]">
+                                <label class="font-semibold text-slate-500 mb-0.5 block truncate">PO No.</label>
+                                <input type="text" name="chart_po" value="{{ $filterPo }}" placeholder="Search..." class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors" onchange="this.form.submit()">
+                            </div>
+                            
+                            <div class="flex-1 min-w-[90px]">
+                                <label class="font-semibold text-slate-500 mb-0.5 block truncate">Model</label>
+                                <select name="chart_model" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors truncate" onchange="this.form.submit()">
+                                    <option value="">All Models</option>
+                                    @foreach($vehicleModels as $mod)
+                                        <option value="{{ $mod->id }}" {{ $filterModel == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="flex-1 min-w-[70px]">
+                                <label class="font-semibold text-slate-500 mb-0.5 block truncate">Year</label>
+                                <select name="chart_year" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors" onchange="this.form.submit()">
+                                    @foreach($availableYears as $y)
+                                        <option value="{{ $y }}" {{ $filterYear == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            
+                            <div class="flex-1 min-w-[80px]">
+                                <label class="font-semibold text-slate-500 mb-0.5 block truncate">Month</label>
+                                <select name="chart_month" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors" onchange="this.form.submit()">
+                                    <option value="">All</option>
+                                    @foreach(range(1, 12) as $m)
+                                        <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}" {{ $filterMonth == str_pad($m, 2, '0', STR_PAD_LEFT) ? 'selected' : '' }}>
+                                            {{ date('M', mktime(0, 0, 0, $m, 10)) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="flex-1 min-w-[90px]">
+                                <label class="font-semibold text-slate-500 mb-0.5 block truncate">Customer</label>
+                                <select name="chart_customer" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors truncate" onchange="this.form.submit()">
+                                    <option value="">All</option>
+                                    @foreach($customerCategories as $cust)
+                                        <option value="{{ $cust->id }}" {{ $filterCustomer == $cust->id ? 'selected' : '' }}>{{ $cust->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            @if($hasFilter)
+                                <div class="flex-none">
+                                    <a href="{{ route('dashboard') }}" class="inline-flex justify-center items-center bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 dark:text-rose-400 border border-rose-200 dark:border-rose-800 rounded px-2.5 py-1 transition-colors font-medium">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    </form>
                     <div class="flex-1 w-full relative">
-                        <canvas id="trendChart"></canvas>
+                        <div style="min-height: {{ max(150, count($trendChart['labels']) * 90) }}px; height: 100%;">
+                            <canvas id="trendChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
@@ -144,83 +162,46 @@
         </div>
 
         <!-- Right Column: Lists & Tables -->
-        <div class="w-1/3 flex flex-col gap-4 min-h-0">
+        <div class="w-2/5 flex flex-col gap-2 min-h-0">
             
-            <!-- Action Required: ECN & Stagnant (Scrollable Body) -->
-            <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden">
-                <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex-none">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-white flex items-center">
-                        <span class="w-2 h-2 bg-rose-500 mr-2 animate-pulse"></span>
-                        Action Required
-                    </h3>
+            <!-- Nearest Events -->
+            <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col min-h-0">
+                <div class="py-1.5 px-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between flex-none">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-white"><i class="fa-regular fa-calendar-check text-slate-400 mr-1.5"></i> Upcoming Events</h3>
+                    <a href="{{ route('events.index') }}" class="text-[9px] text-primary-600 font-medium">View All</a>
                 </div>
                 
-                <div class="flex-1 overflow-y-auto p-0">
-                    @if($ecnUpdates->count() > 0 || $stagnantParts->count() > 0)
-                        <div class="divide-y divide-slate-100 dark:divide-slate-700/50">
-                            <!-- ECN Items -->
-                            @foreach($ecnUpdates as $part)
-                                <div class="p-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <span class="text-[9px] font-bold text-rose-600 bg-rose-100 px-1 uppercase mb-1 inline-block">ECN Update</span>
-                                            <p class="text-xs font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
-                                        </div>
-                                        <a href="{{ route('events.parts.edit', ['event' => $part->event->npc_event_id ?? 0, 'part' => $part->hashed_id]) }}" class="text-[10px] bg-primary-50 text-primary-600 hover:bg-primary-100 px-2 py-1 font-medium">Review</a>
-                                    </div>
-                                </div>
-                            @endforeach
-                            <!-- Stagnant Items -->
-                            @foreach($stagnantParts as $part)
-                                <div class="p-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <span class="text-[9px] font-bold text-amber-600 bg-amber-100 px-1 uppercase mb-1 inline-block">Stagnant > 7d</span>
-                                            <p class="text-xs font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
-                                        </div>
-                                        <span class="text-[9px] text-slate-500 border border-slate-200 dark:border-slate-600 px-1 bg-slate-50 dark:bg-slate-800">{{ str_replace('_', ' ', $part->status) }}</span>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="h-full flex flex-col items-center justify-center p-4 text-center text-slate-400">
-                            <i class="fa-regular fa-circle-check text-2xl mb-2 text-emerald-400"></i>
-                            <p class="text-xs">No pending actions required.</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Recent Deliveries (Scrollable Body) -->
-            <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden">
-                <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex-none flex justify-between items-center">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-white flex items-center">
-                        <i class="fa-solid fa-truck-ramp-box text-emerald-500 mr-2"></i>
-                        Recent Deliveries
-                    </h3>
-                    <a href="{{ route('tracking.history') }}" class="text-[10px] text-primary-600 font-medium">View All</a>
-                </div>
-                
-                <div class="flex-1 overflow-y-auto p-0">
-                    @if($recentDeliveries->count() > 0)
+                <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar relative">
+                    @if($nearestEvents->count() > 0)
                         <table class="w-full text-left border-collapse">
-                            <thead class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-10 border-b border-slate-200 dark:border-slate-700">
+                            <thead class="sticky top-0 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 z-10">
                                 <tr>
-                                    <th class="p-2 text-[10px] font-semibold text-slate-500 uppercase">Part</th>
-                                    <th class="p-2 text-[10px] font-semibold text-slate-500 uppercase text-right">Qty</th>
+                                    <th class="py-1 px-2 pl-3 text-[9px] font-semibold text-slate-500 uppercase">Customer</th>
+                                    <th class="py-1 px-2 text-[9px] font-semibold text-slate-500 uppercase">Model</th>
+                                    <th class="py-1 px-2 text-[9px] font-semibold text-slate-500 uppercase">Event</th>
+                                    <th class="py-1 px-2 text-[9px] font-semibold text-slate-500 uppercase">Batch</th>
+                                    <th class="py-1 px-2 pr-3 text-[9px] font-semibold text-slate-500 uppercase text-right">Delv Date</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
-                                @foreach($recentDeliveries as $deliv)
-                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
-                                        <td class="p-2">
-                                            <p class="text-xs font-semibold text-slate-800 dark:text-white">{{ $deliv->product->part_no }}</p>
-                                            <p class="text-[10px] text-slate-500">{{ \Carbon\Carbon::parse($deliv->actual_delivery)->format('d M') }}</p>
+                                @foreach($nearestEvents as $evt)
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors" onclick="window.location.href='{{ route('tracking.index', ['search' => $evt->event->po_no, 'open_event' => $evt->npc_event_id, 'from_dashboard' => 1]) }}'">
+                                        <td class="py-1 px-2 pl-3">
+                                            <p class="text-[9px] font-semibold text-slate-800 dark:text-white">{{ $evt->product->customer->code ?? '-' }}</p>
                                         </td>
-                                        <td class="p-2 text-right">
-                                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ $deliv->delivered_qty }}</span>
-                                            <span class="text-[9px] text-slate-400">/{{ $deliv->qty }}</span>
+                                        <td class="py-1 px-2">
+                                            <p class="text-[9px] text-slate-600 dark:text-slate-400">{{ $evt->product->vehicleModel->name ?? '-' }}</p>
+                                        </td>
+                                        <td class="py-1 px-2">
+                                            <p class="text-[9px] text-slate-600 dark:text-slate-400">{{ $evt->event->customerCategory->name ?? '-' }}</p>
+                                        </td>
+                                        <td class="py-1 px-2">
+                                            <span class="text-[8px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-1 py-0.5 rounded">{{ $evt->event->deliveryGroup->name ?? '-' }}</span>
+                                        </td>
+                                        <td class="py-1 px-2 pr-3 text-right">
+                                            <span class="text-[9px] font-bold {{ \Carbon\Carbon::parse($evt->delivery_date)->isPast() ? 'text-rose-500' : 'text-slate-700 dark:text-slate-300' }}">
+                                                {{ \Carbon\Carbon::parse($evt->delivery_date)->format('d M Y') }}
+                                            </span>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -228,14 +209,105 @@
                         </table>
                     @else
                         <div class="h-full flex flex-col items-center justify-center p-4 text-center text-slate-400">
-                            <i class="fa-solid fa-box-open text-2xl mb-2"></i>
-                            <p class="text-xs">No recent deliveries.</p>
+                            <i class="fa-regular fa-calendar-xmark text-xl mb-1"></i>
+                            <p class="text-[10px]">No upcoming events found.</p>
                         </div>
                     @endif
                 </div>
             </div>
 
-        </div>
+            <!-- Action Required: ECN & Stagnant -->
+            <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden">
+                <div class="py-1.5 px-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex-none flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
+                        <span class="w-1.5 h-1.5 bg-rose-500 rounded-full mr-1.5 animate-pulse"></span> Action Required
+                    </h3>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-0">
+                    @if($ecnUpdates->count() > 0 || $stagnantParts->count() > 0)
+                        <div class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                            <!-- ECN Items -->
+                            @foreach($ecnUpdates as $part)
+                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <span class="text-[8px] font-bold text-rose-600 bg-rose-100 px-1 uppercase mb-0.5 inline-block">ECN Update</span>
+                                            <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
+                                        </div>
+                                        <a href="{{ route('events.parts.edit', ['event' => $part->event->npc_event_id ?? 0, 'part' => $part->hashed_id]) }}" class="text-[9px] bg-primary-50 text-primary-600 hover:bg-primary-100 px-1.5 py-0.5 font-medium">Review</a>
+                                    </div>
+                                </div>
+                            @endforeach
+                            <!-- Stagnant Items -->
+                            @foreach($stagnantParts as $part)
+                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <span class="text-[8px] font-bold text-amber-600 bg-amber-100 px-1 uppercase mb-0.5 inline-block">Stagnant > 3d</span>
+                                            <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
+                                        </div>
+                                        <span class="text-[8px] text-slate-500 border border-slate-200 dark:border-slate-600 px-1 bg-slate-50 dark:bg-slate-800">{{ str_replace('_', ' ', $part->status) }}</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="h-full flex flex-col items-center justify-center p-4 text-center text-slate-400">
+                            <i class="fa-regular fa-circle-check text-xl mb-1 text-emerald-400"></i>
+                            <p class="text-[10px]">No pending actions.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Remain Delivery -->
+            <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden">
+                <div class="py-1.5 px-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex-none flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
+                        <i class="fa-solid fa-truck-ramp-box text-emerald-500 mr-1.5"></i> Remain Delivery
+                    </h3>
+                    <a href="{{ route('tracking.index') }}" class="text-[9px] text-primary-600 font-medium">View All</a>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-0">
+                    @if($remainDeliveries->count() > 0)
+                        <table class="w-full text-left border-collapse">
+                            <thead class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-10 border-b border-slate-200 dark:border-slate-700">
+                                <tr>
+                                    <th class="py-1 px-3 text-[9px] font-semibold text-slate-500 uppercase">PO / Model</th>
+                                    <th class="py-1 px-3 text-[9px] font-semibold text-slate-500 uppercase text-right">Remain Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                                @foreach($remainDeliveries as $deliv)
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                        <td class="py-1.5 px-3">
+                                            <p class="text-[10px] font-bold text-slate-800 dark:text-white">{{ $deliv->event->po_no ?? '-' }}</p>
+                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                                <span class="text-[9px] font-medium text-indigo-600 dark:text-indigo-400">{{ $deliv->product->vehicleModel->name ?? '-' }}</span>
+                                                <span class="text-[8px] text-slate-400">&bull;</span>
+                                                <p class="text-[8px] text-slate-500">{{ \Carbon\Carbon::parse($deliv->delivery_date)->format('d M y') }}</p>
+                                            </div>
+                                        </td>
+                                        <td class="py-1 px-3 text-right">
+                                            <span class="text-[10px] font-bold text-slate-800 dark:text-white">{{ $deliv->qty - $deliv->delivered_qty }}</span>
+                                            <span class="text-[8px] text-slate-400">/ {{ $deliv->qty }}</span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @else
+                        <div class="h-full flex flex-col items-center justify-center p-4 text-center text-slate-400">
+                            <i class="fa-regular fa-circle-check text-xl mb-1 text-emerald-400"></i>
+                            <p class="text-[10px]">No remaining deliveries.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+        </div> <!-- End Right Column -->
 
     </div>
 </div>
@@ -252,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
     Chart.defaults.color = textColor;
     Chart.defaults.font.family = "'Outfit', sans-serif";
 
-    // 1. Trend Chart (Stacked Bar + Line)
+    // 1. Trend Chart (Horizontal Grouped Bar for Plan vs Actual)
     const trendCtx = document.getElementById('trendChart');
     if (trendCtx) {
         new Chart(trendCtx, {
@@ -261,41 +333,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 labels: @json($trendChart['labels']),
                 datasets: [
                     {
-                        label: 'Finished Items',
+                        label: 'Plan',
+                        data: @json($trendChart['new']),
+                        backgroundColor: '#3b82f6', // blue
+                        borderRadius: 4,
+                        maxBarThickness: 20,
+                        order: 2
+                    },
+                    {
+                        label: 'Actual',
                         data: @json($trendChart['finished']),
                         backgroundColor: '#10b981', // emerald
                         borderRadius: 4,
-                        stack: 'Stack 0',
-                        order: 3,
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'In Progress Items',
-                        data: @json($trendChart['in_progress'] ?? []),
-                        backgroundColor: '#f59e0b', // amber
-                        borderRadius: 4,
-                        stack: 'Stack 0',
-                        order: 2,
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'Completion %',
-                        data: @json($trendChart['rates'] ?? []),
-                        type: 'line',
-                        backgroundColor: '#3b82f6', // blue
-                        borderColor: '#3b82f6',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        pointBackgroundColor: '#3b82f6',
-                        clip: false,
-                        order: 1,
-                        yAxisID: 'y1'
+                        maxBarThickness: 20,
+                        order: 3
                     }
                 ]
             },
             options: {
+                indexAxis: 'y', // Make it horizontal
                 layout: {
-                    padding: { top: 10 }
+                    padding: { top: 10, right: 20 }
                 },
                 responsive: true,
                 maintainAspectRatio: false,
@@ -314,50 +372,25 @@ document.addEventListener('DOMContentLoaded', function() {
                         borderWidth: 1,
                         callbacks: {
                             title: function(tooltipItems) {
-                                // Use the original label array to maintain multi-line in tooltip title
                                 const index = tooltipItems[0].dataIndex;
                                 const originalLabel = tooltipItems[0].chart.data.labels[index];
                                 return originalLabel;
-                            },
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.datasetIndex === 2) {
-                                    label += context.raw + '%';
-                                } else {
-                                    label += context.raw;
-                                }
-                                return label;
                             }
                         }
                     }
                 },
                 scales: {
-                    x: { grid: { display: false }, stacked: true },
-                    y: { 
+                    x: { 
                         type: 'linear',
                         display: true,
-                        position: 'left',
-                        stacked: true,
+                        position: 'bottom',
                         grid: { color: gridColor }, 
                         beginAtZero: true,
                         ticks: { stepSize: 1 }
                     },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        stacked: false,
-                        beginAtZero: true,
-                        max: 100,
-                        grid: { drawOnChartArea: false },
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
-                            }
-                        }
+                    y: { 
+                        grid: { display: false }, 
+                        ticks: { autoSkip: false }
                     }
                 }
             }

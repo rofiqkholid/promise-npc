@@ -27,6 +27,19 @@
     </div>
 </div>
 
-<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border {{ $timeStatusClass }}">
-    <i class="fa-solid {{ $timeStatusIcon }}"></i> {{ $timeStatusText }}
-</span>
+@if(in_array($part->status, ['CLOSED', 'OUTSTANDING']) && $part->actual_delivery)
+    @php
+        $actual = \Carbon\Carbon::parse($part->actual_delivery)->startOfDay();
+        $diffDelivered = $actual->diffInDays($target, false);
+        $delivClass = $diffDelivered < 0 ? 'bg-red-100 text-red-700 border-red-200' : 'bg-blue-100 text-blue-700 border-blue-200';
+        $delivText = $diffDelivered < 0 ? 'Late ' . abs($diffDelivered) . ' Days' : ($diffDelivered == 0 ? 'On Time' : 'Early ' . $diffDelivered . ' Days');
+        $delivIcon = $diffDelivered < 0 ? 'fa-circle-xmark' : 'fa-bolt';
+    @endphp
+    <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border {{ $delivClass }}">
+        <i class="fa-solid {{ $delivIcon }}"></i> Delivered {{ $delivText }}
+    </span>
+@else
+    <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border {{ $timeStatusClass }}">
+        <i class="fa-solid {{ $timeStatusIcon }}"></i> {{ $timeStatusText }}
+    </span>
+@endif

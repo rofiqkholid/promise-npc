@@ -9,24 +9,56 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // 1. Top Level Metrics (KPI Cards)
-        $totalActiveEvents = NpcEvent::count();
+        $filterYear = $request->input('chart_year', date('Y'));
+        $filterMonth = $request->input('chart_month');
+        $filterCustomer = $request->input('chart_customer');
+        $filterPo = $request->input('chart_po');
+        $filterModel = $request->input('chart_model');
 
-        $partsInProduction = NpcPart::where('status', 'WAITING_DEPT_CONFIRM')->count();
-        $pendingQc = NpcPart::where('status', 'WAITING_QE_CHECK')->count();
-        $readyToDeliver = NpcPart::where('status', 'FINISHED')->count();
+        $applyEventFilters = function($q) use ($filterYear, $filterMonth, $filterCustomer, $filterPo, $filterModel) {
+            if ($filterYear) {
+                $q->whereYear('created_at', $filterYear);
+            }
+            if ($filterMonth) {
+                $q->whereMonth('created_at', $filterMonth);
+            }
+            if ($filterCustomer) {
+                $q->where('customer_category_id', $filterCustomer);
+            }
+            if ($filterPo) {
+                $q->where('po_no', 'like', "%{$filterPo}%");
+            }
+            if ($filterModel) {
+                $q->whereHas('parts.product', function($q2) use ($filterModel) {
+                    $q2->where('model_id', $filterModel);
+                });
+            }
+        };
+
+        // 1. Top Level Metrics (KPI Cards)
+        $totalPO = NpcEvent::where($applyEventFilters)->count();
+
+        // A PO is complete if it has parts and NONE of its parts are in an active status or just finished
+        $poComplete = NpcEvent::where($applyEventFilters)->whereHas('parts')->whereDoesntHave('parts', function($q) {
+            $q->whereNotIn('status', ['CLOSED', 'OUTSTANDING']);
+        })->count();
+
+        $poOnHand = $totalPO - $poComplete;
+
+        $stock = NpcPart::where('status', 'FINISHED')->whereHas('event', $applyEventFilters)->count();
 
         $metrics = [
-            'active_events' => $totalActiveEvents,
-            'in_production' => $partsInProduction,
-            'pending_qc' => $pendingQc,
-            'ready_deliver' => $readyToDeliver,
+            'total_po' => $totalPO,
+            'po_on_hand' => $poOnHand,
+            'po_complete' => $poComplete,
+            'stock' => $stock,
         ];
 
         // 2. Nearest Events
         $nearestEvents = NpcPart::with(['product.vehicleModel', 'product.customer', 'event.customerCategory', 'event.deliveryGroup'])
+            ->whereHas('event', $applyEventFilters)
             ->whereNotIn('status', ['CLOSED'])
             ->whereNotNull('delivery_date')
             ->orderBy('delivery_date', 'asc')
@@ -34,14 +66,16 @@ class DashboardController extends Controller
             ->get();
 
         // --- DASHBOARD V2 CHARTS DATA ---
-
-        // Chart 1: Event Progress (Total Items vs Finished Items)
-        // Get 10 most recent active events (expanded for full width)
-        $recentEvents = NpcEvent::with(['customerCategory', 'deliveryGroup', 'parts' => function($q) {
+        
+        // Chart 1: Plan vs Actual
+        $queryEvents = NpcEvent::with(['customerCategory', 'deliveryGroup', 'parts' => function($q) {
             $q->select('id', 'npc_event_id', 'status', 'product_id')->with(['product.customer', 'product.vehicleModel']);
-        }])
-        ->orderBy('created_at', 'desc')
-        ->take(10)
+        }]);
+
+        $applyEventFilters($queryEvents);
+
+        $recentEvents = $queryEvents->orderBy('created_at', 'desc')
+        ->take(15)
         ->get()
         ->reverse(); // reverse to show oldest of the recent on the left
 
@@ -108,6 +142,7 @@ class DashboardController extends Controller
 
         // Chart 2: Department Workload (Waiting Processes)
         $waitingProcesses = \App\Models\NpcPartProcess::with('department')
+            ->whereHas('part.event', $applyEventFilters)
             ->where('status', 'WAITING')
             ->get();
             
@@ -129,6 +164,7 @@ class DashboardController extends Controller
 
         // Chart 3: Customer Proportion (Active Parts)
         $activeParts = NpcPart::with('event.customerCategory')
+            ->whereHas('event', $applyEventFilters)
             ->whereNotIn('status', ['CLOSED', 'OUTSTANDING'])
             ->get();
             
@@ -153,6 +189,7 @@ class DashboardController extends Controller
         // 3. Action Required (To-Do List)
         // a. ECN Updates
         $ecnUpdates = NpcPart::with(['product', 'event.customerCategory'])
+            ->whereHas('event', $applyEventFilters)
             ->whereNotIn('status', ['FINISHED', 'CLOSED'])
             ->whereNotNull('part_revision_id')
             ->whereHas('product.docPackage', function ($q) {
@@ -161,24 +198,36 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // b. Stagnant Parts (No update for > 7 days, excluding finished/closed)
+        // b. Stagnant Parts (No update for > 3 days, excluding finished/closed)
         $stagnantParts = NpcPart::with(['product', 'event.customerCategory'])
+            ->whereHas('event', $applyEventFilters)
             ->whereNotIn('status', ['FINISHED', 'CLOSED'])
-            ->where('updated_at', '<', Carbon::now()->subDays(7))
+            ->where('updated_at', '<', Carbon::now()->subDays(3))
             ->orderBy('updated_at', 'asc')
             ->take(5)
             ->get();
 
-        // 4. Recent Deliveries / History
-        $recentDeliveries = NpcPart::with(['product', 'event.customerCategory'])
-            ->whereIn('status', ['CLOSED', 'OUTSTANDING'])
-            ->orderBy('actual_delivery', 'desc')
+        // 4. Remain Deliveries
+        $remainDeliveries = NpcPart::with(['product.vehicleModel', 'event.customerCategory'])
+            ->whereHas('event', $applyEventFilters)
+            ->where('status', 'FINISHED')
+            ->whereNotNull('delivery_date')
+            ->orderBy('delivery_date', 'asc')
             ->take(5)
             ->get();
 
+        // Filter options for view
+        $customerCategories = \App\Models\NpcCustomerCategory::orderBy('name')->get();
+        $vehicleModels = \App\Models\VehicleModel::orderBy('name')->get();
+        $availableYears = NpcEvent::selectRaw('YEAR(created_at) as year')->distinct()->orderBy('year', 'desc')->pluck('year');
+        if ($availableYears->isEmpty()) {
+            $availableYears = collect([date('Y')]);
+        }
+
         return view('dashboard', compact(
-            'metrics', 'nearestEvents', 'ecnUpdates', 'stagnantParts', 'recentDeliveries',
-            'trendChart', 'departmentChart', 'customerChart'
+            'metrics', 'nearestEvents', 'ecnUpdates', 'stagnantParts', 'remainDeliveries',
+            'trendChart', 'departmentChart', 'customerChart',
+            'filterYear', 'filterMonth', 'filterCustomer', 'filterPo', 'filterModel', 'customerCategories', 'vehicleModels', 'availableYears'
         ));
     }
 }
