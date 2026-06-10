@@ -207,12 +207,23 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // 4. Remain Deliveries
-        $remainDeliveries = NpcPart::with(['product.vehicleModel', 'event.customerCategory'])
-            ->whereHas('event', $applyEventFilters)
-            ->where('status', 'FINISHED')
-            ->whereNotNull('delivery_date')
-            ->orderBy('delivery_date', 'asc')
+        // 4. Remain Deliveries (Grouped by PO)
+        $remainDeliveries = NpcEvent::with(['customerCategory', 'parts.product.vehicleModel'])
+            ->where($applyEventFilters)
+            ->whereHas('parts', function($q) {
+                $q->whereNotIn('status', ['CLOSED', 'OUTSTANDING']);
+            })
+            ->withCount(['parts as total_items', 'parts as remaining_items' => function($q) {
+                $q->whereNotIn('status', ['CLOSED', 'OUTSTANDING']);
+            }])
+            ->addSelect(['nearest_delivery_date' => NpcPart::select('delivery_date')
+                ->whereColumn('npc_event_id', 'npc_events.id')
+                ->whereNotIn('status', ['CLOSED', 'OUTSTANDING'])
+                ->whereNotNull('delivery_date')
+                ->orderBy('delivery_date', 'asc')
+                ->limit(1)
+            ])
+            ->orderBy('nearest_delivery_date', 'asc')
             ->take(5)
             ->get();
 

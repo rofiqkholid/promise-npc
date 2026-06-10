@@ -281,18 +281,27 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
                                 @foreach($remainDeliveries as $deliv)
+                                    @php
+                                        $models = [];
+                                        foreach($deliv->parts as $part) {
+                                            if ($part->product && $part->product->vehicleModel) {
+                                                $models[] = $part->product->vehicleModel->name;
+                                            }
+                                        }
+                                        $modelStr = count($models) > 0 ? implode(', ', array_unique($models)) : '-';
+                                        $percentage = $deliv->total_items > 0 ? round(($deliv->remaining_items / $deliv->total_items) * 100) : 0;
+                                    @endphp
                                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                                         <td class="py-1.5 px-3">
-                                            <p class="text-[10px] font-bold text-slate-800 dark:text-white">{{ $deliv->product->vehicleModel->name ?? '-' }}</p>
+                                            <p class="text-[10px] font-bold text-slate-800 dark:text-white truncate max-w-[120px]" title="{{ $modelStr }}">{{ $modelStr }}</p>
                                             <div class="flex items-center gap-1.5 mt-0.5">
-                                                <span class="text-[9px] font-medium text-slate-500 dark:text-slate-400">PO: {{ $deliv->event->po_no ?? '-' }}</span>
+                                                <span class="text-[9px] font-medium text-slate-500 dark:text-slate-400">PO: {{ $deliv->po_no ?? '-' }}</span>
                                                 <span class="text-[8px] text-slate-400">&bull;</span>
-                                                <p class="text-[8px] text-slate-500">{{ \Carbon\Carbon::parse($deliv->delivery_date)->format('d M y') }}</p>
+                                                <p class="text-[8px] text-slate-500">{{ $deliv->nearest_delivery_date ? \Carbon\Carbon::parse($deliv->nearest_delivery_date)->format('d M y') : '-' }}</p>
                                             </div>
                                         </td>
                                         <td class="py-1 px-3 text-right">
-                                            <span class="text-[10px] font-bold text-slate-800 dark:text-white">{{ $deliv->qty - $deliv->delivered_qty }}</span>
-                                            <span class="text-[8px] text-slate-400">/ {{ $deliv->qty }}</span>
+                                            <span class="text-[10px] font-bold text-slate-800 dark:text-white">{{ $percentage }}%</span>
                                         </td>
                                     </tr>
                                 @endforeach
