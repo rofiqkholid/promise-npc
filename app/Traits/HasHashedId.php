@@ -35,7 +35,7 @@ trait HasHashedId
         $decoded = $hashids->decode($value);
 
         if (empty($decoded)) {
-            abort(404);
+            return parent::resolveRouteBinding($value, $field);
         }
 
         return $this->where($field ?? $this->getRouteKeyName(), $decoded[0])->firstOrFail();

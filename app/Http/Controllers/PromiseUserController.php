@@ -25,14 +25,7 @@ class PromiseUserController extends Controller
                 ->editColumn('created_at', function($user) {
                     return $user->created_at ? $user->created_at->format('d M Y') : '-';
                 })
-                ->addColumn('action', function($user) {
-                    return view('components.datatable-actions', [
-                        'editUrl' => route('master.promise-users.edit', $user->nik),
-                        'deleteUrl' => route('master.promise-users.destroy', $user->nik),
-                        'deleteMessage' => 'Are you sure you want to delete ' . $user->name . '?'
-                    ])->render();
-                })
-                ->rawColumns(['name', 'action'])
+                ->rawColumns(['name'])
                 ->make(true);
         }
 
