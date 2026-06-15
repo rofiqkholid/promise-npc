@@ -1,8 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $pageTitle ?? 'Production Routing Setup')
-@section('page_title', 'Transaksi / ' . ($pageTitle ?? 'Production Routing Setup'))
-
+@section('page_title', 'Transaction / ' . ($pageTitle ?? 'Production Routing Setup'))
 @section('content')
 <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
     <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">

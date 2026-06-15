@@ -8,7 +8,7 @@
     <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-6">
         <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
             <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
-                <i class="fa-solid fa-route text-blue-500"></i> Setup Routing & Jadwal Process
+                <i class="fa-solid fa-route text-blue-500"></i> Setup Routing & Process Schedule
             </h2>
             <div class="text-sm">
                 <span class="text-gray-500 dark:text-gray-400">Target Delivery:</span>
@@ -87,7 +87,7 @@
                             </label>
                             <input type="date" name="qc_target_date" value="{{ $part->qc_target_date }}" max="{{ \Carbon\Carbon::parse($part->delivery_date)->format('Y-m-d') }}"
                                 class="w-full border-emerald-200 dark:border-emerald-800 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm dark:bg-gray-700 dark:text-white">
-                            <p class="text-[10px] text-emerald-600/70 dark:text-emerald-400/70 italic mt-1 leading-tight">Jadwal part mulai dicek dan diinput oleh tim Quality.</p>
+                            <p class="text-[10px] text-emerald-600/70 dark:text-emerald-400/70 italic mt-1 leading-tight">The schedule for the part to be checked and inputted by the Quality team.</p>
                         </div>
                         <div class="space-y-1">
                             <label class="block text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
@@ -95,7 +95,7 @@
                             </label>
                             <input type="date" name="mgm_target_date" value="{{ $part->mgm_target_date }}" max="{{ \Carbon\Carbon::parse($part->delivery_date)->format('Y-m-d') }}"
                                 class="w-full border-emerald-200 dark:border-emerald-800 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm dark:bg-gray-700 dark:text-white">
-                            <p class="text-[10px] text-emerald-600/70 dark:text-emerald-400/70 italic mt-1 leading-tight">Jadwal part mulai divalidasi dan diapprove oleh tim Management.</p>
+                            <p class="text-[10px] text-emerald-600/70 dark:text-emerald-400/70 italic mt-1 leading-tight">The schedule for the part to be validated and approved by the Management team.</p>
                         </div>
                     </div>
                 </div>
@@ -273,7 +273,7 @@
                 
                 if(previousDate && dateInput.value < previousDate) {
                     e.preventDefault();
-                    alert(`Urutan tanggal tidak valid!\nTanggal target untuk proses '${processName}' tidak boleh lebih awal dari proses sebelumnya '${previousProcessName}'.`);
+                    alert(`Invalid date sequence!\nThe target date for process '${processName}' cannot be earlier than the previous process '${previousProcessName}'.`);
                     dateInput.focus();
                     return false;
                 }
@@ -286,7 +286,7 @@
 
             if (qcDateInput && qcDateInput.value && previousDate && qcDateInput.value < previousDate) {
                 e.preventDefault();
-                alert(`Urutan tanggal tidak valid!\nTanggal target untuk Quality Check (QE) tidak boleh lebih awal dari proses terakhir '${previousProcessName}'.`);
+                alert(`Invalid date sequence!\nThe target date for Quality Check (QE) cannot be earlier than the last process '${previousProcessName}'.`);
                 qcDateInput.focus();
                 return false;
             }
@@ -298,8 +298,8 @@
 
             if (mgmDateInput && mgmDateInput.value && qcMinDate && mgmDateInput.value < qcMinDate) {
                 e.preventDefault();
-                let compareName = (qcDateInput && qcDateInput.value) ? 'Quality Check (QE)' : (previousProcessName ? `proses terakhir '${previousProcessName}'` : 'proses sebelumnya');
-                alert(`Urutan tanggal tidak valid!\nTanggal target untuk Management Check (MGM) tidak boleh lebih awal dari ${compareName}.`);
+                let compareName = (qcDateInput && qcDateInput.value) ? 'Quality Check (QE)' : (previousProcessName ? `the last process '${previousProcessName}'` : 'the previous process');
+                alert(`Invalid date sequence!\nThe target date for Management Check (MGM) cannot be earlier than ${compareName}.`);
                 mgmDateInput.focus();
                 return false;
             }

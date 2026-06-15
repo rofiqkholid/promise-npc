@@ -35,7 +35,7 @@ select:not(.select2-hidden-accessible) {
     padding-top: 0.625rem; /* py-2.5 */
     padding-bottom: 0.625rem;
     padding-left: 1rem; /* px-4 */
-    padding-right: 1rem;
+    padding-right: 2.5rem; /* Make room for arrow */
     border-radius: 0.5rem; /* rounded-lg */
     border: 1px solid #d1d5db; /* border-gray-300 */
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
@@ -346,5 +346,29 @@ table tbody tr:last-child td {
 .dark .dataTables_wrapper .overflow-x-auto {
     border: 1px solid #374151 !important; /* gray-700 */
     box-shadow: none !important;
+}
+
+/* Fix DataTables length select alignment */
+.dataTables_length label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    font-size: 0.875rem !important; /* text-sm */
+    color: #475569 !important; /* slate-600 */
+    font-weight: 500 !important;
+}
+
+.dark .dataTables_length label {
+    color: #cbd5e1 !important; /* slate-300 */
+}
+
+/* Make DataTables select box slightly smaller than text inputs for better fit */
+.dataTables_length select {
+    padding-top: 0.375rem !important;
+    padding-bottom: 0.375rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 2rem !important;
+    margin: 0 !important;
+    min-width: 4.5rem !important;
 }
 
