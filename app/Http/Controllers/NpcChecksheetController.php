@@ -529,10 +529,16 @@ class NpcChecksheetController extends Controller
 
         foreach ($checksheet->details as $detail) {
             $category = 'Quality';
-            $pcLow = strtolower($detail->point_check);
+            $pcLow = trim(strtolower($detail->point_check));
             if (str_contains($pcLow, 'history') || str_contains($pcLow, 'problem')) {
                 $category = 'History Problem';
-            } elseif (str_contains($pcLow, 'pallet') || str_contains($pcLow, 'label') || str_contains($pcLow, 'packaging') || str_contains($pcLow, 'harigami')) {
+            } elseif (
+                $pcLow === 'pallet usage' || 
+                $pcLow === 'part quantity order' || 
+                $pcLow === 'part tag label' || 
+                $pcLow === 'qc marking check' || 
+                $pcLow === 'harigami'
+            ) {
                 $category = 'Packaging';
             }
             $itemsToPrint[] = [
