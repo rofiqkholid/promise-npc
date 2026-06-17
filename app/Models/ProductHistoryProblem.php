@@ -12,7 +12,7 @@ class ProductHistoryProblem extends Model
 
     use HasFactory;
 
-    protected $table = 'product_history_problems';
+    protected $table = 'npc_product_history_problems';
 
     protected $fillable = [
         'product_id',

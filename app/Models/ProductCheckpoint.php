@@ -18,7 +18,7 @@ class ProductCheckpoint extends Model
 
     use HasFactory;
 
-    protected $table = 'product_checkpoints';
+    protected $table = 'npc_product_checkpoints';
 
     protected $fillable = [
         'product_id',
