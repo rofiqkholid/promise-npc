@@ -110,7 +110,7 @@ function openCompleteModal(partId, processId, processName, departmentName, targe
     
     const qtyInput = document.querySelector('#modal-complete input[name="actual_qty"]');
     qtyInput.min = partQty;
-    document.getElementById('modal-qty-helper').innerHTML = 'Minimal sama dengan Planning PO: <b>' + partQty + ' PCS</b>.';
+    document.getElementById('modal-qty-helper').innerHTML = 'Minimum matches Planning PO: <b>' + partQty + ' PCS</b>.';
     
     document.getElementById('modal-complete').classList.remove('hidden');
     // Set today as default

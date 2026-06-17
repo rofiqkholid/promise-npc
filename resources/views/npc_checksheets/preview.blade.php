@@ -282,6 +282,32 @@
             @php
                 $detailCount = 1;
                 $detailsArray = [];
+                
+                $historyItems = [];
+                if ($product && $product->historyProblems && $product->historyProblems->count() > 0) {
+                    foreach ($product->historyProblems as $hp) {
+                        $historyItems[] = [
+                            'cat' => 'History Problem',
+                            'point' => '[' . $hp->created_at->format('d/m/y') . '] ' . $hp->problem_description,
+                            'std' => '',
+                            'samples' => [],
+                            'result' => ''
+                        ];
+                    }
+                }
+                while (count($historyItems) < 4) {
+                    $historyItems[] = [
+                        'cat' => 'History Problem',
+                        'point' => ' ',
+                        'std' => '',
+                        'samples' => [],
+                        'result' => ''
+                    ];
+                }
+                foreach ($historyItems as $hi) {
+                    $detailsArray[] = $hi;
+                }
+
                 foreach($checksheet->details as $detail) {
                     $category = 'Quality';
                     $pcLow = strtolower($detail->point_check);
@@ -298,6 +324,13 @@
                         'result' => $detail->row_result
                     ];
                 }
+                
+                usort($detailsArray, function($a, $b) {
+                    $order = ['History Problem' => 1, 'Quality' => 2, 'Packaging' => 3];
+                    $oa = $order[$a['cat']] ?? 99;
+                    $ob = $order[$b['cat']] ?? 99;
+                    return $oa <=> $ob;
+                });
                 $grouped = [];
                 foreach($detailsArray as $d) {
                     $grouped[$d['cat']][] = $d;
@@ -311,8 +344,12 @@
                     @if($index === 0)
                         <td rowspan="{{ count($items) }}" style="vertical-align: middle; text-align: center;">{{ $cat }}</td>
                     @endif
-                    <td>{{ $item['point'] }}</td>
-                    <td>{{ $item['std'] }}</td>
+                    @if($cat === 'History Problem')
+                        <td colspan="2" style="overflow: hidden; text-overflow: clip; white-space: nowrap;">{{ $item['point'] }}</td>
+                    @else
+                        <td>{{ $item['point'] }}</td>
+                        <td>{{ $item['std'] }}</td>
+                    @endif
                     @for($i=1; $i<=12; $i++)
                         @php
                             $val = '';

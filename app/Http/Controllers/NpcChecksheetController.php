@@ -224,7 +224,7 @@ class NpcChecksheetController extends Controller
      */
     public function preview(NpcChecksheet $checksheet)
     {
-        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.event.customerCategory', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail', 'qeStaff', 'qeSpv', 'qeMgr', 'mgmStaff', 'mgmSpv', 'mgmMgr', 'npcPart.processes.process');
+        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.product.historyProblems', 'npcPart.event.customerCategory', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail', 'qeStaff', 'qeSpv', 'qeMgr', 'mgmStaff', 'mgmSpv', 'mgmMgr', 'npcPart.processes.process');
         $part = $checksheet->npcPart;
         $product = $part->product;
 
@@ -236,7 +236,7 @@ class NpcChecksheetController extends Controller
      */
     public function export(NpcChecksheet $checksheet)
     {
-        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.event.customerCategory', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail', 'qeStaff', 'qeSpv', 'qeMgr', 'mgmStaff', 'mgmSpv', 'mgmMgr', 'npcPart.processes.process');
+        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.product.historyProblems', 'npcPart.event.customerCategory', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail', 'qeStaff', 'qeSpv', 'qeMgr', 'mgmStaff', 'mgmSpv', 'mgmMgr', 'npcPart.processes.process');
         $part = $checksheet->npcPart;
         $product = $part->product;
 
@@ -498,10 +498,36 @@ class NpcChecksheetController extends Controller
         
         $itemRow = $headerRow + 1;
         $detailCount = 1;
+        
+        $itemsToPrint = [];
+        
+        // Add minimum 4 history problems
+        $historyItems = [];
+        if ($product && $product->historyProblems && $product->historyProblems->count() > 0) {
+            foreach ($product->historyProblems as $hp) {
+                $historyItems[] = [
+                    'cat' => 'History Problem',
+                    'point' => '[' . $hp->created_at->format('d/m/y') . '] ' . $hp->problem_description,
+                    'std' => '',
+                    'samples' => [],
+                    'result' => ''
+                ];
+            }
+        }
+        while (count($historyItems) < 4) {
+            $historyItems[] = [
+                'cat' => 'History Problem',
+                'point' => ' ',
+                'std' => '',
+                'samples' => [],
+                'result' => ''
+            ];
+        }
+        foreach ($historyItems as $hi) {
+            $itemsToPrint[] = $hi;
+        }
+
         foreach ($checksheet->details as $detail) {
-            $sheet->setCellValue('A' . $itemRow, $detailCount++);
-            
-            // Category mapping
             $category = 'Quality';
             $pcLow = strtolower($detail->point_check);
             if (str_contains($pcLow, 'history') || str_contains($pcLow, 'problem')) {
@@ -509,15 +535,37 @@ class NpcChecksheetController extends Controller
             } elseif (str_contains($pcLow, 'pallet') || str_contains($pcLow, 'label') || str_contains($pcLow, 'packaging') || str_contains($pcLow, 'harigami')) {
                 $category = 'Packaging';
             }
+            $itemsToPrint[] = [
+                'cat' => $category,
+                'point' => $detail->point_check,
+                'std' => $detail->standard,
+                'samples' => $detail->samples ?? [],
+                'result' => $detail->row_result
+            ];
+        }
+
+        // Sort items by category (History Problem at top)
+        usort($itemsToPrint, function($a, $b) {
+            $order = ['History Problem' => 1, 'Quality' => 2, 'Packaging' => 3];
+            $oa = $order[$a['cat']] ?? 99;
+            $ob = $order[$b['cat']] ?? 99;
+            return $oa <=> $ob;
+        });
+
+        foreach ($itemsToPrint as $item) {
+            $sheet->setCellValue('A' . $itemRow, $detailCount++);
+            $sheet->setCellValue('B' . $itemRow, $item['cat']);
+            $sheet->setCellValue('C' . $itemRow, $item['point']);
+            if ($item['cat'] === 'History Problem') {
+                $sheet->mergeCells('C' . $itemRow . ':D' . $itemRow);
+            } else {
+                $sheet->setCellValue('D' . $itemRow, $item['std']);
+            }
             
-            $sheet->setCellValue('B' . $itemRow, $category);
-            $sheet->setCellValue('C' . $itemRow, $detail->point_check);
-            $sheet->setCellValue('D' . $itemRow, $detail->standard);
-            
-            // Render samples
-            $samples = $detail->samples ?? [];
-            for ($i = 0; $i < 12; $i++) {
-                $col = chr(69 + $i);
+            // Render samples (1 to 12)
+            $samples = $item['samples'];
+            for ($i = 1; $i <= 12; $i++) {
+                $col = chr(68 + $i); // E is 69, so 68 + 1 = 69 = E
                 $val = '';
                 if (isset($samples[$i])) {
                     if ($samples[$i] === 'OK') $val = 'O';
@@ -535,7 +583,7 @@ class NpcChecksheetController extends Controller
             }
             
             // Result
-            $sheet->setCellValue('Q' . $itemRow, $detail->row_result);
+            $sheet->setCellValue('Q' . $itemRow, $item['result']);
             $itemRow++;
         }
         
@@ -544,8 +592,8 @@ class NpcChecksheetController extends Controller
         if ($itemRow > $headerRow + 1) {
             $currentCat = $sheet->getCell('B' . $startMerge)->getValue();
             for ($r = $startMerge + 1; $r <= $itemRow; $r++) {
-                $cat = $sheet->getCell('B' . $r)->getValue();
-                if ($cat !== $currentCat || $r == $itemRow) {
+                $cat = ($r < $itemRow) ? $sheet->getCell('B' . $r)->getValue() : null;
+                if ($cat !== $currentCat) {
                     if ($r - 1 > $startMerge) {
                         $sheet->mergeCells('B' . $startMerge . ':B' . ($r - 1));
                         $sheet->getStyle('B' . $startMerge)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
