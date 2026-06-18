@@ -17,22 +17,26 @@ class ProductImageController extends Controller
     public function index(Request $request)
     {
         $query = Product::with(['customer', 'vehicleModel', 'productDetail'])
-            ->orderBy('part_no');
+            ->leftJoin('npc_product_details', 'products.id', '=', 'npc_product_details.product_id')
+            ->select('products.*')
+            ->orderByRaw('CASE WHEN npc_product_details.label_image_path IS NOT NULL THEN 1 ELSE 0 END DESC')
+            ->orderBy('npc_product_details.updated_at', 'desc')
+            ->orderBy('products.part_no', 'asc');
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('part_no', 'like', "%{$search}%")
-                  ->orWhere('part_name', 'like', "%{$search}%");
+                $q->where('products.part_no', 'like', "%{$search}%")
+                  ->orWhere('products.part_name', 'like', "%{$search}%");
             });
         }
 
         if ($request->filled('customer_id')) {
-            $query->where('customer_id', $request->customer_id);
+            $query->where('products.customer_id', $request->customer_id);
         }
 
         if ($request->filled('model_id')) {
-            $query->where('model_id', $request->model_id);
+            $query->where('products.model_id', $request->model_id);
         }
 
         if ($request->filled('has_image')) {

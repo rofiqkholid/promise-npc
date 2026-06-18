@@ -92,7 +92,6 @@
                                         </span>
                                     @endforeach
                                 </div>
-                                <span class="text-[10px] text-gray-400 italic">Routing pending for production</span>
                             @else
                                 <div class="inline-flex items-center gap-1.5 px-2 py-1 bg-orange-50 text-orange-700 border border-orange-200 text-[10px] font-medium">
                                     <i class="fa-solid fa-triangle-exclamation"></i> No Routing Yet

@@ -20,7 +20,8 @@ class ProductChecksheetSetupController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = Product::with('mappedCheckpoints', 'customer', 'vehicleModel');
+            $query = Product::with('mappedCheckpoints', 'customer', 'vehicleModel')
+                ->withCount('mappedCheckpoints');
 
             if ($request->has('customer_id') && $request->customer_id != '') {
                 $query->where('customer_id', $request->customer_id);
@@ -40,7 +41,9 @@ class ProductChecksheetSetupController extends Controller
 
             return \Yajra\DataTables\Facades\DataTables::of($query)
                 ->order(function ($q) {
-                    $q->orderBy('part_no', 'asc');
+                    $q->orderByRaw('(CASE WHEN (SELECT COUNT(*) FROM npc_product_checkpoints WHERE npc_product_checkpoints.product_id = products.id) > 0 THEN 1 ELSE 0 END) DESC')
+                      ->orderBy('products.updated_at', 'desc')
+                      ->orderBy('products.part_no', 'asc');
                 })
                 ->addIndexColumn()
                 ->addColumn('customer', function ($product) {
@@ -222,6 +225,8 @@ class ProductChecksheetSetupController extends Controller
             ->performedOn($product)
             ->event('updated')
             ->log('Part Checksheet Master');
+
+        $product->touch(); // Ensure the parent product's updated_at is bumped for sorting
 
         return redirect()->route('master.checksheets.index')->with('success', 'Master Checksheet for Part ' . $product->part_no . ' successfully saved!');
     }
@@ -409,6 +414,11 @@ class ProductChecksheetSetupController extends Controller
             }
 
             $partCount = count($partsProcessed);
+
+            // Touch all updated products to bump their sorting order
+            if (!empty($partsProcessed)) {
+                Product::whereIn('id', $partsProcessed)->update(['updated_at' => now()]);
+            }
 
             DB::commit();
             
