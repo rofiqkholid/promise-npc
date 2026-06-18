@@ -115,9 +115,10 @@
                         </td>
                         <td class="px-4 py-2 text-gray-800 dark:text-gray-200">{{ $product->part_name }}</td>
                         <td class="px-4 py-2">
-                            @if ($product->docPackage && $product->docPackage->currentRevision)
-                                <div class="text-sm font-bold text-gray-800 dark:text-gray-200">{{ $product->docPackage->currentRevision->ecn_no ?? 'No ECN' }}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Rev {{ $product->docPackage->currentRevision->revision_no }}</div>
+                            @php $docPackage = $product->getEffectiveDocPackage(); @endphp
+                            @if ($docPackage && $docPackage->currentRevision)
+                                <div class="text-sm font-bold text-gray-800 dark:text-gray-200">{{ $docPackage->currentRevision->ecn_no ?? 'No ECN' }}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Rev {{ $docPackage->currentRevision->revision_no }}</div>
                             @else
                                 <span class="text-xs text-gray-400 italic">No Data</span>
                             @endif

@@ -47,6 +47,28 @@ class Product extends Model
         return $this->hasOne(DocPackage::class, 'product_id')->where('is_active', true)->latest('id');
     }
 
+    public function siblings()
+    {
+        return $this->hasMany(Product::class, 'group_id', 'group_id')->where('id', '!=', $this->id);
+    }
+
+    public function getEffectiveDocPackage()
+    {
+        if ($this->docPackage) {
+            return $this->docPackage;
+        }
+
+        if ($this->group_id && $this->relationLoaded('siblings')) {
+            foreach ($this->siblings as $sibling) {
+                if ($sibling->docPackage) {
+                    return $sibling->docPackage;
+                }
+            }
+        }
+        
+        return null;
+    }
+
     public function specChildParts()
     {
         return $this->hasMany(NpcSpecChildPart::class, 'product_id');

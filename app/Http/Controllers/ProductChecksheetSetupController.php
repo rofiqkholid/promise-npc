@@ -20,7 +20,7 @@ class ProductChecksheetSetupController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = Product::with('mappedCheckpoints', 'customer', 'vehicleModel', 'docPackage.currentRevision')
+            $query = Product::with('mappedCheckpoints', 'customer', 'vehicleModel', 'docPackage.currentRevision', 'siblings.docPackage.currentRevision')
                 ->withCount('mappedCheckpoints');
 
             if ($request->has('customer_id') && $request->customer_id != '') {
@@ -59,9 +59,10 @@ class ProductChecksheetSetupController extends Controller
                     return '<div class="text-gray-800 dark:text-gray-200 font-bold">' . $product->part_name . '</div>';
                 })
                 ->addColumn('ecn_info', function ($product) {
-                    if ($product->docPackage && $product->docPackage->currentRevision) {
-                        return '<div class="text-sm font-bold text-gray-800 dark:text-gray-200">' . ($product->docPackage->currentRevision->ecn_no ?? 'No ECN') . '</div>' .
-                               '<div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Rev ' . $product->docPackage->currentRevision->revision_no . '</div>';
+                    $docPackage = $product->getEffectiveDocPackage();
+                    if ($docPackage && $docPackage->currentRevision) {
+                        return '<div class="text-sm font-bold text-gray-800 dark:text-gray-200">' . ($docPackage->currentRevision->ecn_no ?? 'No ECN') . '</div>' .
+                               '<div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Rev ' . $docPackage->currentRevision->revision_no . '</div>';
                     }
                     return '<span class="text-xs text-gray-400 italic">No Data</span>';
                 })
