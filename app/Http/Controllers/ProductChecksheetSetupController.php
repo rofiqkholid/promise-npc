@@ -20,7 +20,7 @@ class ProductChecksheetSetupController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = Product::with('mappedCheckpoints', 'customer', 'vehicleModel')
+            $query = Product::with('mappedCheckpoints', 'customer', 'vehicleModel', 'docPackage.currentRevision')
                 ->withCount('mappedCheckpoints');
 
             if ($request->has('customer_id') && $request->customer_id != '') {
@@ -58,6 +58,13 @@ class ProductChecksheetSetupController extends Controller
                 ->addColumn('part_name', function ($product) {
                     return '<div class="text-gray-800 dark:text-gray-200 font-bold">' . $product->part_name . '</div>';
                 })
+                ->addColumn('ecn_info', function ($product) {
+                    if ($product->docPackage && $product->docPackage->currentRevision) {
+                        return '<div class="text-sm font-bold text-gray-800 dark:text-gray-200">' . ($product->docPackage->currentRevision->ecn_no ?? 'No ECN') . '</div>' .
+                               '<div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Rev ' . $product->docPackage->currentRevision->revision_no . '</div>';
+                    }
+                    return '<span class="text-xs text-gray-400 italic">No Data</span>';
+                })
                 ->addColumn('mapping_status', function ($product) {
                     if ($product->mappedCheckpoints->isNotEmpty()) {
                         return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50 text-[10px] font-bold uppercase tracking-wider"><i class="fa-solid fa-check-circle"></i> Mapped (' . $product->mappedCheckpoints->count() . ' Points)</span>';
@@ -82,7 +89,7 @@ class ProductChecksheetSetupController extends Controller
                         });
                     }
                 })
-                ->rawColumns(['customer', 'model', 'part_no', 'part_name', 'mapping_status', 'action'])
+                ->rawColumns(['customer', 'model', 'part_no', 'part_name', 'ecn_info', 'mapping_status', 'action'])
                 ->make(true);
         }
 

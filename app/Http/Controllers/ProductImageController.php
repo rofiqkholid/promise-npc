@@ -16,7 +16,7 @@ class ProductImageController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with(['customer', 'vehicleModel', 'productDetail'])
+        $query = Product::with(['customer', 'vehicleModel', 'productDetail', 'docPackage.currentRevision'])
             ->leftJoin('npc_product_details', 'products.id', '=', 'npc_product_details.product_id')
             ->select('products.*')
             ->orderByRaw('CASE WHEN npc_product_details.label_image_path IS NOT NULL THEN 1 ELSE 0 END DESC')

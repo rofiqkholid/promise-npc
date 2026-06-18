@@ -95,6 +95,7 @@
                         <th class="px-4 py-2 font-semibold">Model</th>
                         <th class="px-4 py-2 font-semibold">Part No</th>
                         <th class="px-4 py-2 font-semibold">Part Name</th>
+                        <th class="px-4 py-2 font-semibold">ECN</th>
                         <th class="px-4 py-2 font-semibold text-center">Label Image</th>
                         <th class="px-4 py-2 font-semibold text-right">Action</th>
                     </tr>
@@ -113,6 +114,14 @@
                             <div class="text-blue-600 dark:text-blue-400 font-bold">{{ $product->part_no }}</div>
                         </td>
                         <td class="px-4 py-2 text-gray-800 dark:text-gray-200">{{ $product->part_name }}</td>
+                        <td class="px-4 py-2">
+                            @if ($product->docPackage && $product->docPackage->currentRevision)
+                                <div class="text-sm font-bold text-gray-800 dark:text-gray-200">{{ $product->docPackage->currentRevision->ecn_no ?? 'No ECN' }}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Rev {{ $product->docPackage->currentRevision->revision_no }}</div>
+                            @else
+                                <span class="text-xs text-gray-400 italic">No Data</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-2 text-center">
                             @if($product->productDetail && $product->productDetail->label_image_path)
                                 <div class="flex flex-col items-center gap-1">
@@ -152,7 +161,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="p-12 text-center text-gray-500 dark:text-gray-400">
+                        <td colspan="8" class="p-12 text-center text-gray-500 dark:text-gray-400">
                             <div class="flex flex-col items-center justify-center gap-3">
                                 <i class="fa-regular fa-image text-4xl text-gray-300 dark:text-gray-600"></i>
                                 <p>No product data found.</p>

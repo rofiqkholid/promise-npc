@@ -90,6 +90,7 @@
                         <th scope="col" class="px-4 py-2 font-semibold">Model</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Part No</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Name Part</th>
+                        <th scope="col" class="px-4 py-2 font-semibold">ECN</th>
                         <th scope="col" class="px-4 py-2 font-semibold text-center">Mapping Status</th>
                         <th scope="col" class="px-4 py-2 font-semibold text-right">Action</th>
                     </tr>
@@ -124,6 +125,7 @@
                 { data: 'model', name: 'vehicleModel.name', className: 'px-4 py-2', orderable: false },
                 { data: 'part_no', name: 'part_no', className: 'px-4 py-2' },
                 { data: 'part_name', name: 'part_name', className: 'px-4 py-2' },
+                { data: 'ecn_info', name: 'ecn_info', className: 'px-4 py-2', orderable: false, searchable: false },
                 { data: 'mapping_status', name: 'mapping_status', className: 'px-4 py-2 text-center', searchable: false, orderable: false },
                 { data: 'action', name: 'action', orderable: false, searchable: false, className: 'px-4 py-2 text-right align-middle' }
             ],
