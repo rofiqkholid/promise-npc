@@ -39,7 +39,7 @@
     @stack('styles')
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 text-slate-800 dark:text-gray-200 antialiased">
+<body class="bg-gray-100 dark:bg-gray-900 text-slate-800 dark:text-gray-200 antialiased overflow-hidden">
     <div x-data="{ 
             sidebarExpanded: localStorage.getItem('sidebarExpanded') !== 'false',
             sidebarMobileOpen: false,

@@ -149,7 +149,7 @@
                             <div class="flex items-start justify-center w-full max-w-sm pt-2">
                                 @php
                                     $phases = ['PO_REGISTERED', 'WAITING_DEPT_CONFIRM', 'WAITING_QE_CHECK', 'WAITING_MGM_CHECK', 'FINISHED', 'CLOSED'];
-                                    $currentIndex = array_search($part->status, $phases);
+                                    $currentIndex = array_search($part->status === 'WAITING_APPROVAL' ? 'WAITING_MGM_CHECK' : $part->status, $phases);
                                     if($currentIndex === false) $currentIndex = -1;
                                     $steps = [
                                         ['icon' => 'fa-file-contract', 'title' => 'Draft'],
