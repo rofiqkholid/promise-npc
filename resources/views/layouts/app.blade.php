@@ -71,7 +71,7 @@
             @include('layouts.header')
 
             <main class="flex-1 overflow-y-auto scroll-smooth flex flex-col">
-                <div class="flex-1 p-4 md:p-6 lg:p-8">
+                <div class="flex-1 p-4 md:p-6 lg:p-8 flex flex-col min-h-0">
                     @include('components.toast')
                     @yield('content')
                 </div>

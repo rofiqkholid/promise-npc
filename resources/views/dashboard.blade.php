@@ -11,8 +11,8 @@
 @endsection
 
 @section('content')
-<!-- Dashboard Wrapper to force single-screen height minus header/padding approx -->
-<div class="h-[calc(100vh-10rem)] flex flex-col gap-4 overflow-hidden">
+<!-- Dashboard Wrapper to dynamically fill space seamlessly -->
+<div class="flex-1 flex flex-col gap-4 min-h-0 overflow-hidden">
 
     <!-- KPI Cards (Row 1) -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 flex-none">
@@ -334,6 +334,7 @@
                                         <div>
                                             <span class="text-[8px] font-bold text-rose-600 bg-rose-100 px-1 uppercase mb-0.5 inline-block">ECN Update</span>
                                             <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
+                                            <p class="text-[9px] text-slate-500 mt-0.5">PO: {{ $part->event->po_no ?? '-' }}</p>
                                         </div>
                                         <a href="{{ route('events.parts.edit', ['event' => $part->event->npc_event_id ?? 0, 'part' => $part->hashed_id]) }}" class="text-[9px] bg-primary-50 text-primary-600 hover:bg-primary-100 px-1.5 py-0.5 font-medium">Review</a>
                                     </div>
@@ -346,8 +347,8 @@
                                         <div>
                                             <span class="text-[8px] font-bold text-amber-600 bg-amber-100 px-1 uppercase mb-0.5 inline-block">Stagnant > 3d</span>
                                             <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
+                                            <p class="text-[9px] text-slate-500 mt-0.5">PO: {{ $part->event->po_no ?? '-' }}</p>
                                         </div>
-                                        <span class="text-[8px] text-slate-500 border border-slate-200 dark:border-slate-600 px-1 bg-slate-50 dark:bg-slate-800">{{ str_replace('_', ' ', $part->status) }}</span>
                                     </div>
                                 </div>
                             @endforeach
