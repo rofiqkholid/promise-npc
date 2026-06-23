@@ -329,20 +329,20 @@
                         <div class="divide-y divide-slate-100 dark:divide-slate-700/50">
                             <!-- ECN Items -->
                             @foreach($ecnUpdates as $part)
-                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route('tracking.index', ['search' => $part->event->po_no ?? '', 'open_event' => $part->npc_event_id, 'from_dashboard' => 1]) }}'">
                                     <div class="flex justify-between items-start">
                                         <div>
                                             <span class="text-[8px] font-bold text-rose-600 bg-rose-100 px-1 uppercase mb-0.5 inline-block">ECN Update</span>
                                             <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
                                             <p class="text-[9px] text-slate-500 mt-0.5">PO: {{ $part->event->po_no ?? '-' }}</p>
                                         </div>
-                                        <a href="{{ route('events.parts.edit', ['event' => $part->event->npc_event_id ?? 0, 'part' => $part->hashed_id]) }}" class="text-[9px] bg-primary-50 text-primary-600 hover:bg-primary-100 px-1.5 py-0.5 font-medium">Review</a>
+                                        <a href="{{ route('events.parts.edit', ['event' => $part->npc_event_id ?? 0, 'part' => $part->hashed_id]) }}" class="text-[9px] bg-primary-50 text-primary-600 hover:bg-primary-100 px-1.5 py-0.5 font-medium z-10 relative" onclick="event.stopPropagation()">Review</a>
                                     </div>
                                 </div>
                             @endforeach
                             <!-- Stagnant Items -->
                             @foreach($stagnantParts as $part)
-                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route('tracking.index', ['search' => $part->event->po_no ?? '', 'open_event' => $part->npc_event_id, 'from_dashboard' => 1]) }}'">
                                     <div class="flex justify-between items-start">
                                         <div>
                                             <span class="text-[8px] font-bold text-amber-600 bg-amber-100 px-1 uppercase mb-0.5 inline-block">Stagnant > 3d</span>
@@ -392,7 +392,7 @@
                                         $modelStr = count($models) > 0 ? implode(', ', array_unique($models)) : '-';
                                         $percentage = $deliv->total_items > 0 ? round(($deliv->remaining_items / $deliv->total_items) * 100) : 0;
                                     @endphp
-                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route('tracking.index', ['search' => $deliv->po_no ?? '', 'open_event' => $deliv->id, 'from_dashboard' => 1]) }}'">
                                         <td class="py-1.5 px-3">
                                             <p class="text-[10px] font-bold text-slate-800 dark:text-white truncate max-w-[120px]" title="{{ $modelStr }}">{{ $modelStr }}</p>
                                             <div class="flex items-center gap-1.5 mt-0.5">
