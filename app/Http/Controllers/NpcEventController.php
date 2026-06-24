@@ -369,20 +369,7 @@ class NpcEventController extends Controller
                     continue;
                 }
 
-                // 2. Find/Create Event (Batching by PO + Category + Group + DeliveryTo)
-                $poNo = $poNo ?: 'PO-'.time();
-                $eventKey = $poNo . '_' . $category->id . '_' . $delivGroup->id . '_' . $deliveryTo;
-                if (!isset($eventsCreated[$eventKey])) {
-                    $eventsCreated[$eventKey] = NpcEvent::create([
-                        'po_no' => $poNo,
-                        'customer_category_id' => $category->id,
-                        'delivery_group_id' => $delivGroup->id,
-                        'delivery_to' => $deliveryTo ?: null,
-                    ]);
-                }
-                $event = $eventsCreated[$eventKey];
-
-                // 3. Process Part
+                // Parse Delivery Date first
                 $deliveryDate = null;
                 if (!empty($deliveryDateRaw)) {
                     try {
@@ -396,6 +383,51 @@ class NpcEventController extends Controller
                     }
                 }
 
+                // 2. Find/Create Event (Batching by PO)
+                $poNo = $poNo ?: 'PO-'.time();
+                $eventKey = $poNo;
+                
+                if (!isset($eventsCreated[$eventKey])) {
+                    $existingEvent = \App\Models\NpcEvent::where('po_no', $poNo)->first();
+                    if ($existingEvent) {
+                        $eventsCreated[$eventKey] = $existingEvent;
+                    } else {
+                        $eventsCreated[$eventKey] = NpcEvent::create([
+                            'po_no' => $poNo,
+                            'customer_category_id' => $category->id,
+                            'delivery_group_id' => $delivGroup->id,
+                            'delivery_to' => $deliveryTo ?: null,
+                        ]);
+                    }
+                }
+                
+                $event = $eventsCreated[$eventKey];
+
+                // Validasi kesamaan kunci (karena append ke PO yang sudah ada / di cache)
+                if ($event->delivery_group_id != $delivGroup->id || 
+                    $event->customer_category_id != $category->id || 
+                    $event->delivery_to != $deliveryTo) {
+                    $rowErrors[] = "Row {$actualRowNumber}: PO '{$poNo}' exists but with different Group, Category, or Delivery To. Rejected.";
+                    continue;
+                }
+
+                // Validasi Delivery Date (harus sama dengan item yang sudah ada di PO tersebut)
+                $firstPart = \App\Models\NpcPart::where('npc_event_id', $event->id)->first();
+                if ($firstPart && $firstPart->delivery_date != $deliveryDate) {
+                    $rowErrors[] = "Row {$actualRowNumber}: PO '{$poNo}' exists but has a different Delivery Date ({$firstPart->delivery_date}). Rejected.";
+                    continue;
+                }
+
+                // Validasi Item Berbeda (tidak boleh ada part yang sama di dalam satu PO)
+                $partExists = \App\Models\NpcPart::where('npc_event_id', $event->id)
+                                    ->where('product_id', $product->id)
+                                    ->exists();
+                if ($partExists) {
+                    $rowErrors[] = "Row {$actualRowNumber}: Part '{$partNo}' already exists in PO '{$poNo}'. Rejected.";
+                    continue;
+                }
+
+                // 3. Process Part
                 // Tentukan drawing_revision_id saat ini
                 $currentRevisionId = null;
                 if ($product && $product->docPackage) {
@@ -431,7 +463,7 @@ class NpcEventController extends Controller
 
             \Illuminate\Support\Facades\DB::commit();
             $eventCount = count($eventsCreated);
-            return redirect()->route('events.index')->with('success', "Success! $eventCount Events created and $importedCount Part(s) imported from Excel.");
+            return redirect()->route('events.index')->with('success', "Success! $eventCount PO(s) processed and $importedCount Part(s) imported from Excel.");
 
         } catch (Exception $e) {
             \Illuminate\Support\Facades\DB::rollBack();
