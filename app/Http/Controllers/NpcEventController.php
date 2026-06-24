@@ -198,6 +198,8 @@ class NpcEventController extends Controller
     public function update(Request $request, \App\Models\NpcEvent $event)
     {
         $request->validate([
+            'customer_id' => 'required',
+            'model_id' => 'required',
             'po_no' => [
                 'required',
                 'string',
@@ -208,7 +210,17 @@ class NpcEventController extends Controller
             'customer_category_id' => 'required|exists:npc_customer_categories,id',
             'delivery_group_id' => 'required|exists:npc_delivery_groups,id',
             'delivery_to' => 'nullable|string|max:255',
+            'parts' => 'required|array|min:1',
+            'parts.*.part_no' => [
+                'required',
+                'string',
+                \Illuminate\Validation\Rule::exists('products', 'part_no')->where('model_id', $request->model_id)
+            ],
+            'parts.*.part_name' => 'nullable|string',
+            'parts.*.qty' => 'required|integer|min:1',
+            'parts.*.delivery_date' => 'required|date'
         ], [
+            'parts.*.part_no.exists' => 'One of the Part Numbers entered is invalid or not part of the Model.',
             'po_no.unique' => 'The combination of PO No and Delivery Group already exists.'
         ]);
 
@@ -218,6 +230,48 @@ class NpcEventController extends Controller
             'delivery_group_id' => $request->delivery_group_id,
             'delivery_to' => $request->delivery_to,
         ]);
+
+        $existingPartIds = [];
+        foreach ($request->parts as $partData) {
+            $product = \App\Models\Product::with('docPackage')->where('part_no', $partData['part_no'])->first();
+            if (!$product) continue;
+
+            $currentRevisionId = null;
+            if ($product && $product->docPackage) {
+                $currentRevisionId = $product->docPackage->current_revision_id;
+            }
+
+            if (isset($partData['id']) && !empty($partData['id'])) {
+                // Update existing part
+                $part = \App\Models\NpcPart::find($partData['id']);
+                if ($part && $part->npc_event_id == $event->id) {
+                    $part->update([
+                        'product_id' => $product->id,
+                        'part_revision_id' => $currentRevisionId,
+                        'qty' => $partData['qty'],
+                        'delivery_date' => $partData['delivery_date'],
+                    ]);
+                    $existingPartIds[] = $part->id;
+                }
+            } else {
+                // Create new part
+                $part = \App\Models\NpcPart::create([
+                    'npc_event_id' => $event->id,
+                    'product_id' => $product->id,
+                    'part_revision_id' => $currentRevisionId,
+                    'qty' => $partData['qty'],
+                    'delivery_date' => $partData['delivery_date'],
+                    'status' => 'PO_REGISTERED',
+                ]);
+                $existingPartIds[] = $part->id;
+            }
+        }
+
+        // Delete parts that were removed from the form, but only if they haven't started processing
+        \App\Models\NpcPart::where('npc_event_id', $event->id)
+            ->whereNotIn('id', $existingPartIds)
+            ->where('status', 'PO_REGISTERED')
+            ->delete();
 
         return redirect()->route('events.index')->with('success', 'Event updated successfully.');
     }
