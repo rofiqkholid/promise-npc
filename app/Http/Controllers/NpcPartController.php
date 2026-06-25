@@ -36,31 +36,6 @@ class NpcPartController extends Controller
                 ->addColumn('delv_date', function ($part) {
                     return '<span class="text-slate-600 dark:text-slate-400 text-sm font-medium">' . \Carbon\Carbon::parse($part->delivery_date)->format('d M Y') . '</span>';
                 })
-                ->addColumn('process_label', function ($part) {
-                    $processLabel = match($part->status) {
-                        'PO_REGISTERED'       => ['label' => 'Registrasi', 'color' => 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'],
-                        'WAITING_DEPT_CONFIRM'=> ['label' => 'Production', 'color' => 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300'],
-                        'WAITING_QE_CHECK'    => ['label' => 'Quality Check', 'color' => 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300'],
-                        'WAITING_MGM_CHECK'   => ['label' => 'Mgm Review', 'color' => 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300'],
-                        'FINISHED'            => ['label' => 'Done', 'color' => 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300'],
-                        default               => ['label' => $part->process ?: '-', 'color' => 'bg-slate-100 dark:bg-slate-700 text-slate-400'],
-                    };
-                    return '<span class="p-1 px-2 text-xs font-medium ' . $processLabel['color'] . '">' . $processLabel['label'] . '</span>';
-                })
-                ->addColumn('dept_label', function ($part) {
-                    $deptLabel = match($part->status) {
-                        'PO_REGISTERED'        => '-',
-                        'WAITING_DEPT_CONFIRM' => $part->department ?: 'Dept',
-                        'WAITING_QE_CHECK'     => 'QE / QC',
-                        'WAITING_MGM_CHECK'    => 'Management',
-                        'FINISHED'             => 'Done',
-                        default                => $part->department ?: '-',
-                    };
-                    if ($deptLabel === '-') {
-                        return '<span class="text-slate-300 dark:text-slate-600 text-xs italic">—</span>';
-                    }
-                    return '<span class="text-xs font-semibold text-slate-600 dark:text-slate-300">' . $deptLabel . '</span>';
-                })
                 ->addColumn('status_label', function ($part) {
                     if ($part->status === 'WAITING_DEPT_CONFIRM') {
                         return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium">WAITING DEPT</span>';
@@ -75,12 +50,12 @@ class NpcPartController extends Controller
                     }
                 })
                 ->addColumn('action', function ($part) use ($event) {
-                    return view('partials.datatable-actions', [
+                    return view('components.datatable-actions', [
                         'editUrl' => route('events.parts.edit', [$event->hashed_id, $part->hashed_id]),
                         'deleteUrl' => route('events.parts.destroy', [$event->hashed_id, $part->hashed_id])
                     ])->render();
                 })
-                ->rawColumns(['po_no', 'part_no', 'part_name', 'qty', 'delv_date', 'process_label', 'dept_label', 'status_label', 'action'])
+                ->rawColumns(['po_no', 'part_no', 'part_name', 'qty', 'delv_date', 'status_label', 'action'])
                 ->make(true);
         }
 
@@ -145,11 +120,7 @@ class NpcPartController extends Controller
             ],
             'part_name' => 'required|string|max:255',
             'qty' => 'required|integer|min:1',
-            'delivery_date' => 'required|date',
-            'actual_delivery' => 'nullable|date',
-            'department' => 'required|exists:npc_departments,name',
-            'status' => 'required|in:WAITING_DEPT_CONFIRM,WAITING_QE_CHECK,WAITING_MGM_CHECK,FINISHED,CLOSED,OPEN',
-            'condition' => 'nullable|string',
+            'delivery_date' => 'required|date'
         ], [
             'part_no.exists' => "The Part Number you entered is invalid or not part of this event's Model."
         ]);
@@ -160,11 +131,7 @@ class NpcPartController extends Controller
             'npc_event_id' => $event->id,
             'product_id' => $product ? $product->id : null,
             'qty' => $request->qty,
-            'delivery_date' => $request->delivery_date,
-            'actual_delivery' => $request->actual_delivery,
-            'department' => $request->department,
-            'status' => $request->status,
-            'condition' => $request->condition
+            'delivery_date' => $request->delivery_date
         ]);
 
         return redirect()->route('events.parts.index', $event->id)->with('success', 'Part updated successfully.');

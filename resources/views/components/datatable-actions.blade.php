@@ -1,6 +1,10 @@
-@props(['editUrl' => null, 'deleteUrl' => null, 'deleteMessage' => 'Permanently delete this record?'])
+@props(['editUrl' => null, 'deleteUrl' => null, 'deleteMessage' => 'Permanently delete this record?', 'extraButtons' => null])
 
 <div class="flex justify-end gap-1 opacity-50 group-hover:opacity-100 transition">
+    @if($extraButtons)
+        {!! $extraButtons !!}
+    @endif
+
     @if($editUrl)
         <a href="{{ $editUrl }}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 transition" title="Edit">
             <i class="fa-solid fa-pen-to-square"></i>

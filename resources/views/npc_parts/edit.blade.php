@@ -8,7 +8,7 @@
     <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
             <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
-                <i class="fa-solid fa-cube text-blue-500"></i> Form Edit Part Output
+                <i class="fa-solid fa-cube text-blue-500"></i> Form Edit Part
             </h2>
             <span class="text-sm font-medium bg-blue-100 text-blue-800 py-1 px-3">{{ optional($event->customerCategory)->name ?? 'Event' }}</span>
         </div>
@@ -82,52 +82,6 @@
                         class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
                 </div>
 
-                <div class="space-y-1">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Actual Delivery Date
-                    </label>
-                    <input type="date" name="actual_delivery" value="{{ old('actual_delivery', $part->actual_delivery ? \Carbon\Carbon::parse($part->actual_delivery)->format('Y-m-d') : '') }}"
-                        class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
-                </div>
-
-
-
-                <div class="space-y-1">
-                    <label for="department" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Department PIC <span class="text-red-500">*</span>
-                    </label>
-                    <select id="department" name="department" required
-                        class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
-                        <option value="">Select Department</option>
-                        @foreach(\App\Models\NpcDepartment::where('is_active', true)->orderBy('name')->get() as $dept)
-                            <option value="{{ $dept->name }}" {{ old('department', $part->department) == $dept->name ? 'selected' : '' }}>
-                                {{ $dept->full_name ?? $dept->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="space-y-1">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Status <span class="text-red-500">*</span>
-                    </label>
-                    <select name="status" required
-                        class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white">
-                        <option value="WAITING_DEPT_CONFIRM" {{ old('status', $part->status) == 'WAITING_DEPT_CONFIRM' ? 'selected' : '' }}>WAITING DEPT CONFIRM</option>
-                        <option value="WAITING_QE_CHECK" {{ old('status', $part->status) == 'WAITING_QE_CHECK' ? 'selected' : '' }}>WAITING QE CHECK</option>
-                        <option value="WAITING_MGM_CHECK" {{ old('status', $part->status) == 'WAITING_MGM_CHECK' ? 'selected' : '' }}>WAITING MGM CHECK</option>
-                        <option value="FINISHED" {{ old('status', $part->status) == 'FINISHED' ? 'selected' : '' }}>FINISHED</option>
-                    </select>
-                </div>
-                
-                <div class="col-span-1 md:col-span-2 space-y-1">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Condition
-                    </label>
-                    <input type="text" name="condition" value="{{ old('condition', $part->condition) }}"
-                        class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-                        placeholder="Kondisi terkini part (misal: OK / Delay)">
-                </div>
             </div>
 
             <div class="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">

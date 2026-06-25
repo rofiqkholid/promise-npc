@@ -56,8 +56,6 @@
                         <th scope="col" class="px-4 py-2 font-semibold">Part Name</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Qty</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Delv Date</th>
-                        <th scope="col" class="px-4 py-2 font-semibold">Process</th>
-                        <th scope="col" class="px-4 py-2 font-semibold">Dept</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Status</th>
                         <th scope="col" class="px-4 py-2 font-semibold text-right w-32">Action</th>
                     </tr>
@@ -83,8 +81,6 @@
                 { data: 'part_name', name: 'part_name', className: 'px-4 py-2', orderable: false },
                 { data: 'qty', name: 'qty', className: 'px-4 py-2', orderable: false },
                 { data: 'delv_date', name: 'delv_date', className: 'px-4 py-2', orderable: false },
-                { data: 'process_label', name: 'process_label', className: 'px-4 py-2', orderable: false },
-                { data: 'dept_label', name: 'dept_label', className: 'px-4 py-2', orderable: false },
                 { data: 'status_label', name: 'status_label', className: 'px-4 py-2 text-[13px]', orderable: false },
                 { data: 'action', name: 'action', orderable: false, searchable: false, className: 'px-4 py-2 text-right' }
             ]

@@ -18,8 +18,9 @@ class NpcMasterRoutingController extends Controller
     {
         if ($request->ajax()) {
             $query = NpcMasterRouting::with(['part', 'part.vehicleModel', 'part.vehicleModel.customer'])
-                ->select('part_id')
-                ->distinct();
+                ->whereIn('id', function($q) {
+                    $q->selectRaw('MIN(id)')->from('npc_master_routings')->groupBy('part_id');
+                });
 
             return \Yajra\DataTables\Facades\DataTables::of($query)
                 ->addIndexColumn()
