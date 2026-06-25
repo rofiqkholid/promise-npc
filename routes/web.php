@@ -217,3 +217,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checksheet-approvals/{checksheet}', [\App\Http\Controllers\NpcChecksheetApprovalController::class, 'show'])->name('checksheet-approvals.show');
     Route::post('/checksheet-approvals/{checksheet}', [\App\Http\Controllers\NpcChecksheetApprovalController::class, 'store'])->name('checksheet-approvals.store');
 });
+
+// Fallback route to serve storage files directly for environments where symlink is broken or restricted
+Route::get('storage/{path}', function ($path) {
+    $fullPath = storage_path('app/public/' . $path);
+    if (!file_exists($fullPath)) {
+        abort(404);
+    }
+    return response()->file($fullPath);
+})->where('path', '.*');
