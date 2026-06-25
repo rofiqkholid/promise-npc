@@ -336,7 +336,6 @@
                                             <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
                                             <p class="text-[9px] text-slate-500 mt-0.5">PO: {{ $part->event->po_no ?? '-' }}</p>
                                         </div>
-                                        <a href="{{ route('events.parts.edit', ['event' => $part->npc_event_id ?? 0, 'part' => $part->hashed_id]) }}" class="text-[9px] bg-primary-50 text-primary-600 hover:bg-primary-100 px-1.5 py-0.5 font-medium z-10 relative" onclick="event.stopPropagation()">Review</a>
                                     </div>
                                 </div>
                             @endforeach
