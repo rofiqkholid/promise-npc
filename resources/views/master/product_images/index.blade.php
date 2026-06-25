@@ -126,7 +126,7 @@
                         <td class="px-4 py-2 text-center">
                             @if($product->productDetail && $product->productDetail->label_image_path)
                                 <div class="flex flex-col items-center gap-1">
-                                    <img src="{{ asset('storage/' . ltrim(str_replace('public/', '', $product->productDetail->label_image_path), '/')) }}"
+                                    <img src="{{ url('file/storage/' . ltrim(str_replace('public/', '', $product->productDetail->label_image_path), '/')) }}"
                                          alt="Label"
                                          class="h-12 w-auto object-contain mx-auto border border-gray-200 rounded shadow-sm">
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-bold uppercase rounded-full border border-emerald-200 dark:border-emerald-800">

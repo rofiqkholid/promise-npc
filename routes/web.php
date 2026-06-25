@@ -219,7 +219,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Fallback route to serve storage files directly for environments where symlink is broken or restricted
-Route::get('storage/{path}', function ($path) {
+Route::get('file/storage/{path}', function ($path) {
     $fullPath = storage_path('app/public/' . $path);
     if (!file_exists($fullPath)) {
         abort(404);
