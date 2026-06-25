@@ -163,4 +163,42 @@ class User extends Authenticatable
         $permColumn = 'can_' . $action;
         return $menu->combined_pivot->$permColumn ?? false;
     }
+
+    /**
+     * Check if user is authorized to approve a specific checksheet stage.
+     * Requires the user to have BOTH the can_approve permission AND the matching Job Title role.
+     * @param string $stage
+     * @return bool
+     */
+    public function canApproveChecksheetStage($stage)
+    {
+        // Admin bypass
+        if ($this->roles->contains('code', 'admin')) {
+            return true;
+        }
+
+        // 1. Lapis Pertama: Cek apakah user punya hak can_approve di menu ini (via Role atau User Specific)
+        if (!$this->hasMenuAccess('checksheet-approvals.index', 'approve')) {
+            return false;
+        }
+
+        // 2. Lapis Kedua: Pastikan Job Title role sesuai dengan tahapan (stage)
+        $stageRoleMap = [
+            'WAITING_QE_STAFF' => 'qe_staff',
+            'WAITING_MGM_STAFF' => 'npc_staff',
+            'WAITING_QE_SPV'   => 'qe_asst_mgr',
+            'WAITING_MGM_SPV'  => 'npc_asst_mgr',
+            'WAITING_QE_MGR'   => 'qe_mgr',
+            'WAITING_MGM_MGR'  => 'npc_mgr',
+        ];
+
+        // Jika stage tidak ada di map, kembalikan false demi keamanan
+        if (!array_key_exists($stage, $stageRoleMap)) {
+            return false;
+        }
+
+        $requiredRoleCode = $stageRoleMap[$stage];
+        
+        return $this->roles->contains('code', $requiredRoleCode);
+    }
 }

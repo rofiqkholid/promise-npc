@@ -67,7 +67,12 @@ class NpcChecksheetApprovalController extends Controller
                     if ($checksheet->approval_status === 'APPROVED') {
                         return '<span class="text-xs text-emerald-600 font-semibold flex items-center justify-end gap-1"><i class="fa-solid fa-circle-check"></i> Completed</span>';
                     } else {
-                        return '<a href="' . route('checksheet-approvals.show', $checksheet->hashed_id) . '" class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-xs font-bold transition shadow-sm shadow-blue-500/20"><i class="fa-solid fa-eye"></i> Review & Approve</a>';
+                        $user = auth()->user();
+                        if ($user && $user->canApproveChecksheetStage($checksheet->approval_status)) {
+                            return '<a href="' . route('checksheet-approvals.show', $checksheet->hashed_id) . '" class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-xs font-bold transition shadow-sm shadow-blue-500/20"><i class="fa-solid fa-eye"></i> Review & Approve</a>';
+                        } else {
+                            return '<a href="' . route('checksheet-approvals.show', $checksheet->hashed_id) . '" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-xs font-bold transition shadow-sm"><i class="fa-solid fa-eye"></i> View Details</a>';
+                        }
                     }
                 })
                 ->filter(function ($query) use ($request) {
@@ -111,6 +116,11 @@ class NpcChecksheetApprovalController extends Controller
         $part = $checksheet->npcPart;
 
         $updateData = [];
+
+        // Check RBAC Authorization using our new double-layer check
+        if (!auth()->check() || !auth()->user()->canApproveChecksheetStage($status)) {
+            abort(403, 'You do not have the required Role or Permission to approve/reject at this stage.');
+        }
 
         if ($action === 'reject') {
             if ($status === 'WAITING_MGM_MGR') {

@@ -208,12 +208,14 @@
             <a href="{{ route('checksheet-approvals.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm text-[13px] font-medium">
                 Cancel
             </a>
-            <button type="submit" name="action" value="reject" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm" onclick="confirmAction(event, 'Are you sure you want to reject and return to the previous level?');">
-                <i class="fa-solid fa-rotate-left"></i> Reject
-            </button>
-            <button type="submit" name="action" value="approve" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm" onclick="confirmAction(event, 'Are you sure you want to approve this checksheet as {{ $levelName }}?');">
-                <i class="fa-solid fa-check-double"></i> Approve as {{ $levelName }}
-            </button>
+            @if(auth()->check() && auth()->user()->canApproveChecksheetStage($checksheet->approval_status))
+                <button type="submit" name="action" value="reject" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm" onclick="confirmAction(event, 'Are you sure you want to reject and return to the previous level?');">
+                    <i class="fa-solid fa-rotate-left"></i> Reject
+                </button>
+                <button type="submit" name="action" value="approve" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm" onclick="confirmAction(event, 'Are you sure you want to approve this checksheet as {{ $levelName }}?');">
+                    <i class="fa-solid fa-check-double"></i> Approve as {{ $levelName }}
+                </button>
+            @endif
         </div>
     </form>
 </div>
