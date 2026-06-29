@@ -372,25 +372,97 @@ class NpcChecksheetController extends Controller
         $sheet->getStyle('A5:B8')->getFont()->setBold(true);
         $sheet->getStyle('D7')->getFont()->setBold(true);
         
-        // 5. SPEC CHILD PART
-        $sheet->mergeCells('A10:K10');
-        $sheet->setCellValue('A10', 'Spec Child Part');
-        $sheet->getStyle('A10')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('A10')->getFont()->setBold(true);
-        $sheet->getStyle('A10')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        // Check Landscape Sketch
+        $isLandscape = false;
+        $imgPath = null;
+        if ($product && $product->productDetail && $product->productDetail->sketch_image_path) {
+            $imgPath = \Illuminate\Support\Facades\Storage::path($product->productDetail->sketch_image_path);
+            if (file_exists($imgPath)) {
+                $imgSize = @getimagesize($imgPath);
+                if ($imgSize && $imgSize[0] > $imgSize[1]) {
+                    $isLandscape = true;
+                }
+            }
+        }
         
-        $sheet->setCellValue('A11', 'No');
-        $sheet->mergeCells('B11:C11');
-        $sheet->setCellValue('B11', 'Material Part');
-        $sheet->setCellValue('D11', 'Thickness');
-        $sheet->setCellValue('E11', 'No');
-        $sheet->mergeCells('F11:H11');
-        $sheet->setCellValue('F11', 'STD Part');
-        $sheet->mergeCells('I11:K11');
-        $sheet->setCellValue('I11', 'Spec');
+        $startRow = 10;
         
-        $sheet->getStyle('A11:K11')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('A11:K11')->getFont()->setBold(true);
+        // 5 & 6. SPEC CHILD PART & SKETCH
+        if ($isLandscape) {
+            // Sketch above Spec Child Part
+            $sheet->mergeCells('A' . $startRow . ':Q' . $startRow);
+            $sheet->getStyle('A' . $startRow . ':Q' . $startRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->setCellValue('A' . $startRow, 'SKETCH');
+            $sheet->getStyle('A' . $startRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_TOP);
+            $sheet->getStyle('A' . $startRow)->getFont()->setBold(true);
+            
+            $sheet->getRowDimension($startRow)->setRowHeight(250); // Set tall row for sketch
+            
+            if ($imgPath && file_exists($imgPath)) {
+                $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+                $drawing->setName('Sketch');
+                $drawing->setDescription('Sketch Image');
+                $drawing->setPath($imgPath);
+                $drawing->setCoordinates('A' . $startRow);
+                
+                $origWidth = $imgSize[0];
+                $origHeight = $imgSize[1];
+                $maxWidth = 700;  // Approx width A to Q
+                $maxHeight = 280; // Fit in 250pt (~333px) row
+                $ratio = min($maxWidth / $origWidth, $maxHeight / $origHeight);
+                
+                if ($ratio < 1) {
+                    $drawing->setWidth($origWidth * $ratio);
+                    $drawing->setHeight($origHeight * $ratio);
+                } else {
+                    $drawing->setWidth($origWidth);
+                    $drawing->setHeight($origHeight);
+                }
+                $drawing->setOffsetX(10);
+                $drawing->setOffsetY(20);
+                $drawing->setWorksheet($sheet);
+            }
+            $startRow++;
+        }
+        
+        $specRow = $startRow;
+        $sheet->setCellValue('A' . $specRow, 'Spec Child Part');
+        $sheet->getStyle('A' . $specRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A' . $specRow)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $specRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        if ($isLandscape) {
+            $sheet->mergeCells('A' . $specRow . ':Q' . $specRow);
+        } else {
+            $sheet->mergeCells('A' . $specRow . ':K' . $specRow);
+        }
+        
+        $headerRow = $specRow + 1;
+        $sheet->setCellValue('A' . $headerRow, 'No');
+        
+        if ($isLandscape) {
+            $sheet->mergeCells('B' . $headerRow . ':E' . $headerRow);
+            $sheet->setCellValue('B' . $headerRow, 'Material Part');
+            $sheet->mergeCells('F' . $headerRow . ':G' . $headerRow);
+            $sheet->setCellValue('F' . $headerRow, 'Thickness');
+            $sheet->setCellValue('H' . $headerRow, 'No');
+            $sheet->mergeCells('I' . $headerRow . ':L' . $headerRow);
+            $sheet->setCellValue('I' . $headerRow, 'STD Part');
+            $sheet->mergeCells('M' . $headerRow . ':Q' . $headerRow);
+            $sheet->setCellValue('M' . $headerRow, 'Spec');
+        } else {
+            $sheet->mergeCells('B' . $headerRow . ':C' . $headerRow);
+            $sheet->setCellValue('B' . $headerRow, 'Material Part');
+            $sheet->setCellValue('D' . $headerRow, 'Thickness');
+            $sheet->setCellValue('E' . $headerRow, 'No');
+            $sheet->mergeCells('F' . $headerRow . ':H' . $headerRow);
+            $sheet->setCellValue('F' . $headerRow, 'STD Part');
+            $sheet->mergeCells('I' . $headerRow . ':K' . $headerRow);
+            $sheet->setCellValue('I' . $headerRow, 'Spec');
+        }
+        
+        $sheet->getStyle('A' . $headerRow . ':Q' . $headerRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A' . $headerRow . ':Q' . $headerRow)->getFont()->setBold(true);
         
         $materials = [];
         $stds = [];
@@ -399,67 +471,79 @@ class NpcChecksheetController extends Controller
             $stds = $product->specChildParts->where('part_type', 'STD_PART')->values();
         }
         
-        $currentRow = 12;
+        $currentRow = $headerRow + 1;
         $alphabet = range('a', 'z');
         for ($i = 0; $i < 15; $i++) {
             $mat = $materials[$i] ?? null;
             $std = $stds[$i] ?? null;
             
             $sheet->setCellValue('A' . $currentRow, $i + 1);
-            $sheet->mergeCells('B' . $currentRow . ':C' . $currentRow);
             
             $matName = '';
             if ($mat && $mat->inventory_material_id) {
                 $invMat = \Illuminate\Support\Facades\DB::table('inv_m_material_spec')->where('id', $mat->inventory_material_id)->first();
                 $matName = $invMat ? $invMat->spec_name : '';
             }
-            $sheet->setCellValue('B' . $currentRow, $matName);
-            $sheet->setCellValue('D' . $currentRow, $mat ? $mat->thickness : '');
-            
-            $sheet->setCellValue('E' . $currentRow, $alphabet[$i] . '.');
-            $sheet->mergeCells('F' . $currentRow . ':H' . $currentRow);
             
             $stdName = '';
             if ($std && $std->stdPart) {
                 $stdName = $std->stdPart->name;
             }
-            $sheet->setCellValue('F' . $currentRow, $stdName);
-            $sheet->mergeCells('I' . $currentRow . ':K' . $currentRow);
-            $sheet->setCellValue('I' . $currentRow, $std ? $std->spec : '');
             
+            if ($isLandscape) {
+                $sheet->mergeCells('B' . $currentRow . ':E' . $currentRow);
+                $sheet->setCellValue('B' . $currentRow, $matName);
+                $sheet->mergeCells('F' . $currentRow . ':G' . $currentRow);
+                $sheet->setCellValue('F' . $currentRow, $mat ? $mat->thickness : '');
+                $sheet->setCellValue('H' . $currentRow, $alphabet[$i] . '.');
+                $sheet->mergeCells('I' . $currentRow . ':L' . $currentRow);
+                $sheet->setCellValue('I' . $currentRow, $stdName);
+                $sheet->mergeCells('M' . $currentRow . ':Q' . $currentRow);
+                $sheet->setCellValue('M' . $currentRow, $std ? $std->spec : '');
+            } else {
+                $sheet->mergeCells('B' . $currentRow . ':C' . $currentRow);
+                $sheet->setCellValue('B' . $currentRow, $matName);
+                $sheet->setCellValue('D' . $currentRow, $mat ? $mat->thickness : '');
+                $sheet->setCellValue('E' . $currentRow, $alphabet[$i] . '.');
+                $sheet->mergeCells('F' . $currentRow . ':H' . $currentRow);
+                $sheet->setCellValue('F' . $currentRow, $stdName);
+                $sheet->mergeCells('I' . $currentRow . ':K' . $currentRow);
+                $sheet->setCellValue('I' . $currentRow, $std ? $std->spec : '');
+            }
             $currentRow++;
         }
-        $sheet->getStyle('A10:K' . ($currentRow - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $sheet->getStyle('A11:A' . ($currentRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('D11:E' . ($currentRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         
-        // 6. SKETCH
-        $sheet->mergeCells('L10:Q' . ($currentRow - 1));
-        $sheet->getStyle('L10:Q' . ($currentRow - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $sheet->setCellValue('L10', 'SKETCH');
-        $sheet->getStyle('L10')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_TOP);
-        $sheet->getStyle('L10')->getFont()->setBold(true);
+        $sheet->getStyle('A' . $specRow . ':' . ($isLandscape ? 'Q' : 'K') . ($currentRow - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle('A' . $headerRow . ':A' . ($currentRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         
-        if ($product && $product->productDetail && $product->productDetail->sketch_image_path) {
-            $imgPath = \Illuminate\Support\Facades\Storage::path($product->productDetail->sketch_image_path);
-            if (file_exists($imgPath)) {
+        if ($isLandscape) {
+            $sheet->getStyle('F' . $headerRow . ':H' . ($currentRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        } else {
+            $sheet->getStyle('D' . $headerRow . ':E' . ($currentRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+        
+        if (!$isLandscape) {
+            // SKETCH on the right side
+            $sheet->mergeCells('L' . $specRow . ':Q' . ($currentRow - 1));
+            $sheet->getStyle('L' . $specRow . ':Q' . ($currentRow - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->setCellValue('L' . $specRow, 'SKETCH');
+            $sheet->getStyle('L' . $specRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_TOP);
+            $sheet->getStyle('L' . $specRow)->getFont()->setBold(true);
+            
+            if ($imgPath && file_exists($imgPath)) {
                 $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
                 $drawing->setName('Sketch');
                 $drawing->setDescription('Sketch Image');
                 $drawing->setPath($imgPath);
-                $drawing->setCoordinates('L11');
+                $drawing->setCoordinates('L' . $headerRow);
                 
-                // Calculate proportional dimensions to fit nicely
-                $imageSize = getimagesize($imgPath);
-                if ($imageSize) {
-                    $origWidth = $imageSize[0];
-                    $origHeight = $imageSize[1];
-                    
-                    $maxWidth = 240;  // Approx width of columns L to Q
-                    $maxHeight = 250; // Approx height of 15 rows
-                    
+                $imgSize = getimagesize($imgPath);
+                if ($imgSize) {
+                    $origWidth = $imgSize[0];
+                    $origHeight = $imgSize[1];
+                    $maxWidth = 240;
+                    $maxHeight = 250;
                     $ratio = min($maxWidth / $origWidth, $maxHeight / $origHeight);
-                    
                     if ($ratio < 1) {
                         $drawing->setWidth($origWidth * $ratio);
                         $drawing->setHeight($origHeight * $ratio);
@@ -468,7 +552,7 @@ class NpcChecksheetController extends Controller
                         $drawing->setHeight($origHeight);
                     }
                 } else {
-                    $drawing->setHeight(200); // Fallback
+                    $drawing->setHeight(200);
                 }
                 
                 $drawing->setOffsetX(10);
