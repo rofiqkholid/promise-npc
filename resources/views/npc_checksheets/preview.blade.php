@@ -201,36 +201,65 @@
             <!-- Row 9 Spacer -->
             <tr><td colspan="17" class="no-border-cell" style="height: 10px;"></td></tr>
             
+            <!-- Extract Sketch Variables -->
+            @php
+                $sketchPath = $product && $product->productDetail ? $product->productDetail->sketch_image_path : null;
+                $sketchSrc = '';
+                $isLandscape = false;
+                if ($sketchPath && Storage::exists($sketchPath)) {
+                    $mime = Storage::mimeType($sketchPath);
+                    $sketchData = base64_encode(Storage::get($sketchPath));
+                    $sketchSrc = 'data:' . $mime . ';base64,' . $sketchData;
+                    
+                    $absPath = Storage::path($sketchPath);
+                    $imgSize = @getimagesize($absPath);
+                    if ($imgSize && $imgSize[0] > $imgSize[1]) {
+                        $isLandscape = true;
+                    }
+                }
+            @endphp
+
+            @if($isLandscape && $sketchSrc)
+            <!-- Landscape SKETCH Row -->
+            <tr>
+                <td colspan="17" class="text-center font-bold" style="vertical-align: top; padding: 10px;">
+                    <div style="margin-bottom: 10px;">SKETCH</div>
+                    <img src="{{ $sketchSrc }}" alt="Sketch" style="max-width: 100%; max-height: 400px; object-fit: contain; margin: 0 auto; display: block;">
+                </td>
+            </tr>
+            @endif
+
             <!-- Row 10 -->
             <tr>
-                <td colspan="11" class="text-center font-bold">Spec Child Part</td>
-                <td colspan="6" rowspan="17" class="text-center font-bold" style="vertical-align: top; padding: 10px;">
-                    <div style="margin-bottom: 10px;">SKETCH</div>
-                    @if($product && $product->productDetail && $product->productDetail->sketch_image_path)
-                        @php
-                            $sketchPath = $product->productDetail->sketch_image_path;
-                            $sketchSrc = '';
-                            if (Storage::exists($sketchPath)) {
-                                $mime = Storage::mimeType($sketchPath);
-                                $sketchData = base64_encode(Storage::get($sketchPath));
-                                $sketchSrc = 'data:' . $mime . ';base64,' . $sketchData;
-                            }
-                        @endphp
+                @if($isLandscape)
+                    <td colspan="17" class="text-center font-bold">Spec Child Part</td>
+                @else
+                    <td colspan="11" class="text-center font-bold">Spec Child Part</td>
+                    <td colspan="6" rowspan="17" class="text-center font-bold" style="vertical-align: top; padding: 10px;">
+                        <div style="margin-bottom: 10px;">SKETCH</div>
                         @if($sketchSrc)
                             <img src="{{ $sketchSrc }}" alt="Sketch" style="max-width: 100%; max-height: 250px; object-fit: contain;">
                         @endif
-                    @endif
-                </td>
+                    </td>
+                @endif
             </tr>
             
             <!-- Row 11 -->
             <tr class="text-center font-bold">
                 <td>No</td>
-                <td colspan="2">Material Part</td>
-                <td>Thickness</td>
-                <td>No</td>
-                <td colspan="3">STD Part</td>
-                <td colspan="3">Spec</td>
+                @if($isLandscape)
+                    <td colspan="4">Material Part</td>
+                    <td colspan="2">Thickness</td>
+                    <td>No</td>
+                    <td colspan="4">STD Part</td>
+                    <td colspan="5">Spec</td>
+                @else
+                    <td colspan="2">Material Part</td>
+                    <td>Thickness</td>
+                    <td>No</td>
+                    <td colspan="3">STD Part</td>
+                    <td colspan="3">Spec</td>
+                @endif
             </tr>
             
             <!-- Rows 12 to 26 -->
@@ -257,11 +286,19 @@
                 @endphp
                 <tr class="text-center">
                     <td>{{ $i + 1 }}</td>
-                    <td colspan="2">{{ $matName }}</td>
-                    <td>{{ $mat ? $mat->thickness : '' }}</td>
-                    <td>{{ $alphabet[$i] }}.</td>
-                    <td colspan="3">{{ $stdName }}</td>
-                    <td colspan="3">{{ $std ? $std->spec : '' }}</td>
+                    @if($isLandscape)
+                        <td colspan="4">{{ $matName }}</td>
+                        <td colspan="2">{{ $mat ? $mat->thickness : '' }}</td>
+                        <td>{{ $alphabet[$i] }}.</td>
+                        <td colspan="4">{{ $stdName }}</td>
+                        <td colspan="5">{{ $std ? $std->spec : '' }}</td>
+                    @else
+                        <td colspan="2">{{ $matName }}</td>
+                        <td>{{ $mat ? $mat->thickness : '' }}</td>
+                        <td>{{ $alphabet[$i] }}.</td>
+                        <td colspan="3">{{ $stdName }}</td>
+                        <td colspan="3">{{ $std ? $std->spec : '' }}</td>
+                    @endif
                 </tr>
             @endfor
             
