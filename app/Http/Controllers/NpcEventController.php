@@ -493,8 +493,6 @@ class NpcEventController extends Controller
             
             // Add Sample Data
             $sampleData = [
-                ['PO/2026/001', 'TOYOTA', 'AVANZA', 'NEW MODEL', 'GR.1', 'CKD-PLANT', '2026-05-20', 'PART-001', 'Sample Part Name', 100],
-                ['PO/2026/002', 'HONDA', 'CIVIC', 'FACELIFT', 'GR.2', '', '2026-05-25', 'PART-002', 'Another Part', 50],
             ];
             
             foreach ($sampleData as $rowIndex => $rowData) {
