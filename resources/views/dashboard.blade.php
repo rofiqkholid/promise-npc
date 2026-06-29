@@ -70,14 +70,14 @@
                         <thead class="sticky top-0 bg-white dark:bg-slate-800 z-10">
                             <tr class="text-slate-500 border-b border-slate-200 dark:border-slate-700">
                                 <th class="pb-1 px-1 w-8">No</th>
-                                <th class="pb-1 px-1">PO No.</th>
+                                <th class="pb-1 px-1">Model</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($metrics['po_on_hand_list'] ?? [] as $idx => $item)
                             <tr class="border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30">
                                 <td class="py-1.5 px-1 text-slate-500">{{ $idx + 1 }}</td>
-                                <td class="py-1.5 px-1 font-medium text-slate-800 dark:text-slate-200">{{ $item->po_no ?? '-' }}</td>
+                                <td class="py-1.5 px-1 font-medium text-slate-800 dark:text-slate-200">{{ optional(optional(optional($item->parts->first())->product)->vehicleModel)->name ?? '-' }}</td>
                             </tr>
                             @endforeach
                         </tbody>

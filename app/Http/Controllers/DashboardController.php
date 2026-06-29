@@ -50,8 +50,7 @@ class DashboardController extends Controller
         $poCompleteList = $poCompleteQuery->select('id', 'po_no')->get();
 
         $poOnHandList = clone $totalPOQuery;
-        // Get POs that are NOT complete
-        $poOnHandList = NpcEvent::where($applyEventFilters)->where(function($q) {
+        $poOnHandList = NpcEvent::with(['parts.product.vehicleModel'])->where($applyEventFilters)->where(function($q) {
             $q->whereDoesntHave('parts')
               ->orWhereHas('parts', function($q2) {
                   $q2->whereNotIn('status', ['CLOSED', 'OUTSTANDING']);
