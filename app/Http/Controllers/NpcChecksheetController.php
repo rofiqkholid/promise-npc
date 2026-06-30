@@ -357,7 +357,7 @@ class NpcChecksheetController extends Controller
         $sheet->setCellValue('C7', optional($product)->part_no ?? '-');
         $sheet->setCellValue('D7', 'EO No.');
         $sheet->mergeCells('E7:I7');
-        $ecnNo = optional($part->drawingRevision)->ecn_no ?? optional(optional(optional($product)->docPackage)->currentRevision)->ecn_no ?? optional(optional(optional($product)->getEffectiveDocPackage())->currentRevision)->ecn_no ?? '-';
+        $ecnNo = optional(optional($part)->drawingRevision)->ecn_no ?? optional(optional(optional($product)->docPackage)->currentRevision)->ecn_no ?? optional(optional(optional($product)->getEffectiveDocPackage())->currentRevision)->ecn_no ?? '-';
         $sheet->setCellValue('E7', $ecnNo);
         
         $sheet->mergeCells('A8:B8');

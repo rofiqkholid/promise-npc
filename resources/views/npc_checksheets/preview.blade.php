@@ -178,7 +178,7 @@
                 <td colspan="2" class="font-bold">Part No.</td>
                 <td colspan="1" class="text-center text-blue">{{ optional($product)->part_no ?? '-' }}</td>
                 <td colspan="1" class="font-bold text-center">EO No.</td>
-                <td colspan="5" class="text-center text-blue">{{ optional($part->drawingRevision)->ecn_no ?? optional(optional(optional($product)->docPackage)->currentRevision)->ecn_no ?? optional(optional(optional($product)->getEffectiveDocPackage())->currentRevision)->ecn_no ?? '-' }}</td>
+                <td colspan="5" class="text-center text-blue">{{ optional(optional($part)->drawingRevision)->ecn_no ?? optional(optional(optional($product)->docPackage)->currentRevision)->ecn_no ?? optional(optional(optional($product)->getEffectiveDocPackage())->currentRevision)->ecn_no ?? '-' }}</td>
                 <td colspan="4">Quantity Order (pcs)</td>
                 <td colspan="4" class="text-center text-blue">{{ optional($part)->qty ?? '-' }}</td>
             </tr>
