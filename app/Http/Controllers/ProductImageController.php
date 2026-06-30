@@ -93,7 +93,7 @@ class ProductImageController extends Controller
         );
 
         return redirect()
-            ->route('master.product-images.index')
+            ->route('master.product-images.index', request()->query())
             ->with('success', 'Label image for Part ' . $product->part_no . ' has been saved successfully.');
     }
 
@@ -110,7 +110,7 @@ class ProductImageController extends Controller
         }
 
         return redirect()
-            ->route('master.product-images.index')
+            ->route('master.product-images.index', request()->query())
             ->with('success', 'Label image for Part ' . $product->part_no . ' has been deleted.');
     }
 }

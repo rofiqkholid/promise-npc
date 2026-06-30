@@ -18,7 +18,7 @@
                 <strong>Name:</strong> {{ $product->part_name }}
             </p>
         </div>
-        <a href="{{ route('master.product-images.index') }}"
+        <a href="{{ route('master.product-images.index', request()->query()) }}"
            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-sm text-sm font-medium transition dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600">
             <i class="fa-solid fa-arrow-left"></i> Kembali
         </a>
@@ -54,7 +54,7 @@
                 {{ $product->productDetail && $product->productDetail->label_image_path ? 'Replace Label Image' : 'Upload Label Image' }}
             </h3>
 
-            <form action="{{ route('master.product-images.update', $product->hashed_id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('master.product-images.update', array_merge(['product' => $product->hashed_id], request()->query())) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -84,7 +84,7 @@
                 @enderror
 
                 <div class="mt-4 flex gap-3 justify-end">
-                    <a href="{{ route('master.product-images.index') }}"
+                    <a href="{{ route('master.product-images.index', request()->query()) }}"
                        class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm text-[13px] font-medium">
                         Cancel
                     </a>

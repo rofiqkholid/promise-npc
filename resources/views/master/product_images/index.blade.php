@@ -141,14 +141,14 @@
                         </td>
                         <td class="px-4 py-2 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <a href="{{ route('master.product-images.edit', $product->hashed_id) }}"
+                                <a href="{{ route('master.product-images.edit', array_merge(['product' => $product->hashed_id], request()->query())) }}"
                                    class="inline-flex px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white font-medium transition items-center gap-1.5 text-xs shadow-sm border border-emerald-200 dark:border-emerald-800/50 hover:border-transparent">
                                     <i class="fa-solid fa-upload"></i>
                                     {{ $product->productDetail && $product->productDetail->label_image_path ? 'Change Image' : 'Upload Image' }}
                                 </a>
 
                                 @if($product->productDetail && $product->productDetail->label_image_path)
-                                <form method="POST" action="{{ route('master.product-images.destroy', $product->hashed_id) }}"
+                                <form method="POST" action="{{ route('master.product-images.destroy', array_merge(['product' => $product->hashed_id], request()->query())) }}"
                                       onsubmit="return confirm('Delete label image for Part {{ $product->part_no }}?')">
                                     @csrf
                                     @method('DELETE')
