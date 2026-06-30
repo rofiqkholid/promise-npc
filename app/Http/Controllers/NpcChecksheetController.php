@@ -224,7 +224,7 @@ class NpcChecksheetController extends Controller
      */
     public function preview(NpcChecksheet $checksheet)
     {
-        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.product.historyProblems', 'npcPart.event.customerCategory', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail', 'qeStaff', 'qeSpv', 'qeMgr', 'mgmStaff', 'mgmSpv', 'mgmMgr', 'npcPart.processes.process');
+        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.product.historyProblems', 'npcPart.event.customerCategory', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.siblings.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail', 'qeStaff', 'qeSpv', 'qeMgr', 'mgmStaff', 'mgmSpv', 'mgmMgr', 'npcPart.processes.process');
         $part = $checksheet->npcPart;
         $product = $part->product;
 
@@ -236,7 +236,7 @@ class NpcChecksheetController extends Controller
      */
     public function export(NpcChecksheet $checksheet)
     {
-        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.product.historyProblems', 'npcPart.event.customerCategory', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail', 'qeStaff', 'qeSpv', 'qeMgr', 'mgmStaff', 'mgmSpv', 'mgmMgr', 'npcPart.processes.process');
+        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.product.historyProblems', 'npcPart.event.customerCategory', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.siblings.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail', 'qeStaff', 'qeSpv', 'qeMgr', 'mgmStaff', 'mgmSpv', 'mgmMgr', 'npcPart.processes.process');
         $part = $checksheet->npcPart;
         $product = $part->product;
 
@@ -257,18 +257,19 @@ class NpcChecksheetController extends Controller
         $sheet->getColumnDimension('Q')->setWidth(12);
         
         // 2. HEADER: PART EVENT DELIVERY CHECKSHEET
-        $sheet->mergeCells('C1:I3');
+        $sheet->mergeCells('C1:I4');
         $sheet->setCellValue('C1', 'PART EVENT DELIVERY CHECKSHEET');
         $sheet->getStyle('C1')->getFont()->setBold(true)->setSize(16);
         $sheet->getStyle('C1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)
                                             ->setVertical(Alignment::VERTICAL_CENTER)
                                             ->setWrapText(true);
+        $sheet->getStyle('C1:I4')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
                                             
         // Logo Space
         $sheet->mergeCells('A1:B3');
         $sheet->getStyle('A1:B3')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         // (Optional) Add Logo image here if path is known
-        $logoPath = public_path('images/ada_logo.png'); // Example
+        $logoPath = public_path('images/sai_logo_bg.png'); // Example
         if (file_exists($logoPath)) {
             $drawing = new Drawing();
             $drawing->setName('Logo');
@@ -280,6 +281,15 @@ class NpcChecksheetController extends Controller
             $drawing->setOffsetY(5);
             $drawing->setWorksheet($sheet);
         }
+
+        // New Project Control Dept.
+        $sheet->mergeCells('A4:B4');
+        $sheet->setCellValue('A4', "New Project Control\nDept.");
+        $sheet->getStyle('A4')->getFont()->setBold(true)->setSize(8);
+        $sheet->getStyle('A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                                              ->setVertical(Alignment::VERTICAL_CENTER)
+                                              ->setWrapText(true);
+        $sheet->getStyle('A4:B4')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         
         // 3. DOCUMENT INFORMATION (Top Right)
         $sheet->mergeCells('J1:Q1');
@@ -300,11 +310,13 @@ class NpcChecksheetController extends Controller
         $sheet->setCellValue('J3', 'Revision');
         $sheet->mergeCells('L3:M3');
         $sheet->setCellValue('L3', ': 00'); // Default
+        $sheet->mergeCells('N3:O3'); // Merge empty cells under Revision
         
         $sheet->mergeCells('J4:K4');
         $sheet->setCellValue('J4', 'Date Release');
         $sheet->mergeCells('L4:M4');
         $sheet->setCellValue('L4', ': ' . Carbon::now()->format('d M Y')); // Or from DB
+        $sheet->mergeCells('N4:O4'); // Merge empty cells under Revision
         
         $sheet->mergeCells('J5:M5');
         $sheet->setCellValue('J5', 'Event');
@@ -323,7 +335,9 @@ class NpcChecksheetController extends Controller
         
         $sheet->getStyle('J1:Q7')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $sheet->getStyle('J2:Q2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('J2:Q7')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(true);
+        $sheet->getStyle('J2:Q7')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)
+                                                 ->setWrapText(false)
+                                                 ->setShrinkToFit(true);
         $sheet->getStyle('N5:Q7')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle('N5:Q7')->getFont()->getColor()->setARGB('FF0055AA'); // Blue text
         
@@ -343,7 +357,8 @@ class NpcChecksheetController extends Controller
         $sheet->setCellValue('C7', optional($product)->part_no ?? '-');
         $sheet->setCellValue('D7', 'EO No.');
         $sheet->mergeCells('E7:I7');
-        $sheet->setCellValue('E7', optional(optional(optional($product)->docPackage)->currentRevision)->ecn_no ?? '-');
+        $ecnNo = optional($part->drawingRevision)->ecn_no ?? optional(optional(optional($product)->docPackage)->currentRevision)->ecn_no ?? optional(optional(optional($product)->getEffectiveDocPackage())->currentRevision)->ecn_no ?? '-';
+        $sheet->setCellValue('E7', $ecnNo);
         
         $sheet->mergeCells('A8:B8');
         $sheet->setCellValue('A8', 'Process');

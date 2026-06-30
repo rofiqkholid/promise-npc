@@ -122,12 +122,12 @@
         <tbody>
             <!-- Row 1 -->
             <tr>
-                <td colspan="2" rowspan="3" class="text-center">
-                    @if(file_exists(public_path('images/ada_logo.png')))
-                        <img src="{{ asset('images/ada_logo.png') }}" alt="Logo" class="logo-img">
+                <td colspan="2" rowspan="3" class="text-center" style="border-bottom: none;">
+                    @if(file_exists(public_path('images/sai_logo_bg.png')))
+                        <img src="{{ asset('images/sai_logo_bg.png') }}" alt="Logo" class="logo-img">
                     @endif
                 </td>
-                <td colspan="7" rowspan="3" class="text-center font-bold title-cell">PART EVENT DELIVERY CHECKSHEET</td>
+                <td colspan="7" rowspan="4" class="text-center font-bold title-cell">PART EVENT DELIVERY CHECKSHEET</td>
                 <td colspan="8" class="text-center font-bold">Document Information</td>
             </tr>
             <!-- Row 2 -->
@@ -142,19 +142,17 @@
             <tr>
                 <td colspan="2" class="text-left">Revision</td>
                 <td colspan="2" class="text-left">: 00</td>
-                <td colspan="1"></td>
-                <td colspan="1"></td>
+                <td colspan="2"></td>
                 <td colspan="1"></td>
                 <td colspan="1"></td>
             </tr>
             
             <!-- Row 4 -->
             <tr>
-                <td colspan="9" class="no-border-cell"></td>
+                <td colspan="2" class="text-center" style="font-size: 9px; font-weight: bold; padding: 2px; border-top: none;">New Project Control<br>Dept.</td>
                 <td colspan="2">Date Release</td>
                 <td colspan="2">: {{ \Carbon\Carbon::now()->format('d M Y') }}</td>
-                <td colspan="1"></td>
-                <td colspan="1"></td>
+                <td colspan="2"></td>
                 <td colspan="1"></td>
                 <td colspan="1"></td>
             </tr>
@@ -180,7 +178,7 @@
                 <td colspan="2" class="font-bold">Part No.</td>
                 <td colspan="1" class="text-center text-blue">{{ optional($product)->part_no ?? '-' }}</td>
                 <td colspan="1" class="font-bold text-center">EO No.</td>
-                <td colspan="5" class="text-center text-blue">{{ optional(optional(optional($product)->docPackage)->currentRevision)->ecn_no ?? '-' }}</td>
+                <td colspan="5" class="text-center text-blue">{{ optional($part->drawingRevision)->ecn_no ?? optional(optional(optional($product)->docPackage)->currentRevision)->ecn_no ?? optional(optional(optional($product)->getEffectiveDocPackage())->currentRevision)->ecn_no ?? '-' }}</td>
                 <td colspan="4">Quantity Order (pcs)</td>
                 <td colspan="4" class="text-center text-blue">{{ optional($part)->qty ?? '-' }}</td>
             </tr>
