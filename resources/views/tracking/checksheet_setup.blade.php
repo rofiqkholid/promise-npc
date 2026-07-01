@@ -42,16 +42,19 @@
                         <table class="w-full text-sm text-left border border-gray-200 dark:border-gray-700 overflow-hidden">
                             <thead class="bg-gray-100 dark:bg-gray-700/80 text-gray-800 dark:text-gray-200 uppercase text-[10px]">
                                 <tr>
-                                    <th class="px-3 py-2 w-12 text-center">No</th>
+                                    <th class="px-3 py-2 w-16 text-center">No</th>
                                     <th class="px-3 py-2">Material Part</th>
-                                    <th class="px-3 py-2 w-24">Thickness</th>
+                                    <th class="px-3 py-2 w-32">Thickness</th>
                                     <th class="px-3 py-2 w-10"></th>
                                 </tr>
                             </thead>
                             <tbody id="material-parts-body" class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
                                 @forelse($materialParts as $idx => $mat)
                                 <tr>
-                                    <td class="p-2"><input type="text" name="material_parts[{{$idx}}][sequence_label]" value="{{ $mat->sequence_label }}" class="w-full p-1 text-center border dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="1"></td>
+                                    <td class="p-2 text-center font-semibold text-gray-700 dark:text-gray-300 align-middle">
+                                        <span class="seq-label-display">{{ $mat->sequence_label }}</span>
+                                        <input type="hidden" name="material_parts[{{$idx}}][sequence_label]" value="{{ $mat->sequence_label }}" class="seq-label-input">
+                                    </td>
                                     <td class="p-2">
                                         <select name="material_parts[{{$idx}}][inventory_material_id]" class="material-select2 w-full">
                                             @if($mat->inventory_material_id && isset($inventoryMaterials[$mat->inventory_material_id]))
@@ -59,11 +62,10 @@
                                             @endif
                                         </select>
                                     </td>
-                                    <td class="p-2"><input type="text" name="material_parts[{{$idx}}][thickness]" value="{{ $mat->thickness }}" class="w-full p-1 border dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="e.g. 1.4"></td>
+                                    <td class="p-2"><input type="text" name="material_parts[{{$idx}}][thickness]" value="{{ $mat->thickness }}" class="w-full !px-2 !py-1.5 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="e.g. 1.4"></td>
                                     <td class="p-2 text-center"><button type="button" class="text-red-500 hover:text-red-700 remove-row"><i class="fa-solid fa-xmark"></i></button></td>
                                 </tr>
                                 @empty
-                                <!-- Empty state handled by JS or user can click add -->
                                 @endforelse
                             </tbody>
                         </table>
@@ -78,16 +80,19 @@
                         <table class="w-full text-sm text-left border border-gray-200 dark:border-gray-700 overflow-hidden">
                             <thead class="bg-gray-100 dark:bg-gray-700/80 text-gray-800 dark:text-gray-200 uppercase text-[10px]">
                                 <tr>
-                                    <th class="px-3 py-2 w-12 text-center">No</th>
+                                    <th class="px-3 py-2 w-16 text-center">No</th>
                                     <th class="px-3 py-2">STD Part</th>
-                                    <th class="px-3 py-2 w-24">Spec</th>
+                                    <th class="px-3 py-2 w-32">Spec</th>
                                     <th class="px-3 py-2 w-10"></th>
                                 </tr>
                             </thead>
                             <tbody id="std-parts-body" class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
                                 @forelse($stdParts as $idx => $std)
                                 <tr>
-                                    <td class="p-2"><input type="text" name="std_parts[{{$idx}}][sequence_label]" value="{{ $std->sequence_label }}" class="w-full p-1 text-center border dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="a"></td>
+                                    <td class="p-2 text-center font-semibold text-gray-700 dark:text-gray-300 align-middle">
+                                        <span class="seq-label-display">{{ $std->sequence_label }}</span>
+                                        <input type="hidden" name="std_parts[{{$idx}}][sequence_label]" value="{{ $std->sequence_label }}" class="seq-label-input">
+                                    </td>
                                     <td class="p-2">
                                         <select name="std_parts[{{$idx}}][std_part_id]" class="std-select2 w-full">
                                             @if($std->stdPart)
@@ -95,7 +100,7 @@
                                             @endif
                                         </select>
                                     </td>
-                                    <td class="p-2"><input type="text" name="std_parts[{{$idx}}][spec]" value="{{ $std->spec }}" class="w-full p-1 border dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Spec"></td>
+                                    <td class="p-2"><input type="text" name="std_parts[{{$idx}}][spec]" value="{{ $std->spec }}" class="w-full !px-2 !py-1.5 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Spec"></td>
                                     <td class="p-2 text-center"><button type="button" class="text-red-500 hover:text-red-700 remove-row"><i class="fa-solid fa-xmark"></i></button></td>
                                 </tr>
                                 @empty
@@ -322,11 +327,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const tbody = document.getElementById('material-parts-body');
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="p-2"><input type="text" name="material_parts[${matIndex}][sequence_label]" class="w-full p-1 text-center border dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="${matIndex+1}"></td>
+            <td class="p-2 text-center font-semibold text-gray-700 dark:text-gray-300 align-middle">
+                <span class="seq-label-display">${matIndex+1}</span>
+                <input type="hidden" name="material_parts[${matIndex}][sequence_label]" class="seq-label-input">
+            </td>
             <td class="p-2">
                 <select name="material_parts[${matIndex}][inventory_material_id]" class="material-select2 w-full"></select>
             </td>
-            <td class="p-2"><input type="text" name="material_parts[${matIndex}][thickness]" class="w-full p-1 border dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="e.g. 1.4"></td>
+            <td class="p-2"><input type="text" name="material_parts[${matIndex}][thickness]" class="w-full !px-2 !py-1.5 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="e.g. 1.4"></td>
             <td class="p-2 text-center"><button type="button" class="text-red-500 hover:text-red-700 remove-row"><i class="fa-solid fa-xmark"></i></button></td>
         `;
         tbody.appendChild(tr);
@@ -339,11 +347,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const tbody = document.getElementById('std-parts-body');
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="p-2"><input type="text" name="std_parts[${stdIndex}][sequence_label]" class="w-full p-1 text-center border dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="${String.fromCharCode(97 + stdIndex)}"></td>
+            <td class="p-2 text-center font-semibold text-gray-700 dark:text-gray-300 align-middle">
+                <span class="seq-label-display">${String.fromCharCode(97 + stdIndex)}</span>
+                <input type="hidden" name="std_parts[${stdIndex}][sequence_label]" class="seq-label-input">
+            </td>
             <td class="p-2">
                 <select name="std_parts[${stdIndex}][std_part_id]" class="std-select2 w-full"></select>
             </td>
-            <td class="p-2"><input type="text" name="std_parts[${stdIndex}][spec]" class="w-full p-1 border dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Spec"></td>
+            <td class="p-2"><input type="text" name="std_parts[${stdIndex}][spec]" class="w-full !px-2 !py-1.5 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Spec"></td>
             <td class="p-2 text-center"><button type="button" class="text-red-500 hover:text-red-700 remove-row"><i class="fa-solid fa-xmark"></i></button></td>
         `;
         tbody.appendChild(tr);
@@ -358,9 +369,46 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(e) {
         if(e.target.closest('.remove-row')) {
             e.target.closest('tr').remove();
+            reindexRows();
         }
     });
 
+    // Auto index sequence labels
+    function reindexRows() {
+        document.querySelectorAll('#material-parts-body tr').forEach((tr, index) => {
+            const display = tr.querySelector('.seq-label-display');
+            const input = tr.querySelector('.seq-label-input');
+            const val = index + 1;
+            if(display) display.textContent = val;
+            if(input) input.value = val;
+        });
+        document.querySelectorAll('#std-parts-body tr').forEach((tr, index) => {
+            const display = tr.querySelector('.seq-label-display');
+            const input = tr.querySelector('.seq-label-input');
+            const val = String.fromCharCode(97 + index);
+            if(display) display.textContent = val;
+            if(input) input.value = val;
+        });
+    }
+
+    // Call reindex to ensure correct numbering initially and after adding
+    reindexRows();
+    document.getElementById('add-material-btn').addEventListener('click', reindexRows);
+    document.getElementById('add-std-btn').addEventListener('click', reindexRows);
+
+    // Add tooltip to all text inputs so long text can be seen on hover
+    function updateInputTitle(e) {
+        if(e.target && e.target.tagName === 'INPUT' && e.target.type === 'text') {
+            e.target.title = e.target.value;
+        }
+    }
+    document.addEventListener('input', updateInputTitle);
+    document.addEventListener('change', updateInputTitle);
+    
+    // Init existing input titles
+    document.querySelectorAll('input[type="text"]').forEach(function(input) {
+        input.title = input.value;
+    });
 });
 </script>
 @endpush

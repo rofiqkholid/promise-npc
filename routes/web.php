@@ -222,7 +222,13 @@ Route::middleware(['auth'])->group(function () {
 Route::get('file/storage/{path}', function ($path) {
     $fullPath = storage_path('app/public/' . $path);
     if (!file_exists($fullPath)) {
-        abort(404);
+        // Fallback if the file was saved to the default 'local' disk which points to app/private in Laravel 11
+        $privatePath = storage_path('app/private/public/' . $path);
+        if (file_exists($privatePath)) {
+            $fullPath = $privatePath;
+        } else {
+            abort(404);
+        }
     }
     return response()->file($fullPath);
 })->where('path', '.*');

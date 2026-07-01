@@ -146,7 +146,7 @@ class ProductChecksheetSetupController extends Controller
         if ($request->hasFile('sketch_image')) {
             $file = $request->file('sketch_image');
             $filename = time() . '_sketch_' . $file->getClientOriginalName();
-            $path = $file->storeAs('public/checksheets/sketches', $filename);
+            $path = $file->storeAs('public/checksheets/sketches', $filename, 'public');
 
             // Delete old if exists
             if ($product->productDetail && $product->productDetail->sketch_image_path) {
