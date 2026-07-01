@@ -204,15 +204,22 @@
                 $sketchPath = $product && $product->productDetail ? $product->productDetail->sketch_image_path : null;
                 $sketchSrc = '';
                 $isLandscape = false;
-                if ($sketchPath && Storage::exists($sketchPath)) {
-                    $mime = Storage::mimeType($sketchPath);
-                    $sketchData = base64_encode(Storage::get($sketchPath));
-                    $sketchSrc = 'data:' . $mime . ';base64,' . $sketchData;
+                if ($sketchPath) {
+                    $disk = 'local';
+                    if (!Storage::disk($disk)->exists($sketchPath) && Storage::disk('public')->exists($sketchPath)) {
+                        $disk = 'public';
+                    }
                     
-                    $absPath = Storage::path($sketchPath);
-                    $imgSize = @getimagesize($absPath);
-                    if ($imgSize && $imgSize[0] > $imgSize[1]) {
-                        $isLandscape = true;
+                    if (Storage::disk($disk)->exists($sketchPath)) {
+                        $mime = Storage::disk($disk)->mimeType($sketchPath);
+                        $sketchData = base64_encode(Storage::disk($disk)->get($sketchPath));
+                        $sketchSrc = 'data:' . $mime . ';base64,' . $sketchData;
+                        
+                        $absPath = Storage::disk($disk)->path($sketchPath);
+                        $imgSize = @getimagesize($absPath);
+                        if ($imgSize && $imgSize[0] > $imgSize[1]) {
+                            $isLandscape = true;
+                        }
                     }
                 }
 
