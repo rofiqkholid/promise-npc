@@ -64,15 +64,19 @@ class NpcChecksheetApprovalController extends Controller
                     }
                 })
                 ->addColumn('action', function ($checksheet) {
+                    $previewBtn = '<a href="' . route('checksheets.preview', $checksheet->hashed_id) . '" target="_blank" class="inline-flex items-center gap-2 px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white text-xs font-bold transition shadow-sm" title="Preview Report"><i class="fa-solid fa-file-pdf"></i> Preview</a>';
+                    
                     if ($checksheet->approval_status === 'APPROVED') {
-                        return '<span class="text-xs text-emerald-600 font-semibold flex items-center justify-end gap-1"><i class="fa-solid fa-circle-check"></i> Completed</span>';
+                        return '<div class="flex items-center justify-end gap-2"><span class="text-xs text-emerald-600 font-semibold flex items-center justify-end gap-1 whitespace-nowrap"><i class="fa-solid fa-circle-check"></i> Completed</span>' . $previewBtn . '</div>';
                     } else {
                         $user = auth()->user();
+                        $actionBtn = '';
                         if ($user && $user->canApproveChecksheetStage($checksheet->approval_status)) {
-                            return '<a href="' . route('checksheet-approvals.show', $checksheet->hashed_id) . '" class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-xs font-bold transition shadow-sm shadow-blue-500/20"><i class="fa-solid fa-eye"></i> Review & Approve</a>';
+                            $actionBtn = '<a href="' . route('checksheet-approvals.show', $checksheet->hashed_id) . '" class="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-xs font-bold transition shadow-sm shadow-blue-500/20 whitespace-nowrap"><i class="fa-solid fa-check"></i> Approve</a>';
                         } else {
-                            return '<a href="' . route('checksheet-approvals.show', $checksheet->hashed_id) . '" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-xs font-bold transition shadow-sm"><i class="fa-solid fa-eye"></i> View Details</a>';
+                            $actionBtn = '<a href="' . route('checksheet-approvals.show', $checksheet->hashed_id) . '" class="inline-flex items-center gap-2 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-xs font-bold transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-eye"></i> View Details</a>';
                         }
+                        return '<div class="flex items-center justify-end gap-2">' . $actionBtn . $previewBtn . '</div>';
                     }
                 })
                 ->filter(function ($query) use ($request) {
