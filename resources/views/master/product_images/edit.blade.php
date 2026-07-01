@@ -33,7 +33,7 @@
             </h3>
             <div class="border-2 border-dashed border-gray-200 dark:border-gray-600 p-6 flex flex-col items-center justify-center text-center bg-gray-50 dark:bg-gray-800/50 min-h-[200px]">
                 @if($product->productDetail && $product->productDetail->label_image_path)
-                    <img src="{{ asset('storage/' . ltrim(str_replace('public/', '', $product->productDetail->label_image_path), '/')) }}"
+                    <img src="{{ url('file/storage/' . ltrim(str_replace('public/', '', $product->productDetail->label_image_path), '/')) }}"
                          alt="Current Label Image"
                          class="max-h-[200px] max-w-full object-contain mb-3">
                     <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-xs font-bold rounded-full border border-emerald-200 dark:border-emerald-800">

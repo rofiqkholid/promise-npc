@@ -54,41 +54,41 @@ class NpcChecksheet extends Model
 
     public function qeChecker()
     {
-        return $this->belongsTo(User::class, 'qe_checked_by');
+        return $this->belongsTo(User::class, 'qe_checked_by', 'id');
     }
 
     public function mgmChecker()
     {
-        return $this->belongsTo(User::class, 'mgm_checked_by');
+        return $this->belongsTo(User::class, 'mgm_checked_by', 'id');
     }
 
     public function qeStaff()
     {
-        return $this->belongsTo(User::class, 'qe_staff_id');
+        return $this->belongsTo(User::class, 'qe_staff_id', 'id');
     }
 
     public function qeSpv()
     {
-        return $this->belongsTo(User::class, 'qe_spv_id');
+        return $this->belongsTo(User::class, 'qe_spv_id', 'id');
     }
 
     public function qeMgr()
     {
-        return $this->belongsTo(User::class, 'qe_mgr_id');
+        return $this->belongsTo(User::class, 'qe_mgr_id', 'id');
     }
 
     public function mgmStaff()
     {
-        return $this->belongsTo(User::class, 'mgm_staff_id');
+        return $this->belongsTo(User::class, 'mgm_staff_id', 'id');
     }
 
     public function mgmSpv()
     {
-        return $this->belongsTo(User::class, 'mgm_spv_id');
+        return $this->belongsTo(User::class, 'mgm_spv_id', 'id');
     }
 
     public function mgmMgr()
     {
-        return $this->belongsTo(User::class, 'mgm_mgr_id');
+        return $this->belongsTo(User::class, 'mgm_mgr_id', 'id');
     }
 }

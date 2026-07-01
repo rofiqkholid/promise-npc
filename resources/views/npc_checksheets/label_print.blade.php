@@ -334,7 +334,7 @@
                 @php
                     $labelImgPath = optional(optional($part->product)->productDetail)->label_image_path;
                     $labelImgUrl  = $labelImgPath
-                        ? asset('storage/' . ltrim(str_replace('public/', '', $labelImgPath), '/'))
+                        ? url('file/storage/' . ltrim(str_replace('public/', '', $labelImgPath), '/'))
                         : null;
                 @endphp
                 @if($labelImgUrl)

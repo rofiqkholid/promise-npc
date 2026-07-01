@@ -486,9 +486,12 @@ class NpcChecksheetController extends Controller
             $stds = $product->specChildParts->where('part_type', 'STD_PART')->values();
         }
         
+        $maxSpecRows = max(count($materials), count($stds));
+        if ($maxSpecRows == 0) $maxSpecRows = 1;
+
         $currentRow = $headerRow + 1;
         $alphabet = range('a', 'z');
-        for ($i = 0; $i < 15; $i++) {
+        for ($i = 0; $i < $maxSpecRows; $i++) {
             $mat = $materials[$i] ?? null;
             $std = $stds[$i] ?? null;
             

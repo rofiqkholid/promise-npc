@@ -112,7 +112,7 @@
                     <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 p-6 flex flex-col items-center justify-center text-center bg-gray-50 dark:bg-gray-800/50 min-h-[260px] relative">
                         @if($product->productDetail && $product->productDetail->sketch_image_path)
                             <div class="mb-4 w-full h-full flex justify-center items-center">
-                                <img src="{{ Storage::url($product->productDetail->sketch_image_path) }}" alt="Sketch" class="max-w-full max-h-[220px] object-contain">
+                                <img src="{{ url('file/storage/' . ltrim(str_replace('public/', '', $product->productDetail->sketch_image_path), '/')) }}" alt="Sketch" class="max-w-full max-h-[220px] object-contain">
                             </div>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Upload new image to replace the existing image.</p>
                         @else

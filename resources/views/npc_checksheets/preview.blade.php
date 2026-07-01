@@ -215,6 +215,16 @@
                         $isLandscape = true;
                     }
                 }
+
+                $materials = [];
+                $stds = [];
+                if ($product) {
+                    $materials = $product->specChildParts->where('part_type', 'MATERIAL')->values();
+                    $stds = $product->specChildParts->where('part_type', 'STD_PART')->values();
+                }
+                $alphabet = range('a', 'z');
+                $maxSpecRows = max(count($materials), count($stds));
+                if ($maxSpecRows == 0) $maxSpecRows = 1; // Show at least one empty row if both are empty
             @endphp
 
             @if($isLandscape && $sketchSrc)
@@ -233,7 +243,7 @@
                     <td colspan="17" class="text-center font-bold">Spec Child Part</td>
                 @else
                     <td colspan="11" class="text-center font-bold">Spec Child Part</td>
-                    <td colspan="6" rowspan="17" class="text-center font-bold" style="vertical-align: top; padding: 10px;">
+                    <td colspan="6" rowspan="{{ $maxSpecRows + 2 }}" class="text-center font-bold" style="vertical-align: top; padding: 10px;">
                         <div style="margin-bottom: 10px;">SKETCH</div>
                         @if($sketchSrc)
                             <img src="{{ $sketchSrc }}" alt="Sketch" style="max-width: 100%; max-height: 250px; object-fit: contain;">
@@ -260,18 +270,8 @@
                 @endif
             </tr>
             
-            <!-- Rows 12 to 26 -->
-            @php
-                $materials = [];
-                $stds = [];
-                if ($product) {
-                    $materials = $product->specChildParts->where('part_type', 'MATERIAL')->values();
-                    $stds = $product->specChildParts->where('part_type', 'STD_PART')->values();
-                }
-                $alphabet = range('a', 'z');
-            @endphp
-            
-            @for ($i = 0; $i < 15; $i++)
+            <!-- Rows 12+ -->
+            @for ($i = 0; $i < $maxSpecRows; $i++)
                 @php
                     $mat = $materials[$i] ?? null;
                     $std = $stds[$i] ?? null;
