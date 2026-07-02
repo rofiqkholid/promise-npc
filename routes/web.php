@@ -220,15 +220,17 @@ Route::middleware(['auth'])->group(function () {
 
 // Fallback route to serve storage files directly for environments where symlink is broken or restricted
 Route::get('file/storage/{path}', function ($path) {
-    $fullPath = storage_path('app/public/' . $path);
-    if (!file_exists($fullPath)) {
-        // Fallback if the file was saved to the default 'local' disk which points to app/private in Laravel 11
-        $privatePath = storage_path('app/private/public/' . $path);
-        if (file_exists($privatePath)) {
-            $fullPath = $privatePath;
-        } else {
-            abort(404);
+    $possiblePaths = [
+        storage_path('app/public/' . $path),
+        storage_path('app/private/public/' . $path),
+        storage_path('app/public/public/' . $path),
+    ];
+
+    foreach ($possiblePaths as $fullPath) {
+        if (file_exists($fullPath)) {
+            return response()->file($fullPath);
         }
     }
-    return response()->file($fullPath);
+
+    abort(404);
 })->where('path', '.*');
