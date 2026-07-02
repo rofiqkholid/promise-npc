@@ -29,12 +29,12 @@
             </div>
 
             <div class="space-y-2">
-                <label for="route_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Route Name</label>
-                <input type="text" name="route_name" id="route_name" value="{{ old('route_name') }}"
+                <label for="route" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Route Name</label>
+                <input type="text" name="route" id="route" value="{{ old('route') }}"
                     class="w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
                     placeholder="e.g., master.processes.index">
                 <p class="text-xs text-gray-500">Leave blank if this is a parent dropdown menu.</p>
-                @error('route_name')
+                @error('route')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
             </div>
@@ -66,10 +66,10 @@
             </div>
 
             <div class="space-y-2">
-                <label for="order" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Display Order <span class="text-red-500">*</span></label>
-                <input type="number" name="order" id="order" value="{{ old('order', 0) }}" required
+                <label for="sort_order" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Display Order <span class="text-red-500">*</span></label>
+                <input type="number" name="sort_order" id="sort_order" value="{{ old('sort_order', 0) }}" required
                     class="w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm">
-                @error('order')
+                @error('sort_order')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
             </div>

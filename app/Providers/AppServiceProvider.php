@@ -70,38 +70,24 @@ class AppServiceProvider extends ServiceProvider
                     // Admin melihat semua menu aktif
                     $sidebarMenus = \App\Models\NpcMenu::whereNull('parent_id')
                         ->with(['children' => function ($q) {
-                            $q->where('is_active', true); // Removed orderBy('order') to avoid duplicate order by in SQL Server
+                            $q->where('is_active', true); // Removed orderBy('sort_order') to avoid duplicate order by in SQL Server
                         }])
                         ->where('is_active', true)
-                        ->orderBy('order')
+                        ->orderBy('sort_order')
                         ->get();
                 } else {
                     // User lain hanya melihat menu yang diizinkan
                     $accessibleMenus = $user->getAllAccessibleMenus()->where('is_active', true);
 
-                    $sidebarMenus = $accessibleMenus->whereNull('parent_id')->sortBy('order')->values();
+                    $sidebarMenus = $accessibleMenus->whereNull('parent_id')->sortBy('sort_order')->values();
 
                     $sidebarMenus->map(function ($menu) use ($accessibleMenus) {
-                        $children = $accessibleMenus->where('parent_id', $menu->id)->sortBy('order')->values();
+                        $children = $accessibleMenus->where('parent_id', $menu->id)->sortBy('sort_order')->values();
                         $menu->setRelation('children', $children);
                         return $menu;
                     });
                 }
             }
-
-            // Ubah route_name menjadi route agar kompatibel dengan sidebar blade yang sudah ada
-            $sidebarMenus->transform(function ($menu) {
-                $menu->route = $menu->route_name ?? '#';
-                if ($menu->relationLoaded('children')) {
-                    $menu->children->transform(function ($child) {
-                        $child->route = $child->route_name ?? '#';
-                        return $child;
-                    });
-                } else {
-                    $menu->setRelation('children', collect());
-                }
-                return $menu;
-            });
 
             $view->with('sidebarMenus', $sidebarMenus)
                 ->with('userRoleCode', $userRoleCode);

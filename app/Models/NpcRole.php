@@ -34,7 +34,7 @@ class NpcRole extends Model
     public function menus()
     {
         return $this->belongsToMany(\App\Models\NpcMenu::class, 'npc_role_menus', 'role_id', 'menu_id')
-            ->withPivot(['can_view', 'can_create', 'can_update', 'can_delete', 'can_approve'])
+            ->withPivot(['scope_id', 'permission_id'])
             ->withTimestamps();
     }
 }

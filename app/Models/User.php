@@ -99,45 +99,65 @@ class User extends Authenticatable
     public function specificMenus()
     {
         return $this->belongsToMany(\App\Models\NpcMenu::class, 'npc_user_menus', 'user_id', 'menu_id', 'id')
-            ->withPivot(['can_view', 'can_create', 'can_update', 'can_delete', 'can_approve'])
+            ->withPivot(['scope_id', 'permission_id', 'access_type'])
             ->withTimestamps();
     }
 
-    /**
-     * Get all accessible menus for this user (from roles + specific menus)
-     */
     public function getAllAccessibleMenus()
     {
-        // Get menus from all roles
-        $roleMenus = collect();
-        foreach ($this->roles()->with('menus')->get() as $role) {
-            $roleMenus = $roleMenus->merge($role->menus);
+        // 1. Get all roles the user has
+        $roleIds = $this->roles()->pluck('npc_roles.id')->toArray();
+
+        // 2. Query npc_role_menus
+        $rolePermissions = \Illuminate\Support\Facades\DB::table('npc_role_menus')
+            ->join('permissions', 'npc_role_menus.permission_id', '=', 'permissions.id')
+            ->whereIn('role_id', $roleIds)
+            ->where('npc_role_menus.scope_id', 'app_npc')
+            ->get(['menu_id', 'permission_name']);
+
+        // 3. Query npc_user_menus if exists
+        $userPermissions = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('npc_user_menus')) {
+            $userPermissions = \Illuminate\Support\Facades\DB::table('npc_user_menus')
+                ->join('permissions', 'npc_user_menus.permission_id', '=', 'permissions.id')
+                ->where('user_id', $this->id)
+                ->where('npc_user_menus.scope_id', 'app_npc')
+                ->where('access_type', 'ALLOW')
+                ->get(['menu_id', 'permission_name']);
         }
 
-        // Get specific user menus
-        $userMenus = $this->specificMenus()->get();
+        // 4. Combine permissions by menu_id
+        $menuPerms = [];
+        foreach ($rolePermissions as $rp) {
+            $menuPerms[$rp->menu_id][] = $rp->permission_name;
+        }
+        foreach ($userPermissions as $up) {
+            $menuPerms[$up->menu_id][] = $up->permission_name;
+        }
 
-        // Merge them together. We key by menu ID to avoid duplicates.
-        // If there's a duplicate, we should ideally combine the permissions (logical OR).
-        $allMenus = $roleMenus->merge($userMenus)->keyBy('id')->map(function ($menu) use ($roleMenus, $userMenus) {
-            $roleMenu = $roleMenus->firstWhere('id', $menu->id);
-            $userMenu = $userMenus->firstWhere('id', $menu->id);
+        // 5. Fetch all related Menus
+        if (empty($menuPerms)) {
+            return collect();
+        }
 
-            // Create a fake pivot object that combines the permissions
+        $menus = \App\Models\NpcMenu::whereIn('id', array_keys($menuPerms))
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        // 6. Map the permissions into the combined_pivot for backwards compatibility
+        return $menus->map(function ($menu) use ($menuPerms) {
             $combinedPivot = new \stdClass();
-            $permissions = ['can_view', 'can_create', 'can_update', 'can_delete', 'can_approve'];
-            
-            foreach ($permissions as $perm) {
-                $rolePerm = $roleMenu && $roleMenu->pivot ? $roleMenu->pivot->$perm : false;
-                $userPerm = $userMenu && $userMenu->pivot ? $userMenu->pivot->$perm : false;
-                $combinedPivot->$perm = $rolePerm || $userPerm;
-            }
+            $perms = $menuPerms[$menu->id] ?? [];
+            $combinedPivot->can_view = in_array('view', $perms);
+            $combinedPivot->can_create = in_array('create', $perms);
+            $combinedPivot->can_update = in_array('update', $perms);
+            $combinedPivot->can_delete = in_array('delete', $perms);
+            $combinedPivot->can_approve = in_array('approve', $perms);
             
             $menu->setAttribute('combined_pivot', $combinedPivot);
             return $menu;
         });
-
-        return $allMenus->values();
     }
 
     /**
@@ -148,20 +168,21 @@ class User extends Authenticatable
      */
     public function hasMenuAccess($routeName, $action = 'view')
     {
-        // Admin bypass (optional, but good practice)
-        if ($this->roles->contains('code', 'admin')) {
+        // Admin bypass
+        if ($this->roles->contains('code', 'admin') || $this->roles->contains('role_name', 'admin')) {
             return true;
         }
 
         $menus = $this->getAllAccessibleMenus();
-        $menu = $menus->firstWhere('route_name', $routeName);
+        $menu = $menus->firstWhere('route', $routeName);
 
         if (!$menu) {
+            // Also try old route_name if fallback is needed, but we renamed the column to route
             return false;
         }
 
-        $permColumn = 'can_' . $action;
-        return $menu->combined_pivot->$permColumn ?? false;
+        $property = 'can_' . $action;
+        return $menu->combined_pivot->$property ?? false;
     }
 
     /**

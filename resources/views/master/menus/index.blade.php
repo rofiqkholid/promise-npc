@@ -74,7 +74,7 @@
                             @endif
                         </td>
                         <td class="px-4 py-2 font-mono text-xs text-slate-500">
-                            {{ $menu->route_name ?: '-' }}
+                            {{ $menu->route ?: '-' }}
                         </td>
                         <td class="px-4 py-2 text-center">
                             @if($menu->icon)
@@ -84,7 +84,7 @@
                             @endif
                         </td>
                         <td class="px-4 py-2 text-center font-semibold text-slate-700 dark:text-slate-300">
-                            {{ $menu->order }}
+                            {{ $menu->sort_order }}
                         </td>
                         <td class="px-4 py-2 text-center">
                             @if($menu->is_active)

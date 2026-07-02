@@ -62,7 +62,7 @@ class NpcRoleController extends Controller
         // Load all menus to build the permission matrix
         $menus = \App\Models\NpcMenu::whereNull('parent_id')
             ->with('children')
-            ->orderBy('order')
+            ->orderBy('sort_order')
             ->get();
 
         // Load the role's current permissions

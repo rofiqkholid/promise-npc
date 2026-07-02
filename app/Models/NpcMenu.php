@@ -10,12 +10,15 @@ class NpcMenu extends Model
     use HasHashedId;
 
     protected $fillable = [
+        'scope_id',
         'parent_id',
         'title',
-        'route_name',
+        'route',
         'icon',
-        'order',
+        'sort_order',
+        'level',
         'is_active',
+        'is_visible',
     ];
 
     public function parent()
@@ -25,6 +28,6 @@ class NpcMenu extends Model
 
     public function children()
     {
-        return $this->hasMany(NpcMenu::class, 'parent_id')->orderBy('order');
+        return $this->hasMany(NpcMenu::class, 'parent_id')->orderBy('sort_order');
     }
 }
