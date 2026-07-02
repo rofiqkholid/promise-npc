@@ -9,6 +9,21 @@ class NpcMenu extends Model
 {
     use HasHashedId;
 
+    protected $table = 'menus';
+
+    protected static function booted()
+    {
+        static::addGlobalScope('scope_npc', function (\Illuminate\Database\Eloquent\Builder $builder) {
+            $builder->where($builder->getModel()->getTable() . '.scope_id', 'app_npc');
+        });
+
+        static::creating(function ($model) {
+            if (empty($model->scope_id)) {
+                $model->scope_id = 'app_npc';
+            }
+        });
+    }
+
     protected $fillable = [
         'scope_id',
         'parent_id',

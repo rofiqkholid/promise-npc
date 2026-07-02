@@ -54,7 +54,7 @@ class NpcUserController extends Controller
     {
         // Get all users who don't have an NPC role yet
         $availableUsers = \App\Models\User::whereDoesntHave('roles')->orderBy('name')->get();
-        $roles = \App\Models\NpcRole::orderBy('name')->get();
+        $roles = \App\Models\NpcRole::orderBy('role_name')->get();
         
         return view('master.npc-users.create', compact('availableUsers', 'roles'));
     }
@@ -64,7 +64,7 @@ class NpcUserController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'role_ids' => 'required|array|min:1',
-            'role_ids.*' => 'exists:npc_roles,id'
+            'role_ids.*' => 'exists:roles,id'
         ]);
 
         $user = \App\Models\User::where('id', $request->user_id)->firstOrFail();
@@ -87,7 +87,7 @@ class NpcUserController extends Controller
             return redirect()->route('master.npc-users.index')->with('error', 'That user is not an NPC User.');
         }
 
-        $roles = \App\Models\NpcRole::orderBy('name')->get();
+        $roles = \App\Models\NpcRole::orderBy('role_name')->get();
         
         // Load all menus to build the permission matrix
         $menus = \App\Models\NpcMenu::whereNull('parent_id')
@@ -139,7 +139,7 @@ class NpcUserController extends Controller
 
         $request->validate([
             'role_ids' => 'required|array|min:1',
-            'role_ids.*' => 'exists:npc_roles,id'
+            'role_ids.*' => 'exists:roles,id'
         ]);
 
         // Update role

@@ -44,7 +44,7 @@ class NpcMenuController extends Controller
             'route' => 'nullable|string|max:255',
             'icon' => 'nullable|string|max:50',
             'sort_order' => 'required|integer',
-            'parent_id' => 'nullable|exists:npc_menus,id',
+            'parent_id' => 'nullable|exists:menus,id',
             'is_active' => 'boolean'
         ]);
 
@@ -66,7 +66,7 @@ class NpcMenuController extends Controller
             'route' => 'nullable|string|max:255',
             'icon' => 'nullable|string|max:50',
             'sort_order' => 'required|integer',
-            'parent_id' => 'nullable|exists:npc_menus,id',
+            'parent_id' => 'nullable|exists:menus,id',
             'is_active' => 'boolean'
         ]);
 

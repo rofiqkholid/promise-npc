@@ -93,35 +93,37 @@ class User extends Authenticatable
 
     public function roles()
     {
-        return $this->belongsToMany(\App\Models\NpcRole::class, 'npc_user_roles', 'user_id', 'role_id', 'id');
+        return $this->belongsToMany(\App\Models\NpcRole::class, 'user_scope_roles', 'user_id', 'role_id', 'id', 'id')
+                    ->withoutGlobalScope('scope_npc')
+                    ->wherePivot('scope_id', 'app_npc');
     }
 
     public function specificMenus()
     {
-        return $this->belongsToMany(\App\Models\NpcMenu::class, 'npc_user_menus', 'user_id', 'menu_id', 'id')
+        return $this->belongsToMany(\App\Models\NpcMenu::class, 'user_scope_permissions', 'user_id', 'menu_id', 'id', 'id')
             ->withPivot(['scope_id', 'permission_id', 'access_type'])
-            ->withTimestamps();
+            ->wherePivot('scope_id', 'app_npc');
     }
 
     public function getAllAccessibleMenus()
     {
         // 1. Get all roles the user has
-        $roleIds = $this->roles()->pluck('npc_roles.id')->toArray();
+        $roleIds = $this->roles()->pluck('roles.id')->toArray();
 
-        // 2. Query npc_role_menus
-        $rolePermissions = \Illuminate\Support\Facades\DB::table('npc_role_menus')
-            ->join('permissions', 'npc_role_menus.permission_id', '=', 'permissions.id')
+        // 2. Query role_scope_permissions
+        $rolePermissions = \Illuminate\Support\Facades\DB::table('role_scope_permissions')
+            ->join('permissions', 'role_scope_permissions.permission_id', '=', 'permissions.id')
             ->whereIn('role_id', $roleIds)
-            ->where('npc_role_menus.scope_id', 'app_npc')
+            ->where('role_scope_permissions.scope_id', 'app_npc')
             ->get(['menu_id', 'permission_name']);
 
-        // 3. Query npc_user_menus if exists
+        // 3. Query user_scope_permissions if exists
         $userPermissions = collect();
-        if (\Illuminate\Support\Facades\Schema::hasTable('npc_user_menus')) {
-            $userPermissions = \Illuminate\Support\Facades\DB::table('npc_user_menus')
-                ->join('permissions', 'npc_user_menus.permission_id', '=', 'permissions.id')
+        if (\Illuminate\Support\Facades\Schema::hasTable('user_scope_permissions')) {
+            $userPermissions = \Illuminate\Support\Facades\DB::table('user_scope_permissions')
+                ->join('permissions', 'user_scope_permissions.permission_id', '=', 'permissions.id')
                 ->where('user_id', $this->id)
-                ->where('npc_user_menus.scope_id', 'app_npc')
+                ->where('user_scope_permissions.scope_id', 'app_npc')
                 ->where('access_type', 'ALLOW')
                 ->get(['menu_id', 'permission_name']);
         }

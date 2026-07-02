@@ -47,7 +47,7 @@ class NpcRoleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'code' => 'required|string|max:50|unique:npc_roles,code',
+            'code' => 'required|string|max:50|unique:roles,code',
             'name' => 'required|string|max:100',
             'description' => 'nullable|string',
         ]);
@@ -75,7 +75,7 @@ class NpcRoleController extends Controller
     public function update(Request $request, \App\Models\NpcRole $role)
     {
         $request->validate([
-            'code' => 'required|string|max:50|unique:npc_roles,code,' . $role->id,
+            'code' => 'required|string|max:50|unique:roles,code,' . $role->id,
             'name' => 'required|string|max:100',
             'description' => 'nullable|string',
         ]);
