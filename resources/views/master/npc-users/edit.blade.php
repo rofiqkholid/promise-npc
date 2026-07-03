@@ -44,13 +44,21 @@
             </div>
 
             <!-- Permission Matrix -->
-            <div class="mb-4 flex items-center justify-between">
+            <div class="mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h3 class="text-lg font-bold text-gray-800 dark:text-white">Individual Permissions (Exceptions)</h3>
                     <p class="text-sm text-gray-500">
                         Locked checkbox (transparent green) means access rights have been granted by the <strong>Role</strong>.<br>
                         Check the grey box to grant specific additional rights for this user (even if their role has no access).
                     </p>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" onclick="document.querySelectorAll('input[type=checkbox]:not(:disabled)').forEach(el => el.checked = true)" class="px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition shadow flex items-center gap-2">
+                        <i class="fa-solid fa-check-double"></i> Check All
+                    </button>
+                    <button type="button" onclick="document.querySelectorAll('input[type=checkbox]:not(:disabled)').forEach(el => el.checked = false)" class="px-3 py-1.5 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 transition shadow flex items-center gap-2">
+                        <i class="fa-solid fa-square-minus"></i> Uncheck All
+                    </button>
                 </div>
             </div>
 

@@ -96,20 +96,45 @@ class NpcUserController extends Controller
             ->get();
 
         // Load the user's explicit extra permissions
-        $user->load('specificMenus');
-        $userMenuIds = $user->specificMenus->pluck('pivot', 'id');
+        $userPermissionsDb = \Illuminate\Support\Facades\DB::table('user_scope_permissions')
+            ->where('user_id', $user->id)
+            ->where('scope_id', 'app_npc')
+            ->where('access_type', 'ALLOW')
+            ->get();
+            
+        $userMenuIds = collect();
+        foreach ($userPermissionsDb as $up) {
+            $menuId = $up->menu_id;
+            if (!$userMenuIds->has($menuId)) {
+                $userMenuIds->put($menuId, (object)[
+                    'can_view' => false,
+                    'can_create' => false,
+                    'can_update' => false,
+                    'can_delete' => false,
+                    'can_approve' => false
+                ]);
+            }
+            $obj = $userMenuIds->get($menuId);
+            if ($up->permission_id == 1) $obj->can_view = true;
+            if ($up->permission_id == 2) $obj->can_create = true;
+            if ($up->permission_id == 7) $obj->can_update = true;
+            if ($up->permission_id == 4) $obj->can_delete = true;
+            if ($up->permission_id == 8) $obj->can_approve = true;
+        }
 
         // Load the user's role permissions to display as "inherited"
-        $roleMenus = collect();
-        foreach ($user->roles()->with('menus')->get() as $role) {
-            $roleMenus = $roleMenus->merge($role->menus);
-        }
-        
+        $roleIds = $user->roles->pluck('id');
+        $rolePermissions = \Illuminate\Support\Facades\DB::table('role_scope_permissions')
+            ->whereIn('role_id', $roleIds)
+            ->where('scope_id', 'app_npc')
+            ->get();
+            
         // Key the role menus by ID and merge permissions (logical OR)
         $inheritedPermissions = [];
-        foreach ($roleMenus as $menu) {
-            if (!isset($inheritedPermissions[$menu->id])) {
-                $inheritedPermissions[$menu->id] = [
+        foreach ($rolePermissions as $rp) {
+            $menuId = $rp->menu_id;
+            if (!isset($inheritedPermissions[$menuId])) {
+                $inheritedPermissions[$menuId] = [
                     'can_view' => false,
                     'can_create' => false,
                     'can_update' => false,
@@ -117,12 +142,11 @@ class NpcUserController extends Controller
                     'can_approve' => false,
                 ];
             }
-            $p = $menu->pivot;
-            $inheritedPermissions[$menu->id]['can_view'] |= $p->can_view;
-            $inheritedPermissions[$menu->id]['can_create'] |= $p->can_create;
-            $inheritedPermissions[$menu->id]['can_update'] |= $p->can_update;
-            $inheritedPermissions[$menu->id]['can_delete'] |= $p->can_delete;
-            $inheritedPermissions[$menu->id]['can_approve'] |= $p->can_approve;
+            if ($rp->permission_id == 1) $inheritedPermissions[$menuId]['can_view'] = true;
+            if ($rp->permission_id == 2) $inheritedPermissions[$menuId]['can_create'] = true;
+            if ($rp->permission_id == 7) $inheritedPermissions[$menuId]['can_update'] = true;
+            if ($rp->permission_id == 4) $inheritedPermissions[$menuId]['can_delete'] = true;
+            if ($rp->permission_id == 8) $inheritedPermissions[$menuId]['can_approve'] = true;
         }
 
         return view('master.npc-users.edit', compact('user', 'roles', 'menus', 'userMenuIds', 'inheritedPermissions'));

@@ -66,8 +66,30 @@ class NpcRoleController extends Controller
             ->get();
 
         // Load the role's current permissions
-        $role->load('menus');
-        $roleMenuIds = $role->menus->pluck('pivot', 'id');
+        $rolePermissions = \Illuminate\Support\Facades\DB::table('role_scope_permissions')
+            ->where('role_id', $role->id)
+            ->where('scope_id', 'app_npc')
+            ->get();
+            
+        $roleMenuIds = collect();
+        foreach ($rolePermissions as $rp) {
+            $menuId = $rp->menu_id;
+            if (!$roleMenuIds->has($menuId)) {
+                $roleMenuIds->put($menuId, (object)[
+                    'can_view' => false,
+                    'can_create' => false,
+                    'can_update' => false,
+                    'can_delete' => false,
+                    'can_approve' => false
+                ]);
+            }
+            $obj = $roleMenuIds->get($menuId);
+            if ($rp->permission_id == 1) $obj->can_view = true;
+            if ($rp->permission_id == 2) $obj->can_create = true;
+            if ($rp->permission_id == 7) $obj->can_update = true;
+            if ($rp->permission_id == 4) $obj->can_delete = true;
+            if ($rp->permission_id == 8) $obj->can_approve = true;
+        }
 
         return view('master.roles.edit', compact('role', 'menus', 'roleMenuIds'));
     }
@@ -86,21 +108,33 @@ class NpcRoleController extends Controller
         // Synchronize permissions
         $permissions = $request->input('permissions', []);
         
-        $syncData = [];
+        $permMap = [
+            'can_view' => 1,
+            'can_create' => 2,
+            'can_update' => 7,
+            'can_delete' => 4,
+            'can_approve' => 8
+        ];
+
+        \Illuminate\Support\Facades\DB::table('role_scope_permissions')->where('role_id', $role->id)->delete();
+
+        $insertData = [];
         foreach ($permissions as $menuId => $perms) {
-            // Only save if at least one permission is checked
-            if (isset($perms['can_view']) || isset($perms['can_create']) || isset($perms['can_update']) || isset($perms['can_delete']) || isset($perms['can_approve'])) {
-                $syncData[$menuId] = [
-                    'can_view' => isset($perms['can_view']) ? 1 : 0,
-                    'can_create' => isset($perms['can_create']) ? 1 : 0,
-                    'can_update' => isset($perms['can_update']) ? 1 : 0,
-                    'can_delete' => isset($perms['can_delete']) ? 1 : 0,
-                    'can_approve' => isset($perms['can_approve']) ? 1 : 0,
-                ];
+            foreach ($permMap as $key => $permId) {
+                if (isset($perms[$key])) {
+                    $insertData[] = [
+                        'role_id' => $role->id,
+                        'menu_id' => $menuId,
+                        'permission_id' => $permId,
+                        'scope_id' => 'app_npc',
+                    ];
+                }
             }
         }
 
-        $role->menus()->sync($syncData);
+        if (!empty($insertData)) {
+            \Illuminate\Support\Facades\DB::table('role_scope_permissions')->insert($insertData);
+        }
 
         return redirect()->route('master.roles.index')->with('success', 'Role and permissions updated successfully.');
     }
