@@ -234,7 +234,7 @@
         .cols-3 .field-value { font-size: 8px; }
         .cols-3 .piece-no { font-size: 14px; }
         .cols-3 .piece-total { font-size: 8px; }
-        .cols-3 .qc-signature-box { width: 90px !important; height: 50px !important; }
+        .cols-3 .signature-box { width: 90px !important; height: 50px !important; }
 
         .cols-4 .label-card { padding: 8px; height: 250px; }
         .cols-4 .label-header h1 { font-size: 10px; }
@@ -246,8 +246,8 @@
         .cols-4 .field-value { font-size: 7px; }
         .cols-4 .piece-no { font-size: 12px; }
         .cols-4 .piece-total { font-size: 7px; }
-        .cols-4 .qc-signature-box { width: 70px !important; height: 40px !important; }
-        .cols-4 .qc-signature-box span { font-size: 5px !important; }
+        .cols-4 .signature-box { width: 70px !important; height: 40px !important; }
+        .cols-4 .signature-box span { font-size: 5px !important; }
 
         /* ===== PRINT STYLES ===== */
         @media print {
@@ -373,8 +373,13 @@
                         &nbsp;|&nbsp;
                         {{ optional($part->checksheet)->qe_check_date ? \Carbon\Carbon::parse($part->checksheet->qe_check_date)->format('d M Y') : \Carbon\Carbon::now()->format('d M Y') }}
                     </span>
-                    <div class="qc-signature-box" style="border: 1px solid #94a3b8; width: 120px; height: 75px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px 4px; background: #f8fafc;">
-                        <span style="font-size: 7px; font-weight: bold; color: #64748b; text-transform: uppercase;">QC Signature</span>
+                    <div style="display: flex; gap: 8px;">
+                        <div class="signature-box" style="border: 1px solid #94a3b8; width: 120px; height: 75px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px 4px; background: #f8fafc;">
+                            <span style="font-size: 7px; font-weight: bold; color: #64748b; text-transform: uppercase;">QC</span>
+                        </div>
+                        <div class="signature-box" style="border: 1px solid #94a3b8; width: 120px; height: 75px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px 4px; background: #f8fafc;">
+                            <span style="font-size: 7px; font-weight: bold; color: #64748b; text-transform: uppercase;">NPC</span>
+                        </div>
                     </div>
                 </div>
                 <div class="text-right" style="display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end;">

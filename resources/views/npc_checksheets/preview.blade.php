@@ -234,47 +234,35 @@
                 if ($maxSpecRows == 0) $maxSpecRows = 1; // Show at least one empty row if both are empty
             @endphp
 
-            @if($isLandscape && $sketchSrc)
-            <!-- Landscape SKETCH Row -->
+            @if($sketchSrc)
+            <!-- SKETCH Row -->
             <tr>
                 <td colspan="17" class="text-center font-bold" style="vertical-align: top; padding: 10px;">
                     <div style="margin-bottom: 10px;">SKETCH</div>
-                    <img src="{{ $sketchSrc }}" alt="Sketch" style="max-width: 100%; max-height: 400px; object-fit: contain; margin: 0 auto; display: block;">
+                    @if(!$isLandscape)
+                        <div style="display: flex; justify-content: center; align-items: center; height: 350px; overflow: hidden;">
+                            <img src="{{ $sketchSrc }}" alt="Sketch" style="max-width: 350px; max-height: 700px; object-fit: contain; transform: rotate(-90deg);">
+                        </div>
+                    @else
+                        <img src="{{ $sketchSrc }}" alt="Sketch" style="max-width: 100%; max-height: 400px; object-fit: contain; margin: 0 auto; display: block;">
+                    @endif
                 </td>
             </tr>
             @endif
 
             <!-- Row 10 -->
             <tr>
-                @if($isLandscape)
-                    <td colspan="17" class="text-center font-bold">Spec Child Part</td>
-                @else
-                    <td colspan="11" class="text-center font-bold">Spec Child Part</td>
-                    <td colspan="6" rowspan="{{ $maxSpecRows + 2 }}" class="text-center font-bold" style="vertical-align: top; padding: 10px;">
-                        <div style="margin-bottom: 10px;">SKETCH</div>
-                        @if($sketchSrc)
-                            <img src="{{ $sketchSrc }}" alt="Sketch" style="max-width: 100%; max-height: 250px; object-fit: contain;">
-                        @endif
-                    </td>
-                @endif
+                <td colspan="17" class="text-center font-bold">Spec Child Part</td>
             </tr>
             
             <!-- Row 11 -->
             <tr class="text-center font-bold">
                 <td>No</td>
-                @if($isLandscape)
-                    <td colspan="4">Material Part</td>
-                    <td colspan="2">Thickness</td>
-                    <td>No</td>
-                    <td colspan="4">STD Part</td>
-                    <td colspan="5">Spec</td>
-                @else
-                    <td colspan="2">Material Part</td>
-                    <td>Thickness</td>
-                    <td>No</td>
-                    <td colspan="3">STD Part</td>
-                    <td colspan="3">Spec</td>
-                @endif
+                <td colspan="4">Material Part</td>
+                <td colspan="2">Thickness</td>
+                <td>No</td>
+                <td colspan="4">STD Part</td>
+                <td colspan="5">Spec</td>
             </tr>
             
             <!-- Rows 12+ -->
@@ -291,19 +279,11 @@
                 @endphp
                 <tr class="text-center">
                     <td>{{ $i + 1 }}</td>
-                    @if($isLandscape)
-                        <td colspan="4">{{ $matName }}</td>
-                        <td colspan="2">{{ $mat ? $mat->thickness : '' }}</td>
-                        <td>{{ $alphabet[$i] }}.</td>
-                        <td colspan="4">{{ $stdName }}</td>
-                        <td colspan="5">{{ $std ? $std->spec : '' }}</td>
-                    @else
-                        <td colspan="2">{{ $matName }}</td>
-                        <td>{{ $mat ? $mat->thickness : '' }}</td>
-                        <td>{{ $alphabet[$i] }}.</td>
-                        <td colspan="3">{{ $stdName }}</td>
-                        <td colspan="3">{{ $std ? $std->spec : '' }}</td>
-                    @endif
+                    <td colspan="4">{{ $matName }}</td>
+                    <td colspan="2">{{ $mat ? $mat->thickness : '' }}</td>
+                    <td>{{ $alphabet[$i] }}.</td>
+                    <td colspan="4">{{ $stdName }}</td>
+                    <td colspan="5">{{ $std ? $std->spec : '' }}</td>
                 </tr>
             @endfor
             
