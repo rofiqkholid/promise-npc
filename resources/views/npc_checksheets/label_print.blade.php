@@ -111,7 +111,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 190px;
+            height: 380px;
             break-inside: avoid;
             page-break-inside: avoid;
         }
@@ -224,7 +224,7 @@
         }
 
         /* ===== SCALING FOR 3 & 4 COLUMNS ===== */
-        .cols-3 .label-card { padding: 10px; min-height: 160px; }
+        .cols-3 .label-card { padding: 10px; height: 290px; }
         .cols-3 .label-header h1 { font-size: 12px; }
         .cols-3 .label-header .company { font-size: 7px; }
         .cols-3 .label-badge { font-size: 9px; padding: 3px 6px; }
@@ -234,9 +234,9 @@
         .cols-3 .field-value { font-size: 8px; }
         .cols-3 .piece-no { font-size: 14px; }
         .cols-3 .piece-total { font-size: 8px; }
-        .cols-3 .qc-signature-box { width: 90px !important; height: 28px !important; }
+        .cols-3 .qc-signature-box { width: 90px !important; height: 50px !important; }
 
-        .cols-4 .label-card { padding: 8px; min-height: 140px; }
+        .cols-4 .label-card { padding: 8px; height: 250px; }
         .cols-4 .label-header h1 { font-size: 10px; }
         .cols-4 .label-header .company { font-size: 6px; }
         .cols-4 .label-badge { font-size: 8px; padding: 2px 4px; }
@@ -246,7 +246,7 @@
         .cols-4 .field-value { font-size: 7px; }
         .cols-4 .piece-no { font-size: 12px; }
         .cols-4 .piece-total { font-size: 7px; }
-        .cols-4 .qc-signature-box { width: 70px !important; height: 24px !important; }
+        .cols-4 .qc-signature-box { width: 70px !important; height: 40px !important; }
         .cols-4 .qc-signature-box span { font-size: 5px !important; }
 
         /* ===== PRINT STYLES ===== */
@@ -280,7 +280,6 @@
                 border: 1.5px solid #111;
                 border-radius: 4px;
                 padding: 8px;
-                min-height: 0;
                 break-inside: avoid;
                 page-break-inside: avoid;
             }
@@ -337,13 +336,13 @@
                         ? url('file/storage/' . ltrim(str_replace('public/', '', $labelImgPath), '/'))
                         : null;
                 @endphp
-                @if($labelImgUrl)
-                <div style="width:100%;text-align:center;margin:4px 0;">
+                <div style="width:100%;text-align:center;margin:4px 0; min-height: 75px; display:flex; align-items:center; justify-content:center;">
+                    @if($labelImgUrl)
                     <img src="{{ $labelImgUrl }}"
                          alt="Part Image"
                          style="max-height:70px;max-width:100%;object-fit:contain;display:inline-block;">
+                    @endif
                 </div>
-                @endif
 
                 <div class="label-fields">
                     <div>
@@ -374,7 +373,7 @@
                         &nbsp;|&nbsp;
                         {{ optional($part->checksheet)->qe_check_date ? \Carbon\Carbon::parse($part->checksheet->qe_check_date)->format('d M Y') : \Carbon\Carbon::now()->format('d M Y') }}
                     </span>
-                    <div class="qc-signature-box" style="border: 1px solid #94a3b8; width: 120px; height: 35px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px 4px; background: #f8fafc;">
+                    <div class="qc-signature-box" style="border: 1px solid #94a3b8; width: 120px; height: 75px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px 4px; background: #f8fafc;">
                         <span style="font-size: 7px; font-weight: bold; color: #64748b; text-transform: uppercase;">QC Signature</span>
                     </div>
                 </div>

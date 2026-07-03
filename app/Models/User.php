@@ -95,14 +95,14 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(\App\Models\NpcRole::class, 'user_scope_roles', 'user_id', 'role_id', 'id', 'id')
                     ->withoutGlobalScope('scope_npc')
-                    ->wherePivot('scope_id', 'app_npc');
+                    ->withPivotValue('scope_id', 'app_npc');
     }
 
     public function specificMenus()
     {
         return $this->belongsToMany(\App\Models\NpcMenu::class, 'user_scope_permissions', 'user_id', 'menu_id', 'id', 'id')
-            ->withPivot(['scope_id', 'permission_id', 'access_type'])
-            ->wherePivot('scope_id', 'app_npc');
+            ->withPivot(['permission_id', 'access_type'])
+            ->withPivotValue('scope_id', 'app_npc');
     }
 
     public function getAllAccessibleMenus()

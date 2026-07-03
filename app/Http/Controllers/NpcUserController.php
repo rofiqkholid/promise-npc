@@ -148,21 +148,23 @@ class NpcUserController extends Controller
         // Synchronize individual permissions
         $permissions = $request->input('permissions', []);
         
-        $syncData = [];
+        $permMap = \Illuminate\Support\Facades\DB::table('permissions')->pluck('id', 'permission_name');
+        
+        \Illuminate\Support\Facades\DB::table('user_scope_permissions')
+            ->where('user_id', $user->id)
+            ->where('scope_id', 'app_npc')
+            ->delete();
+
         foreach ($permissions as $menuId => $perms) {
-            // Only save if at least one permission is explicitly checked
-            if (isset($perms['can_view']) || isset($perms['can_create']) || isset($perms['can_update']) || isset($perms['can_delete']) || isset($perms['can_approve'])) {
-                $syncData[$menuId] = [
-                    'can_view' => isset($perms['can_view']) ? 1 : 0,
-                    'can_create' => isset($perms['can_create']) ? 1 : 0,
-                    'can_update' => isset($perms['can_update']) ? 1 : 0,
-                    'can_delete' => isset($perms['can_delete']) ? 1 : 0,
-                    'can_approve' => isset($perms['can_approve']) ? 1 : 0,
-                ];
+            foreach (['view', 'create', 'update', 'delete', 'approve'] as $action) {
+                if (isset($perms['can_' . $action]) && isset($permMap[$action])) {
+                    $user->specificMenus()->attach($menuId, [
+                        'permission_id' => $permMap[$action],
+                        'access_type' => 'ALLOW'
+                    ]);
+                }
             }
         }
-
-        $user->specificMenus()->sync($syncData);
 
         return redirect()->route('master.npc-users.index')->with('success', 'NPC User roles and permissions updated successfully.');
     }
