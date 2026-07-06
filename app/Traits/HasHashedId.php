@@ -13,7 +13,7 @@ trait HasHashedId
      */
     public function getHashedIdAttribute()
     {
-        $hashids = new Hashids(env('APP_KEY'), 10);
+        $hashids = new Hashids(config('app.key'), 10);
         return $hashids->encode($this->id);
     }
 
@@ -31,7 +31,7 @@ trait HasHashedId
             return parent::resolveRouteBinding($value, $field);
         }
 
-        $hashids = new Hashids(env('APP_KEY'), 10);
+        $hashids = new Hashids(config('app.key'), 10);
         $decoded = $hashids->decode($value);
 
         if (empty($decoded)) {
