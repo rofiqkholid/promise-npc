@@ -14,7 +14,7 @@ class NpcPartController extends Controller
     public function index(Request $request, NpcEvent $event)
     {
         if ($request->ajax()) {
-            $query = clone $event->parts()->with('product', 'event');
+            $query = clone $event->parts()->with('product.vehicleModel', 'event');
 
             return \Yajra\DataTables\Facades\DataTables::of($query)
                 ->order(function ($q) {
@@ -26,6 +26,9 @@ class NpcPartController extends Controller
                 })
                 ->addColumn('part_no', function ($part) {
                     return '<span class="text-blue-600 dark:text-blue-400 text-sm font-semibold">' . optional($part->product)->part_no . '</span>';
+                })
+                ->addColumn('model', function ($part) {
+                    return '<span class="text-slate-600 dark:text-slate-400 text-sm">' . optional(optional($part->product)->vehicleModel)->name . '</span>';
                 })
                 ->addColumn('part_name', function ($part) {
                     return '<span class="text-slate-600 dark:text-slate-400 text-sm">' . optional($part->product)->part_name . '</span>';
@@ -55,7 +58,7 @@ class NpcPartController extends Controller
                         'deleteUrl' => route('events.parts.destroy', [$event->hashed_id, $part->hashed_id])
                     ])->render();
                 })
-                ->rawColumns(['po_no', 'part_no', 'part_name', 'qty', 'delv_date', 'status_label', 'action'])
+                ->rawColumns(['po_no', 'part_no', 'model', 'part_name', 'qty', 'delv_date', 'status_label', 'action'])
                 ->make(true);
         }
 
@@ -69,12 +72,14 @@ class NpcPartController extends Controller
 
     public function store(Request $request, \App\Models\NpcEvent $event)
     {
+        $modelId = optional(optional($event->parts()->first())->product)->model_id;
+
         $request->validate([
             'part_no' => [
                 'required',
                 'string',
                 'max:255',
-                \Illuminate\Validation\Rule::exists('products', 'part_no')->where('model_id', $event->model_id)
+                \Illuminate\Validation\Rule::exists('products', 'part_no')->where('model_id', $modelId)
             ],
             'part_name' => 'required|string|max:255',
             'qty' => 'required|integer|min:1',
@@ -83,7 +88,10 @@ class NpcPartController extends Controller
             'part_no.exists' => "The Part Number you entered is invalid or not part of this event's Model."
         ]);
 
-        $product = \App\Models\Product::with('docPackage')->where('part_no', $request->part_no)->first();
+        $product = \App\Models\Product::with('docPackage')
+            ->where('part_no', $request->part_no)
+            ->where('model_id', $modelId)
+            ->first();
 
         $currentRevisionId = null;
         if ($product && $product->docPackage) {
@@ -111,12 +119,14 @@ class NpcPartController extends Controller
 
     public function update(Request $request, \App\Models\NpcEvent $event, \App\Models\NpcPart $part)
     {
+        $modelId = optional(optional($event->parts()->first())->product)->model_id;
+
         $request->validate([
             'part_no' => [
                 'required',
                 'string',
                 'max:255',
-                \Illuminate\Validation\Rule::exists('products', 'part_no')->where('model_id', $event->model_id)
+                \Illuminate\Validation\Rule::exists('products', 'part_no')->where('model_id', $modelId)
             ],
             'part_name' => 'required|string|max:255',
             'qty' => 'required|integer|min:1',
@@ -125,7 +135,9 @@ class NpcPartController extends Controller
             'part_no.exists' => "The Part Number you entered is invalid or not part of this event's Model."
         ]);
 
-        $product = \App\Models\Product::where('part_no', $request->part_no)->first();
+        $product = \App\Models\Product::where('part_no', $request->part_no)
+            ->where('model_id', $modelId)
+            ->first();
 
         $part->update([
             'npc_event_id' => $event->id,

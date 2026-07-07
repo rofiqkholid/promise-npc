@@ -136,8 +136,11 @@ class NpcEventController extends Controller
         ]);
 
         foreach ($request->parts as $partData) {
-            // Coba cari produk berdasarkan part_no
-            $product = \App\Models\Product::with('docPackage')->where('part_no', $partData['part_no'])->first();
+            // Coba cari produk berdasarkan part_no dan model_id
+            $product = \App\Models\Product::with('docPackage')
+                ->where('part_no', $partData['part_no'])
+                ->where('model_id', $request->model_id)
+                ->first();
             $processName = null;
             $departmentName = 'PUD';
 
@@ -233,7 +236,10 @@ class NpcEventController extends Controller
 
         $existingPartIds = [];
         foreach ($request->parts as $partData) {
-            $product = \App\Models\Product::with('docPackage')->where('part_no', $partData['part_no'])->first();
+            $product = \App\Models\Product::with('docPackage')
+                ->where('part_no', $partData['part_no'])
+                ->where('model_id', $request->model_id)
+                ->first();
             if (!$product) continue;
 
             $currentRevisionId = null;

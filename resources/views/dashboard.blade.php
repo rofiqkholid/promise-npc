@@ -430,6 +430,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set defaults for Chart.js
     Chart.defaults.color = textColor;
     Chart.defaults.font.family = "'Outfit', sans-serif";
+    
+    // Register DataLabels plugin globally if available
+    if (typeof ChartDataLabels !== 'undefined') {
+        Chart.register(ChartDataLabels);
+    }
 
     // 1. Trend Chart (Horizontal Grouped Bar for Plan vs Actual)
     const trendCtx = document.getElementById('trendChart');
@@ -465,6 +470,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
+                    datalabels: {
+                        color: '#ffffff',
+                        font: { weight: 'bold', size: 11 },
+                        formatter: function(value) {
+                            return value > 0 ? value : '';
+                        },
+                        anchor: 'center',
+                        align: 'center'
+                    },
                     legend: {
                         position: 'top',
                         labels: { usePointStyle: true, boxWidth: 8 }
@@ -527,6 +541,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
+                    datalabels: { display: false },
                     legend: { display: false },
                     tooltip: {
                         backgroundColor: isDark ? '#1e293b' : '#ffffff',
@@ -572,6 +587,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 maintainAspectRatio: false,
                 cutout: '70%',
                 plugins: {
+                    datalabels: { display: false },
                     legend: {
                         position: 'bottom',
                         labels: { usePointStyle: true, padding: 20 }

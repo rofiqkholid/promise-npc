@@ -53,6 +53,7 @@
                         <th scope="col" class="px-4 py-2 font-semibold w-16">#</th>
                         <th scope="col" class="px-4 py-2 font-semibold">PO No</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Part No</th>
+                        <th scope="col" class="px-4 py-2 font-semibold">Model</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Part Name</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Qty</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Delv Date</th>
@@ -78,6 +79,7 @@
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-4 py-2 text-slate-800 dark:text-slate-200 text-[13px]' },
                 { data: 'po_no', name: 'po_no', className: 'px-4 py-2', orderable: false },
                 { data: 'part_no', name: 'part_no', className: 'px-4 py-2', orderable: false },
+                { data: 'model', name: 'model', className: 'px-4 py-2', orderable: false },
                 { data: 'part_name', name: 'part_name', className: 'px-4 py-2', orderable: false },
                 { data: 'qty', name: 'qty', className: 'px-4 py-2', orderable: false },
                 { data: 'delv_date', name: 'delv_date', className: 'px-4 py-2', orderable: false },

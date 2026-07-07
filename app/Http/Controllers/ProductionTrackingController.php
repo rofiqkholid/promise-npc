@@ -36,6 +36,13 @@ class ProductionTrackingController extends Controller
             });
         }
         
+        if (request()->has('model_filter') && request('model_filter') !== '') {
+            $modelFilter = request('model_filter');
+            $query->whereHas('product', function ($q) use ($modelFilter) {
+                $q->where('vehicle_model_id', $modelFilter);
+            });
+        }
+        
         return $query;
     }
 
