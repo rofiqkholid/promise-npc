@@ -223,6 +223,23 @@
             color: #6b7280;
         }
 
+        .img-wrapper {
+            width: 100%;
+            text-align: center;
+            margin: 4px 0;
+            min-height: 75px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .part-img {
+            max-height: 70px;
+            max-width: 100%;
+            object-fit: contain;
+            display: inline-block;
+        }
+
         /* ===== SCALING FOR 3 & 4 COLUMNS ===== */
         .cols-3 .label-card { padding: 10px; height: 290px; }
         .cols-3 .label-header h1 { font-size: 12px; }
@@ -235,6 +252,8 @@
         .cols-3 .piece-no { font-size: 14px; }
         .cols-3 .piece-total { font-size: 8px; }
         .cols-3 .signature-box { width: 90px !important; height: 50px !important; }
+        .cols-3 .img-wrapper { min-height: 45px !important; margin: 2px 0 !important; }
+        .cols-3 .part-img { max-height: 40px !important; }
 
         .cols-4 .label-card { padding: 8px; height: 250px; }
         .cols-4 .label-header h1 { font-size: 10px; }
@@ -248,6 +267,8 @@
         .cols-4 .piece-total { font-size: 7px; }
         .cols-4 .signature-box { width: 70px !important; height: 40px !important; }
         .cols-4 .signature-box span { font-size: 5px !important; }
+        .cols-4 .img-wrapper { min-height: 35px !important; margin: 2px 0 !important; }
+        .cols-4 .part-img { max-height: 30px !important; }
 
         /* ===== PRINT STYLES ===== */
         @media print {
@@ -336,11 +357,9 @@
                         ? url('file/storage/' . ltrim(str_replace('public/', '', $labelImgPath), '/'))
                         : null;
                 @endphp
-                <div style="width:100%;text-align:center;margin:4px 0; min-height: 75px; display:flex; align-items:center; justify-content:center;">
+                <div class="img-wrapper">
                     @if($labelImgUrl)
-                    <img src="{{ $labelImgUrl }}"
-                         alt="Part Image"
-                         style="max-height:70px;max-width:100%;object-fit:contain;display:inline-block;">
+                    <img src="{{ $labelImgUrl }}" class="part-img" alt="Part Image">
                     @endif
                 </div>
 
