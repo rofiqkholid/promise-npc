@@ -57,6 +57,13 @@ class ProductionTrackingController extends Controller
                     $query->orderBy('created_at', 'desc');
                 })
                 ->addIndexColumn()
+                ->addColumn('checkbox', function($part) {
+                    // Only show checkbox if checksheet exists
+                    if ($part->checksheet) {
+                        return '<input type="checkbox" class="part-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" value="'.$part->hashed_id.'" @click.stop="togglePart(\''.$part->hashed_id.'\')" :checked="selectedParts.includes(\''.$part->hashed_id.'\')">';
+                    }
+                    return '';
+                })
                 ->addColumn('part_info', function ($part) {
                     return view('tracking.columns.part_info', compact('part'))->render();
                 });
@@ -72,7 +79,7 @@ class ProductionTrackingController extends Controller
                 ->addColumn('action_qc', function ($part) {
                     return view('tracking.columns.action_qc', compact('part'))->render();
                 });
-                $dt->rawColumns(['part_info', 'status_po', 'qc_progress', 'action_qc']);
+                $dt->rawColumns(['checkbox', 'part_info', 'status_po', 'qc_progress', 'action_qc']);
             } elseif ($viewFile === 'tracking.production') {
                 $dt->addColumn('status_po', function ($part) {
                     return view('tracking.columns.status_production', compact('part'))->render();

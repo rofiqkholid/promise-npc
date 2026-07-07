@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Print Quality Label - {{ optional($part->product)->part_no }}</title>
+    @php
+        $printParts = isset($parts) ? $parts : (isset($part) ? collect([$part]) : collect([]));
+        $titlePartNo = isset($part) ? optional($part->product)->part_no : 'Bulk';
+    @endphp
+    <title>Print Quality Label - {{ $titlePartNo }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -304,16 +308,30 @@
                 break-inside: avoid;
                 page-break-inside: avoid;
             }
+            .page-break {
+                page-break-after: always;
+            }
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="bg-gray-200 text-gray-800">
 
-    <!-- ===== CONTROL BAR (no-print) ===== -->
-    <div class="no-print">
-        <div>
-            <h2><i class="fa-solid fa-tags mr-2"></i>Quality Label Print Preview</h2>
-            <p class="info-text">Part: <strong style="color:#f1f5f9">{{ optional($part->product)->part_no ?? '-' }}</strong> &nbsp;|&nbsp; Total Qty: <strong style="color:#f1f5f9">{{ $part->qty }} PCS</strong> &nbsp;|&nbsp; {{ $part->qty }} labels will be printed</p>
+    <!-- Top Bar (No Print) -->
+    <div class="no-print bg-slate-800 text-slate-200 py-3 px-6 shadow-md flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-4">
+            <i class="fa-solid fa-tags text-blue-400 text-xl"></i>
+            <div>
+                <h1 class="font-bold text-lg leading-tight">Quality Label Print Preview</h1>
+                <p class="text-xs text-slate-400">
+                    @if(isset($part))
+                        Part: <strong class="text-white">{{ optional($part->product)->part_no ?? 'UNKNOWN' }}</strong> | 
+                        Total Qty: <strong class="text-white">{{ $part->qty }} PCS</strong> | 
+                        {{ $part->qty }} labels will be printed
+                    @else
+                        Multiple Parts Selected | Total Labels: <strong class="text-white">{{ $printParts->sum('qty') }}</strong>
+                    @endif
+                </p>
+            </div>
         </div>
         <div class="controls">
             <label for="cols-select"><i class="fa-solid fa-grip mr-1"></i> Labels per row:</label>
@@ -334,6 +352,7 @@
 
     <!-- ===== LABELS GRID ===== -->
     <div id="labels-wrapper" class="cols-2">
+        @foreach($printParts as $part)
         @for($i = 1; $i <= $part->qty; $i++)
         <div class="label-card">
             <!-- Header -->
@@ -408,6 +427,7 @@
             </div>
         </div>
         @endfor
+        @endforeach
     </div>
 
     <script>

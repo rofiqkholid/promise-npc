@@ -813,4 +813,37 @@ class NpcChecksheetController extends Controller
 
         return view('npc_checksheets.label_print', compact('part'));
     }
+
+    /**
+     * Print multiple QC Quality Labels for bulk parts
+     */
+    public function bulkPrintLabel(Request $request)
+    {
+        $partIds = $request->input('part_ids', []);
+        
+        if (empty($partIds)) {
+            return redirect()->back()->with('error', 'No parts selected for printing.');
+        }
+
+        // Decode hashed IDs
+        $hashids = new \Hashids\Hashids(env('APP_KEY'), 10);
+        $decodedIds = [];
+        foreach($partIds as $hash) {
+            $decoded = $hashids->decode($hash);
+            if(!empty($decoded)) {
+                $decodedIds[] = $decoded[0];
+            }
+        }
+
+        $parts = \App\Models\NpcPart::with(['product.vehicleModel.customer', 'product.docPackage.currentRevision', 'product.productDetail', 'checksheet.qeChecker', 'event.customerCategory'])
+            ->whereIn('id', $decodedIds)
+            ->whereHas('checksheet') // Pastikan sudah ada checksheet
+            ->get();
+
+        if ($parts->isEmpty()) {
+            return redirect()->back()->with('error', 'No valid parts with QC data found for printing.');
+        }
+
+        return view('npc_checksheets.label_print', compact('parts'));
+    }
 }

@@ -206,6 +206,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/tracking/products/{product}/checksheet-setup', [ProductChecksheetSetupController::class, 'update'])->name('checksheets.setup.update');
     Route::get('/tracking/products/{product}/checksheet-setup/preview', [ProductChecksheetSetupController::class, 'preview'])->name('checksheets.setup.preview');
     Route::get('/tracking/{part}/checksheet/create', [NpcChecksheetController::class, 'create'])->name('checksheets.create');
+    Route::post('/tracking/bulk-print-labels', [NpcChecksheetController::class, 'bulkPrintLabel'])->name('checksheets.bulk-print-labels');
     Route::get('/tracking/{part}/print-label', [NpcChecksheetController::class, 'printLabel'])->name('checksheets.print-label');
     Route::get('/checksheets/{checksheet}/preview', [NpcChecksheetController::class, 'preview'])->name('checksheets.preview');
     Route::get('/checksheets/{checksheet}/export', [NpcChecksheetController::class, 'export'])->name('checksheets.export');
