@@ -35,9 +35,11 @@ class NpcChecksheet extends Model
         'final_result',
         'qe_staff_id', 'qe_staff_date',
         'qe_spv_id', 'qe_spv_date',
+        'qe_assman_id', 'qe_assman_date',
         'qe_mgr_id', 'qe_mgr_date',
         'mgm_staff_id', 'mgm_staff_date',
         'mgm_spv_id', 'mgm_spv_date',
+        'mgm_assman_id', 'mgm_assman_date',
         'mgm_mgr_id', 'mgm_mgr_date',
         'approval_status',
     ];
@@ -90,5 +92,15 @@ class NpcChecksheet extends Model
     public function mgmMgr()
     {
         return $this->belongsTo(User::class, 'mgm_mgr_id', 'id');
+    }
+
+    public function qeAssman()
+    {
+        return $this->belongsTo(User::class, 'qe_assman_id', 'id');
+    }
+
+    public function mgmAssman()
+    {
+        return $this->belongsTo(User::class, 'mgm_assman_id', 'id');
     }
 }

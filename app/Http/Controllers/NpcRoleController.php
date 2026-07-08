@@ -52,7 +52,10 @@ class NpcRoleController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        \App\Models\NpcRole::create($request->all());
+        $data = $request->all();
+        $data['role_name'] = $data['name'];
+
+        \App\Models\NpcRole::create($data);
 
         return redirect()->route('master.roles.index')->with('success', 'Role created successfully. You can now configure its permissions.');
     }
@@ -103,7 +106,9 @@ class NpcRoleController extends Controller
         ]);
 
         // Update role basic info
-        $role->update($request->only(['code', 'name', 'description']));
+        $data = $request->only(['code', 'name', 'description']);
+        $data['role_name'] = $data['name'];
+        $role->update($data);
 
         // Synchronize permissions
         $permissions = $request->input('permissions', []);

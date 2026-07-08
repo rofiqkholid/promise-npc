@@ -47,13 +47,15 @@ class NpcChecksheetApprovalController extends Controller
                 })
                 ->addColumn('approval_stage', function ($checksheet) {
                     $levelMap = [
-                        'WAITING_QE_STAFF' => 'QE Staff / SPV',
-                        'WAITING_MGM_STAFF' => 'NPC Staff / SPV',
-                        'WAITING_QE_SPV' => 'QE Asst Mgr',
-                        'WAITING_MGM_SPV' => 'NPC Asst Mgr',
-                        'WAITING_QE_MGR' => 'QE Mgr',
-                        'WAITING_MGM_MGR' => 'NPC Mgr',
-                        'APPROVED' => 'Fully Approved'
+                        'WAITING_QE_STAFF'   => 'QE Staff',
+                        'WAITING_MGM_STAFF'  => 'NPC Staff',
+                        'WAITING_QE_SPV'     => 'QE SPV',
+                        'WAITING_MGM_SPV'    => 'NPC SPV',
+                        'WAITING_QE_ASSMAN'  => 'QE Asst Mgr',
+                        'WAITING_MGM_ASSMAN' => 'NPC Asst Mgr',
+                        'WAITING_QE_MGR'     => 'QE Mgr',
+                        'WAITING_MGM_MGR'    => 'NPC Mgr',
+                        'APPROVED'           => 'Fully Approved'
                     ];
                     $levelName = $levelMap[$checksheet->approval_status] ?? str_replace('WAITING_', '', $checksheet->approval_status);
                     
@@ -122,7 +124,35 @@ class NpcChecksheetApprovalController extends Controller
         $updateData = [];
 
         // Check RBAC Authorization using our new double-layer check
-        if (!auth()->check() || !auth()->user()->canApproveChecksheetStage($status)) {
+        if (!auth()->check()) {
+            abort(403, 'Unauthorized');
+        }
+        
+        if ($action === 'rollback') {
+            if (!auth()->user()->roles->contains('code', 'admin')) {
+                abort(403, 'Only Admins can rollback approvals.');
+            }
+            
+            $checksheet->update([
+                'approval_status' => 'WAITING_QE_STAFF',
+                'qe_staff_id' => null, 'qe_staff_date' => null,
+                'mgm_staff_id' => null, 'mgm_staff_date' => null,
+                'qe_spv_id' => null, 'qe_spv_date' => null,
+                'mgm_spv_id' => null, 'mgm_spv_date' => null,
+                'qe_assman_id' => null, 'qe_assman_date' => null,
+                'mgm_assman_id' => null, 'mgm_assman_date' => null,
+                'qe_mgr_id' => null, 'qe_mgr_date' => null,
+                'mgm_mgr_id' => null, 'mgm_mgr_date' => null,
+            ]);
+            
+            if ($part) {
+                $part->update(['status' => 'WAITING_APPROVAL']);
+            }
+            
+            return redirect()->route('checksheet-approvals.index')->with('success', 'Checksheet has been successfully rolled back to the first step.');
+        }
+
+        if (!auth()->user()->canApproveChecksheetStage($status)) {
             abort(403, 'You do not have the required Role or Permission to approve/reject at this stage.');
         }
 
@@ -132,6 +162,14 @@ class NpcChecksheetApprovalController extends Controller
                 $updateData['qe_mgr_id'] = null;
                 $updateData['qe_mgr_date'] = null;
             } elseif ($status === 'WAITING_QE_MGR') {
+                $updateData['approval_status'] = 'WAITING_MGM_ASSMAN';
+                $updateData['mgm_assman_id'] = null;
+                $updateData['mgm_assman_date'] = null;
+            } elseif ($status === 'WAITING_MGM_ASSMAN') {
+                $updateData['approval_status'] = 'WAITING_QE_ASSMAN';
+                $updateData['qe_assman_id'] = null;
+                $updateData['qe_assman_date'] = null;
+            } elseif ($status === 'WAITING_QE_ASSMAN') {
                 $updateData['approval_status'] = 'WAITING_MGM_SPV';
                 $updateData['mgm_spv_id'] = null;
                 $updateData['mgm_spv_date'] = null;
@@ -174,6 +212,14 @@ class NpcChecksheetApprovalController extends Controller
         } elseif ($status === 'WAITING_MGM_SPV') {
             $updateData['mgm_spv_id'] = $userId;
             $updateData['mgm_spv_date'] = $now;
+            $updateData['approval_status'] = 'WAITING_QE_ASSMAN';
+        } elseif ($status === 'WAITING_QE_ASSMAN') {
+            $updateData['qe_assman_id'] = $userId;
+            $updateData['qe_assman_date'] = $now;
+            $updateData['approval_status'] = 'WAITING_MGM_ASSMAN';
+        } elseif ($status === 'WAITING_MGM_ASSMAN') {
+            $updateData['mgm_assman_id'] = $userId;
+            $updateData['mgm_assman_date'] = $now;
             $updateData['approval_status'] = 'WAITING_QE_MGR';
         } elseif ($status === 'WAITING_QE_MGR') {
             $updateData['qe_mgr_id'] = $userId;

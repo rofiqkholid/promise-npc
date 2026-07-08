@@ -207,12 +207,14 @@ class User extends Authenticatable
 
         // 2. Lapis Kedua: Pastikan Job Title role sesuai dengan tahapan (stage)
         $stageRoleMap = [
-            'WAITING_QE_STAFF' => 'qe_staff',
-            'WAITING_MGM_STAFF' => 'npc_staff',
-            'WAITING_QE_SPV'   => 'qe_asst_mgr',
-            'WAITING_MGM_SPV'  => 'npc_asst_mgr',
-            'WAITING_QE_MGR'   => 'qe_mgr',
-            'WAITING_MGM_MGR'  => 'npc_mgr',
+            'WAITING_QE_STAFF'   => 'qe_staff',
+            'WAITING_MGM_STAFF'  => 'npc_staff',
+            'WAITING_QE_SPV'     => 'qe_spv',
+            'WAITING_MGM_SPV'    => 'npc_spv',
+            'WAITING_QE_ASSMAN'  => 'qe_asst_mgr',
+            'WAITING_MGM_ASSMAN' => 'npc_asst_mgr',
+            'WAITING_QE_MGR'     => 'qe_mgr',
+            'WAITING_MGM_MGR'    => 'npc_mgr',
         ];
 
         // Jika stage tidak ada di map, kembalikan false demi keamanan

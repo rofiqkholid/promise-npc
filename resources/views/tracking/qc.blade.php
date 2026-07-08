@@ -16,6 +16,7 @@
 
     <!-- Bulk Print Bar -->
     <div x-data="{
+        activePhotoModal: null,
         selectedParts: [],
         selectAll: false,
         toggleAll(event) {
@@ -110,9 +111,7 @@
 @push('scripts')
 <script>
     document.addEventListener('alpine:init', () => {
-        Alpine.data('qcPage', () => ({
-            activePhotoModal: null
-        }));
+        // Alpine data removed as we merged activePhotoModal into the main x-data wrapper
     });
 
     $(document).ready(function() {
