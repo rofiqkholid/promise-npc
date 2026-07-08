@@ -112,9 +112,9 @@ Route::middleware(['auth'])->group(function () {
                     })->orWhereHas('mappedCheckpoints');
                 });
             }
-            // Filter by model_id if provided
-            if ($request->filled('model_id')) {
-                $query->where('model_id', $request->model_id);
+            // Filter by customer_id if provided
+            if ($request->filled('customer_id')) {
+                $query->where('customer_id', $request->customer_id);
             }
 
             if ($request->filled('search')) {

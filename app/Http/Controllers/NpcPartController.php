@@ -72,25 +72,25 @@ class NpcPartController extends Controller
 
     public function store(Request $request, \App\Models\NpcEvent $event)
     {
-        $modelId = optional(optional($event->parts()->first())->product)->model_id;
+        $customerId = optional($event->customerCategory)->customer_id;
 
         $request->validate([
             'part_no' => [
                 'required',
                 'string',
                 'max:255',
-                \Illuminate\Validation\Rule::exists('products', 'part_no')->where('model_id', $modelId)
+                \Illuminate\Validation\Rule::exists('products', 'part_no')->where('customer_id', $customerId)
             ],
             'part_name' => 'required|string|max:255',
             'qty' => 'required|integer|min:1',
             'delivery_date' => 'required|date',
         ], [
-            'part_no.exists' => "The Part Number you entered is invalid or not part of this event's Model."
+            'part_no.exists' => "The Part Number you entered is invalid or not part of this event's Customer."
         ]);
 
         $product = \App\Models\Product::with('docPackage')
             ->where('part_no', $request->part_no)
-            ->where('model_id', $modelId)
+            ->where('customer_id', $customerId)
             ->first();
 
         $currentRevisionId = null;
@@ -119,24 +119,24 @@ class NpcPartController extends Controller
 
     public function update(Request $request, \App\Models\NpcEvent $event, \App\Models\NpcPart $part)
     {
-        $modelId = optional(optional($event->parts()->first())->product)->model_id;
+        $customerId = optional($event->customerCategory)->customer_id;
 
         $request->validate([
             'part_no' => [
                 'required',
                 'string',
                 'max:255',
-                \Illuminate\Validation\Rule::exists('products', 'part_no')->where('model_id', $modelId)
+                \Illuminate\Validation\Rule::exists('products', 'part_no')->where('customer_id', $customerId)
             ],
             'part_name' => 'required|string|max:255',
             'qty' => 'required|integer|min:1',
             'delivery_date' => 'required|date'
         ], [
-            'part_no.exists' => "The Part Number you entered is invalid or not part of this event's Model."
+            'part_no.exists' => "The Part Number you entered is invalid or not part of this event's Customer."
         ]);
 
         $product = \App\Models\Product::where('part_no', $request->part_no)
-            ->where('model_id', $modelId)
+            ->where('customer_id', $customerId)
             ->first();
 
         $part->update([

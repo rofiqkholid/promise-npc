@@ -118,7 +118,7 @@ class NpcEventController extends Controller
             'parts.*.part_no' => [
                 'required',
                 'string',
-                \Illuminate\Validation\Rule::exists('products', 'part_no')->where('model_id', $request->model_id)
+                \Illuminate\Validation\Rule::exists('products', 'part_no')->where('customer_id', $request->customer_id)
             ],
             'parts.*.part_name' => 'nullable|string',
             'parts.*.qty' => 'required|integer|min:1',
@@ -136,10 +136,10 @@ class NpcEventController extends Controller
         ]);
 
         foreach ($request->parts as $partData) {
-            // Coba cari produk berdasarkan part_no dan model_id
+            // Coba cari produk berdasarkan part_no dan customer_id
             $product = \App\Models\Product::with('docPackage')
                 ->where('part_no', $partData['part_no'])
-                ->where('model_id', $request->model_id)
+                ->where('customer_id', $request->customer_id)
                 ->first();
             $processName = null;
             $departmentName = 'PUD';
@@ -217,7 +217,7 @@ class NpcEventController extends Controller
             'parts.*.part_no' => [
                 'required',
                 'string',
-                \Illuminate\Validation\Rule::exists('products', 'part_no')->where('model_id', $request->model_id)
+                \Illuminate\Validation\Rule::exists('products', 'part_no')->where('customer_id', $request->customer_id)
             ],
             'parts.*.part_name' => 'nullable|string',
             'parts.*.qty' => 'required|integer|min:1',
@@ -238,7 +238,7 @@ class NpcEventController extends Controller
         foreach ($request->parts as $partData) {
             $product = \App\Models\Product::with('docPackage')
                 ->where('part_no', $partData['part_no'])
-                ->where('model_id', $request->model_id)
+                ->where('customer_id', $request->customer_id)
                 ->first();
             if (!$product) continue;
 

@@ -108,7 +108,7 @@
         const searchResults = document.getElementById('search_results');
         const partNoInput = document.getElementById('part_no_input');
         const partNameInput = document.getElementById('part_name_input');
-        const modelId = "{{ $event->model_id }}";
+        const customerId = "{{ optional($event->customerCategory)->customer_id }}";
         
         let debounceTimer;
 
@@ -119,7 +119,7 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({ search: query, model_id: modelId })
+                body: JSON.stringify({ search: query, customer_id: customerId })
             })
             .then(response => response.json())
             .then(data => {

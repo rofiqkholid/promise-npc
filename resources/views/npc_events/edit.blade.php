@@ -301,7 +301,7 @@
                 fetch("{{ route('api.data.products') }}", {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'},
-                    body: JSON.stringify({ search: q, model_id: document.getElementById('model_select').value })
+                    body: JSON.stringify({ search: q, customer_id: document.getElementById('customer_select').value })
                 })
                 .then(r => r.json())
                 .then(data => {
