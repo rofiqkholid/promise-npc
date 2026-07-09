@@ -36,11 +36,22 @@ class ProductionTrackingController extends Controller
             });
         }
         
+        if (request()->has('customer_filter') && request('customer_filter') !== '') {
+            $customerFilter = request('customer_filter');
+            $query->whereHas('product.vehicleModel', function ($q) use ($customerFilter) {
+                $q->where('customer_id', $customerFilter);
+            });
+        }
+
         if (request()->has('model_filter') && request('model_filter') !== '') {
             $modelFilter = request('model_filter');
             $query->whereHas('product', function ($q) use ($modelFilter) {
                 $q->where('vehicle_model_id', $modelFilter);
             });
+        }
+
+        if (request()->has('status_filter') && request('status_filter') !== '') {
+            $query->where('status', request('status_filter'));
         }
         
         return $query;
@@ -121,7 +132,14 @@ class ProductionTrackingController extends Controller
             $parts = $this->buildQuery($statusParam, $search)->latest()->paginate(15);
         }
         
-        return view($viewFile, compact('parts', 'statusParam', 'pageTitle', 'pageIcon', 'pageDesc'));
+        $customers = \App\Models\Customer::orderBy('name')->get();
+        $models = \App\Models\VehicleModel::orderBy('name')->get();
+        
+        // Conditional Status: only fetch statuses that are applicable for the current page
+        $baseQuery = $this->buildQuery($statusParam, null);
+        $status_options = $baseQuery->select('status')->distinct()->pluck('status');
+
+        return view($viewFile, compact('parts', 'statusParam', 'pageTitle', 'pageIcon', 'pageDesc', 'customers', 'models', 'status_options'));
     }
 
     public function index(\Illuminate\Http\Request $request)
@@ -183,13 +201,20 @@ class ProductionTrackingController extends Controller
         // Or simply empty collection
         $pos = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
 
+        $customers = \App\Models\Customer::orderBy('name')->get();
+        $models = \App\Models\VehicleModel::orderBy('name')->get();
+        $status_options = collect([]);
+
         return view('tracking.global', [
             'pos' => $pos,
             'statusParam' => 'all',
             'pageTitle' => 'Global Tracking',
             'pageIcon' => 'fa-globe',
             'pageDesc' => 'Track progress based on Purchase Order (PO)',
-            'metrics' => $metrics
+            'metrics' => $metrics,
+            'customers' => $customers,
+            'models' => $models,
+            'status_options' => $status_options
         ]);
     }
 

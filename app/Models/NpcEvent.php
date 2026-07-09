@@ -46,7 +46,8 @@ class NpcEvent extends Model
         'po_no',
         'delivery_to',
         'customer_category_id',
-        'delivery_group_id'
+        'delivery_group_id',
+        'model_id'
     ];
 
 
@@ -63,5 +64,10 @@ class NpcEvent extends Model
     public function deliveryGroup()
     {
         return $this->belongsTo(NpcDeliveryGroup::class, 'delivery_group_id');
+    }
+
+    public function vehicleModel()
+    {
+        return $this->belongsTo(VehicleModel::class, 'model_id');
     }
 }

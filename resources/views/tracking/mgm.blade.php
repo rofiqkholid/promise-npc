@@ -18,10 +18,17 @@
     <div class="p-6">
 
         <!-- Search Form -->
-        <div class="mb-4" x-data="{
+        <div class="mb-4 flex flex-col sm:flex-row gap-2" x-data="{
             searchQuery: '{{ request('search') }}',
+            customerFilter: '{{ request('customer_filter') }}',
+            modelFilter: '{{ request('model_filter') }}',
+            statusFilter: '{{ request('status_filter') }}',
             performSearch() {
-                fetch('{{ route('tracking.mgm') }}?search=' + encodeURIComponent(this.searchQuery))
+                let url = '{{ route('tracking.mgm') }}?search=' + encodeURIComponent(this.searchQuery) + 
+                          '&customer_filter=' + encodeURIComponent(this.customerFilter) + 
+                          '&model_filter=' + encodeURIComponent(this.modelFilter) + 
+                          '&status_filter=' + encodeURIComponent(this.statusFilter);
+                fetch(url)
                 .then(res => res.text())
                 .then(html => {
                     let doc = new DOMParser().parseFromString(html, 'text/html');
@@ -29,7 +36,7 @@
                     let pagination = document.querySelector('.p-4.border-t nav');
                     let newPagination = doc.querySelector('.p-4.border-t nav');
                     if(pagination && newPagination) pagination.parentElement.innerHTML = newPagination.parentElement.innerHTML;
-                    window.history.pushState(null, '', '?search=' + encodeURIComponent(this.searchQuery));
+                    window.history.pushState(null, '', url);
                 });
             }
         }">
@@ -47,6 +54,32 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
+            <div class="w-full sm:w-48">
+                <select x-model="customerFilter" @change="performSearch()" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-none">
+                    <option value="">All Customers</option>
+                    @foreach($customers ?? [] as $customer)
+                        <option value="{{ $customer->id }}">{{ $customer->code }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="w-full sm:w-48">
+                <select x-model="modelFilter" @change="performSearch()" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-none">
+                    <option value="">All Models</option>
+                    @foreach($models ?? [] as $mod)
+                        <option value="{{ $mod->id }}" x-show="!customerFilter || '{{ $mod->customer_id }}' == customerFilter">{{ $mod->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            @if(isset($status_options) && count($status_options) > 1)
+            <div class="w-full sm:w-48">
+                <select x-model="statusFilter" @change="performSearch()" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-none">
+                    <option value="">All Statuses</option>
+                    @foreach($status_options as $status)
+                        <option value="{{ $status }}">{{ $status }}</option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
         </div>
 
         <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">

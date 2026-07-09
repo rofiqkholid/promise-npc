@@ -22,6 +22,18 @@ class NpcMasterRoutingController extends Controller
                     $q->selectRaw('MIN(id)')->from('npc_master_routings')->groupBy('part_id');
                 });
 
+            if ($request->has('customer_id') && $request->customer_id != '') {
+                $query->whereHas('part.vehicleModel', function ($q) use ($request) {
+                    $q->where('customer_id', $request->customer_id);
+                });
+            }
+
+            if ($request->has('model_id') && $request->model_id != '') {
+                $query->whereHas('part', function ($q) use ($request) {
+                    $q->where('vehicle_model_id', $request->model_id);
+                });
+            }
+
             return \Yajra\DataTables\Facades\DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('part_no', function ($routing) {
@@ -77,8 +89,11 @@ class NpcMasterRoutingController extends Controller
                 ->rawColumns(['part_no', 'part_name', 'flow_process', 'action'])
                 ->make(true);
         }
+        
+        $customers = \App\Models\Customer::orderBy('name')->get();
+        $models = \App\Models\VehicleModel::orderBy('name')->get();
 
-        return view('master.routings.index');
+        return view('master.routings.index', compact('customers', 'models'));
     }
 
     public function create()

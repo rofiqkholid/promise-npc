@@ -19,7 +19,17 @@ class NpcEventController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = \App\Models\NpcEvent::with(['customerCategory.customer', 'deliveryGroup', 'parts.product.vehicleModel']);
+            $query = \App\Models\NpcEvent::with(['customerCategory.customer', 'deliveryGroup', 'vehicleModel']);
+
+            if ($request->has('customer_id') && $request->customer_id != '') {
+                $query->whereHas('customerCategory', function ($q) use ($request) {
+                    $q->where('customer_id', $request->customer_id);
+                });
+            }
+
+            if ($request->has('model_id') && $request->model_id != '') {
+                $query->where('model_id', $request->model_id);
+            }
 
             return \Yajra\DataTables\Facades\DataTables::of($query)
                 ->addIndexColumn()
@@ -32,7 +42,7 @@ class NpcEventController extends Controller
                     return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium">' . (optional(optional($event->customerCategory)->customer)->code ?? '-') . '</span>';
                 })
                 ->addColumn('model', function ($event) {
-                    return '<span class="text-gray-600 dark:text-gray-400 text-sm font-medium">' . (optional(optional(optional($event->parts->first())->product)->vehicleModel)->name ?? '-') . '</span>';
+                    return '<span class="text-gray-600 dark:text-gray-400 text-sm font-medium">' . (optional($event->vehicleModel)->name ?? '-') . '</span>';
                 })
                 ->addColumn('category', function ($event) {
                     return '<span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">' . (optional($event->customerCategory)->name ?? '-') . '</span>';
@@ -64,7 +74,7 @@ class NpcEventController extends Controller
                     });
                 })
                 ->filterColumn('model', function($query, $keyword) {
-                    $query->whereHas('parts.product.vehicleModel', function($q) use ($keyword) {
+                    $query->whereHas('vehicleModel', function($q) use ($keyword) {
                         $q->where('name', 'like', "%{$keyword}%");
                     });
                 })
@@ -81,8 +91,11 @@ class NpcEventController extends Controller
                 ->rawColumns(['event_name', 'customer', 'model', 'category', 'gr', 'delivery_to', 'action'])
                 ->make(true);
         }
+        
+        $customers = \App\Models\Customer::orderBy('name')->get();
+        $models = \App\Models\VehicleModel::orderBy('name')->get();
 
-        return view('npc_events.index');
+        return view('npc_events.index', compact('customers', 'models'));
     }
 
     public function create()
@@ -133,6 +146,7 @@ class NpcEventController extends Controller
             'customer_category_id' => $request->customer_category_id,
             'delivery_group_id' => $request->delivery_group_id,
             'delivery_to' => $request->delivery_to,
+            'model_id' => $request->model_id,
         ]);
 
         foreach ($request->parts as $partData) {
@@ -185,7 +199,7 @@ class NpcEventController extends Controller
     {
         $event->load('customerCategory', 'parts.product');
         $masterCustomerId = optional($event->customerCategory)->customer_id;
-        $masterModelId = optional(optional($event->parts->first())->product)->model_id;
+        $masterModelId = $event->model_id;
         
         $customers = \App\Models\Customer::orderBy('name')->get();
         $models = \App\Models\VehicleModel::where('customer_id', $masterCustomerId)->orderBy('name')->get();
@@ -232,6 +246,7 @@ class NpcEventController extends Controller
             'customer_category_id' => $request->customer_category_id,
             'delivery_group_id' => $request->delivery_group_id,
             'delivery_to' => $request->delivery_to,
+            'model_id' => $request->model_id,
         ]);
 
         $existingPartIds = [];

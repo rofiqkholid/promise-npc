@@ -18,6 +18,51 @@
 
     <!-- Table -->
     <div class="p-6">
+        <form id="searchForm" method="GET" action="{{ route('tracking.stock') }}" class="w-full mb-4">
+            <div class="flex flex-wrap gap-3 items-end">
+                <div class="w-full sm:w-48">
+                    <select name="customer_id" id="filter_customer" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none" onchange="document.getElementById('searchForm').submit()">
+                        <option value="">All Customers</option>
+                        @foreach($customers ?? [] as $customer)
+                            <option value="{{ $customer->id }}" {{ request('customer_filter') == $customer->id ? 'selected' : '' }}>
+                                {{ $customer->code }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <div class="w-full sm:w-48">
+                    <select name="model_id" id="filter_model" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none" onchange="document.getElementById('searchForm').submit()">
+                        <option value="">All Models</option>
+                        @foreach($models ?? [] as $model)
+                            <option value="{{ $model->id }}" {{ request('model_filter') == $model->id ? 'selected' : '' }} data-customer-id="{{ $model->customer_id }}">
+                                {{ $model->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                @if(isset($status_options) && count($status_options) > 1)
+                <div class="w-full sm:w-48">
+                    <select name="status_filter" id="filter_status" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none" onchange="document.getElementById('searchForm').submit()">
+                        <option value="">All Statuses</option>
+                        @foreach($status_options as $status)
+                            <option value="{{ $status }}" {{ request('status_filter') == $status ? 'selected' : '' }}>
+                                {{ $status }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
+                @if(request('search') || request('customer_filter') || request('model_filter') || request('status_filter'))
+                    <a href="{{ route('tracking.stock') }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 transition text-[13px] flex items-center gap-2 shadow-sm rounded-none" title="Clear Filters">
+                        <i class="fa-solid fa-xmark"></i> Clear
+                    </a>
+                @endif
+            </div>
+        </form>
+
         <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
             <table id="stockTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
@@ -96,7 +141,14 @@
 <script>
     $(document).ready(function() {
         initPromiseDataTable('#stockTable', {
-            ajax: "{{ route('tracking.stock') }}",
+            ajax: {
+                url: "{{ route('tracking.stock') }}",
+                data: function (d) {
+                    d.customer_filter = $('#filter_customer').val();
+                    d.model_filter = $('#filter_model').val();
+                    d.status_filter = $('#filter_status').val();
+                }
+            },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-4 py-2 text-slate-800 dark:text-slate-200 text-[13px]' },
                 { data: 'delivery_target', name: 'delivery_target', className: 'px-4 py-2', orderable: false },
@@ -106,6 +158,31 @@
                 { data: 'action_stock', name: 'action_stock', orderable: false, searchable: false, className: 'px-4 py-2 text-right pointer-events-auto' }
             ]
         });
+
+        // Filter models based on selected customer
+        function updateModelFilter() {
+            let selectedCustomer = $('#filter_customer').val();
+            let modelSelect = $('#filter_model');
+            let currentModel = modelSelect.val();
+            let modelValid = false;
+            
+            modelSelect.find('option').each(function() {
+                let custId = $(this).data('customer-id');
+                if (!custId || !selectedCustomer || custId == selectedCustomer) {
+                    $(this).show();
+                    if ($(this).val() == currentModel) modelValid = true;
+                } else {
+                    $(this).hide();
+                }
+            });
+            
+            if (!modelValid && currentModel != '') {
+                modelSelect.val('');
+            }
+        }
+        
+        $('#filter_customer').on('change', updateModelFilter);
+        updateModelFilter();
     });
 
     function openDeliverModal(id, maxQty, url, partNo) {
