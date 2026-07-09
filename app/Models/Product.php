@@ -44,7 +44,11 @@ class Product extends Model
 
     public function docPackage()
     {
-        return $this->hasOne(DocPackage::class, 'product_id')->where('is_active', true)->latest('id');
+        return $this->hasOne(DocPackage::class, 'product_id')
+            ->where('is_active', true)
+            ->where('is_delete', 0)
+            ->whereNotNull('current_revision_id')
+            ->latest('id');
     }
 
     public function siblings()
