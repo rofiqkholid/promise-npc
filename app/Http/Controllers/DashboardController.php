@@ -89,7 +89,7 @@ class DashboardController extends Controller
         // --- DASHBOARD V2 CHARTS DATA ---
         
         // Chart 1: Plan vs Actual
-        $queryEvents = NpcEvent::with(['customerCategory', 'deliveryGroup', 'parts' => function($q) {
+        $queryEvents = NpcEvent::with(['customerCategory', 'deliveryGroup', 'vehicleModel', 'parts' => function($q) {
             $q->select('id', 'npc_event_id', 'status', 'product_id')->with(['product.customer', 'product.vehicleModel']);
         }]);
 
@@ -117,24 +117,18 @@ class DashboardController extends Controller
                 $firstLineLabel .= ' - ' . $grName;
             }
 
-            // Get unique customers and models from parts
+            // Get unique customers and models from parts (or event header)
             $customers = [];
-            $models = [];
             foreach($ev->parts as $part) {
-                if ($part->product) {
-                    if ($part->product->customer) {
-                        $customers[] = $part->product->customer->code;
-                    }
-                    if ($part->product->vehicleModel) {
-                        $models[] = $part->product->vehicleModel->name;
-                    }
+                if ($part->product && $part->product->customer) {
+                    $customers[] = $part->product->customer->code;
                 }
             }
             $customers = array_unique($customers);
-            $models = array_unique($models);
-            
             $customerStr = count($customers) > 0 ? implode(', ', $customers) : '-';
-            $modelStr = count($models) > 0 ? implode(', ', $models) : '-';
+            
+            // Get model from event header
+            $modelStr = $ev->vehicleModel ? $ev->vehicleModel->name : '-';
 
             // Multi-line label for Chart.js
             $eventLabels[] = [
