@@ -189,10 +189,18 @@
                 @php
                     $processNames = optional($part)->processes ? optional($part)->processes->map(function($p) { return optional($p->process)->process_name; })->filter()->implode(', ') : '-';
                     if (empty($processNames)) $processNames = '-';
+                    $processType = optional(optional($product)->productDetail)->process_type;
                 @endphp
                 <td colspan="1" class="text-center text-blue">{{ $processNames }}</td>
-                <td colspan="1" class="text-center text-blue">Manual</td>
-                <td colspan="5" class="text-center text-blue">Auto/Robot</td>
+                <td colspan="6" class="text-center text-blue font-bold">
+                    @if($processType == 'Manual')
+                        Manual
+                    @elseif($processType == 'Auto/Robot')
+                        Auto/Robot
+                    @else
+                        Manual / Auto/Robot
+                    @endif
+                </td>
                 <td colspan="8" class="no-border-cell"></td>
             </tr>
             

@@ -127,17 +127,31 @@
                         @endif
                         <input type="file" name="sketch_image" id="sketch_image" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-400 cursor-pointer" accept="image/*">
                     </div>
-
+                    
                 </div>
 
 
             </div>{{-- end grid cols-2 --}}
 
+            <!-- SECTION: Process Type -->
+            <div>
+                <h3 class="text-lg font-bold text-gray-800 dark:text-white border-b pb-2 border-gray-200 dark:border-gray-700 mb-4">3. Process Type <span class="text-sm font-normal text-gray-400">(For Checksheet)</span></h3>
+                <div class="bg-gray-50 dark:bg-gray-800/50 p-4 border border-gray-200 dark:border-gray-700 rounded-md max-w-lg">
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Process Selection</label>
+                    <select name="process_type" class="w-full !px-3 !py-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">-- Leave Blank --</option>
+                        <option value="Manual" {{ optional($product->productDetail)->process_type == 'Manual' ? 'selected' : '' }}>Manual</option>
+                        <option value="Auto/Robot" {{ optional($product->productDetail)->process_type == 'Auto/Robot' ? 'selected' : '' }}>Auto/Robot</option>
+                    </select>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">This will determine whether "Manual" or "Auto/Robot" is printed on the checksheet PDF.</p>
+                </div>
+            </div>
+
 
             <!-- SECTION: Checkpoints -->
             <div>
                 <div class="flex justify-between items-end border-b pb-2 border-gray-200 dark:border-gray-700 mb-4">
-                    <h3 class="text-lg font-bold text-gray-800 dark:text-white">3. Point Check Standards</h3>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-white">4. Point Check Standards</h3>
                     <div class="flex items-center gap-2">
                         <input type="checkbox" id="checkAll" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                         <label for="checkAll" class="text-sm font-medium text-gray-700 dark:text-gray-300">Select All Points</label>

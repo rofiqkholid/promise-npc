@@ -12,6 +12,7 @@ class NpcProductDetail extends Model
     protected $fillable = [
         'product_id',
         'sketch_image_path',
+        'process_type',
         'label_image_path',
     ];
 

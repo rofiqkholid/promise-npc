@@ -142,7 +142,13 @@ class ProductChecksheetSetupController extends Controller
             'std_parts' => 'nullable|array',
         ]);
 
-        // 1. Handle Sketch Image (untuk checksheet)
+        // 1. Handle Master Config (Sketch Image & Process Type)
+        $detailData = [];
+        
+        if ($request->has('process_type')) {
+            $detailData['process_type'] = $request->process_type;
+        }
+
         if ($request->hasFile('sketch_image')) {
             $file = $request->file('sketch_image');
             $filename = time() . '_sketch_' . $file->getClientOriginalName();
@@ -152,10 +158,14 @@ class ProductChecksheetSetupController extends Controller
             if ($product->productDetail && $product->productDetail->sketch_image_path) {
                 Storage::delete($product->productDetail->sketch_image_path);
             }
+            
+            $detailData['sketch_image_path'] = $path;
+        }
 
+        if (!empty($detailData)) {
             NpcProductDetail::updateOrCreate(
                 ['product_id' => $product->id],
-                ['sketch_image_path' => $path]
+                $detailData
             );
         }
 

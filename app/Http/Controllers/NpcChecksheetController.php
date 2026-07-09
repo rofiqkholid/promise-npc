@@ -365,9 +365,16 @@ class NpcChecksheetController extends Controller
         $processNames = $part->processes ? $part->processes->map(function($p) { return optional($p->process)->process_name; })->filter()->implode(', ') : '-';
         if (empty($processNames)) $processNames = '-';
         $sheet->setCellValue('C8', $processNames);
-        $sheet->setCellValue('D8', 'Manual');
-        $sheet->mergeCells('E8:I8');
-        $sheet->setCellValue('E8', 'Auto/Robot');
+        
+        $processType = optional(optional($product)->productDetail)->process_type;
+        $sheet->mergeCells('D8:I8');
+        if ($processType == 'Manual') {
+            $sheet->setCellValue('D8', 'Manual');
+        } elseif ($processType == 'Auto/Robot') {
+            $sheet->setCellValue('D8', 'Auto/Robot');
+        } else {
+            $sheet->setCellValue('D8', 'Manual / Auto/Robot');
+        }
         
         $sheet->getStyle('A5:I8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $sheet->getStyle('C5:I6')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -375,15 +382,15 @@ class NpcChecksheetController extends Controller
         $sheet->getStyle('D7')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle('E7:I7')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle('C8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('D8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('E8:I8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('D8:I8')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         
         $sheet->getStyle('C5:I6')->getFont()->getColor()->setARGB('FF0055AA'); // Blue text
         $sheet->getStyle('C7')->getFont()->getColor()->setARGB('FF0055AA'); // Blue text
         $sheet->getStyle('E7:I7')->getFont()->getColor()->setARGB('FF0055AA'); // Blue text
         $sheet->getStyle('C8')->getFont()->getColor()->setARGB('FF0055AA'); // Blue text
         $sheet->getStyle('D8')->getFont()->getColor()->setARGB('FF0055AA'); // Blue text
-        $sheet->getStyle('E8:I8')->getFont()->getColor()->setARGB('FF0055AA'); // Blue text
+        $sheet->getStyle('D8')->getFont()->setBold(true);
+        
         $sheet->getStyle('A5:B8')->getFont()->setBold(true);
         $sheet->getStyle('D7')->getFont()->setBold(true);
         
