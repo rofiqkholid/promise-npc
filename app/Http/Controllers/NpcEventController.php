@@ -93,7 +93,7 @@ class NpcEventController extends Controller
         }
         
         $customers = \App\Models\Customer::orderBy('name')->get();
-        $models = \App\Models\VehicleModel::orderBy('name')->get();
+        $models = \App\Models\VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
 
         return view('npc_events.index', compact('customers', 'models'));
     }

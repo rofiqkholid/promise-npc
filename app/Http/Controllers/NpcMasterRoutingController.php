@@ -30,7 +30,7 @@ class NpcMasterRoutingController extends Controller
 
             if ($request->has('model_id') && $request->model_id != '') {
                 $query->whereHas('part', function ($q) use ($request) {
-                    $q->where('vehicle_model_id', $request->model_id);
+                    $q->where('model_id', $request->model_id);
                 });
             }
 
@@ -91,7 +91,7 @@ class NpcMasterRoutingController extends Controller
         }
         
         $customers = \App\Models\Customer::orderBy('name')->get();
-        $models = \App\Models\VehicleModel::orderBy('name')->get();
+        $models = \App\Models\VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
 
         return view('master.routings.index', compact('customers', 'models'));
     }

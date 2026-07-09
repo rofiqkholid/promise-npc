@@ -244,7 +244,7 @@ class DashboardController extends Controller
 
         // Filter options for view
         $customerCategories = \App\Models\NpcCustomerCategory::orderBy('name')->get();
-        $vehicleModels = \App\Models\VehicleModel::orderBy('name')->get();
+        $vehicleModels = \App\Models\VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
         $availableYears = NpcEvent::selectRaw('YEAR(created_at) as year')->distinct()->orderBy('year', 'desc')->pluck('year');
         if ($availableYears->isEmpty()) {
             $availableYears = collect([date('Y')]);

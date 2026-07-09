@@ -95,7 +95,7 @@ class ProductChecksheetSetupController extends Controller
         }
 
         $customers = \App\Models\Customer::orderBy('code')->get();
-        $models = \App\Models\VehicleModel::orderBy('name')->get();
+        $models = \App\Models\VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
 
         return view('master.product_checksheets.index', compact('customers', 'models'));
     }

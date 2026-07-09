@@ -52,7 +52,7 @@ class ProductImageController extends Controller
 
         $products  = $query->paginate(10)->withQueryString();
         $customers = Customer::orderBy('code')->get();
-        $models    = VehicleModel::orderBy('name')->get();
+        $models    = VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
 
         return view('master.product_images.index', compact('products', 'customers', 'models'));
     }

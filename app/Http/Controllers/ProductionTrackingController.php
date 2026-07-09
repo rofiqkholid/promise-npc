@@ -133,7 +133,7 @@ class ProductionTrackingController extends Controller
         }
         
         $customers = \App\Models\Customer::orderBy('name')->get();
-        $models = \App\Models\VehicleModel::orderBy('name')->get();
+        $models = \App\Models\VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
         
         // Conditional Status: only fetch statuses that are applicable for the current page
         $baseQuery = $this->buildQuery($statusParam, null);
@@ -202,7 +202,7 @@ class ProductionTrackingController extends Controller
         $pos = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
 
         $customers = \App\Models\Customer::orderBy('name')->get();
-        $models = \App\Models\VehicleModel::orderBy('name')->get();
+        $models = \App\Models\VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
         $status_options = collect([]);
 
         return view('tracking.global', [
