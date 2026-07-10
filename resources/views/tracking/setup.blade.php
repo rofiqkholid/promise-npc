@@ -13,74 +13,51 @@
         @endif
     </div>
 
-    <!-- Table -->
-    <div class="p-6">
+    <!-- Filters -->
+    <div class="px-6 pt-4 pb-2 flex flex-col md:flex-row justify-between gap-4">
+        <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+            <div class="w-full md:w-64">
+                <select id="customerFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
+                    <option value="">All Customers</option>
+                    @foreach($customers ?? [] as $customer)
+                        <option value="{{ $customer->id }}" {{ request('customer_filter') == $customer->id ? 'selected' : '' }}>{{ $customer->code }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="w-full md:w-64">
+                <select id="modelFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
+                    <option value="">All Models</option>
+                    @foreach($models ?? [] as $mod)
+                        <option value="{{ $mod->id }}" data-customer="{{ $mod->customer_id }}" {{ request('model_filter') == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+            </div>
+        </div>
 
-        <!-- Search Form -->
-        <div class="mb-4 flex flex-col sm:flex-row gap-2" x-data="{
-            searchQuery: '{{ request('search') }}',
-            customerFilter: '{{ request('customer_filter') }}',
-            modelFilter: '{{ request('model_filter') }}',
-            statusFilter: '{{ request('status_filter') }}',
-            performSearch() {
-                let url = '{{ route('tracking.setup') }}?search=' + encodeURIComponent(this.searchQuery) + 
-                          '&customer_filter=' + encodeURIComponent(this.customerFilter) + 
-                          '&model_filter=' + encodeURIComponent(this.modelFilter) + 
-                          '&status_filter=' + encodeURIComponent(this.statusFilter);
-                fetch(url)
-                .then(res => res.text())
-                .then(html => {
-                    let doc = new DOMParser().parseFromString(html, 'text/html');
-                    document.querySelector('tbody').innerHTML = doc.querySelector('tbody').innerHTML;
-                    let pagination = document.querySelector('.p-4.border-t nav');
-                    let newPagination = doc.querySelector('.p-4.border-t nav');
-                    if(pagination && newPagination) pagination.parentElement.innerHTML = newPagination.parentElement.innerHTML;
-                    window.history.pushState(null, '', url);
-                });
-            }
-        }">
-            <div class="relative w-full sm:w-80">
+        <div class="flex items-end w-full md:w-auto">
+            <div class="relative w-full md:w-80">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
                     <i class="fa-solid fa-magnifying-glass text-sm"></i>
                 </div>
-                <input type="text" x-model="searchQuery" x-ref="searchInput"
+                <input type="text" id="searchInput"
+                    value="{{ request('search') }}"
                     placeholder="Search Part No, Part Name, PO No..."
-                    @input.debounce.500ms="performSearch()"
-                    class="!pl-10 !pr-10 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-none">
-                <button type="button" x-show="searchQuery.length > 0" style="display:none;"
-                    @click="searchQuery=''; performSearch(); $refs.searchInput.focus()"
+                    class="!pl-10 !pr-10 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-md">
+                <button type="button" id="clearSearchBtn" style="display:none;"
                     class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-red-500 transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="w-full sm:w-48">
-                <select x-model="customerFilter" @change="performSearch()" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-none">
-                    <option value="">All Customers</option>
-                    @foreach($customers ?? [] as $customer)
-                        <option value="{{ $customer->id }}">{{ $customer->code }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="w-full sm:w-48">
-                <select x-model="modelFilter" @change="performSearch()" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-none">
-                    <option value="">All Models</option>
-                    @foreach($models ?? [] as $mod)
-                        <option value="{{ $mod->id }}" x-show="!customerFilter || '{{ $mod->customer_id }}' == customerFilter">{{ $mod->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            @if(isset($status_options) && count($status_options) > 1)
-            <div class="w-full sm:w-48">
-                <select x-model="statusFilter" @change="performSearch()" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-none">
-                    <option value="">All Statuses</option>
-                    @foreach($status_options as $status)
-                        <option value="{{ $status }}">{{ $status }}</option>
-                    @endforeach
-                </select>
-            </div>
-            @endif
         </div>
+    </div>
 
+    <!-- Table -->
+    <div class="p-6 pt-0">
         <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
@@ -178,3 +155,113 @@
 </div>
 @endsection
 
+@push('scripts')
+<script>
+$(document).ready(function() {
+    let debounceTimer;
+    
+    function performSearch() {
+        let searchQuery = $('#searchInput').val();
+        let customerFilter = $('#customerFilter').val();
+        let modelFilter = $('#modelFilter').val();
+        
+        let url = '{{ route('tracking.setup') }}?search=' + encodeURIComponent(searchQuery || '') + 
+                  '&customer_filter=' + encodeURIComponent(customerFilter || '') + 
+                  '&model_filter=' + encodeURIComponent(modelFilter || '');
+                  
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+            let doc = new DOMParser().parseFromString(html, 'text/html');
+            document.querySelector('tbody').innerHTML = doc.querySelector('tbody').innerHTML;
+            let pagination = document.querySelector('.p-4.border-t nav');
+            let newPagination = doc.querySelector('.p-4.border-t nav');
+            if(pagination && newPagination) pagination.parentElement.innerHTML = newPagination.parentElement.innerHTML;
+            window.history.pushState(null, '', url);
+        })
+        .catch(err => console.error(err));
+    }
+
+    $('#searchInput').on('input', function() {
+        if ($(this).val().length > 0) {
+            $('#clearSearchBtn').show();
+        } else {
+            $('#clearSearchBtn').hide();
+        }
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(performSearch, 500);
+    });
+    
+    if ($('#searchInput').val() && $('#searchInput').val().length > 0) {
+        $('#clearSearchBtn').show();
+    }
+    
+    $('#clearSearchBtn').on('click', function(e) {
+        e.preventDefault();
+        $('#searchInput').val('');
+        $(this).hide();
+        performSearch();
+        $('#searchInput').focus();
+    });
+
+    $('#customerFilter').on('change', function(e) {
+        let customerId = $(this).val();
+        
+        if ($('#modelFilter').data('select2')) {
+            $('#modelFilter').select2('destroy');
+        }
+
+        $('#modelFilter option').each(function() {
+            if ($(this).val() == '') {
+                $(this).prop('disabled', false);
+                return;
+            }
+            if (!customerId || $(this).data('customer') == customerId) {
+                $(this).prop('disabled', false).show();
+            } else {
+                $(this).prop('disabled', true).hide();
+            }
+        });
+
+        $('#modelFilter').select2({ width: '100%' });
+        
+        // If the currently selected model is now disabled, reset it
+        if ($('#modelFilter option:selected').prop('disabled')) {
+            $('#modelFilter').val('').trigger('change.select2');
+        }
+        
+        performSearch();
+    });
+
+    $('#modelFilter').on('change', function(e) {
+        performSearch();
+    });
+
+    $('#clearFiltersBtn').on('click', function(e) {
+        e.preventDefault();
+        
+        $('#searchInput').val('');
+        $('#clearSearchBtn').hide();
+        
+        $('#modelFilter').val('');
+        $('#customerFilter').val('').trigger('change');
+    });
+    
+    let initialCustomerId = $('#customerFilter').val();
+    if (initialCustomerId) {
+        if ($('#modelFilter').data('select2')) {
+            $('#modelFilter').select2('destroy');
+        }
+        $('#modelFilter option').each(function() {
+            if ($(this).val() == '') return;
+            if ($(this).data('customer') == initialCustomerId) {
+                $(this).prop('disabled', false).show();
+            } else {
+                $(this).prop('disabled', true).hide();
+            }
+        });
+        $('#modelFilter').select2({ width: '100%' });
+    }
+});
+</script>
+@endpush

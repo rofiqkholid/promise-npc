@@ -36,17 +36,17 @@ class ProductionTrackingController extends Controller
             });
         }
         
-        if (request()->has('customer_filter') && request('customer_filter') !== '') {
+        if (request()->filled('customer_filter') && request('customer_filter') !== 'null') {
             $customerFilter = request('customer_filter');
             $query->whereHas('product.vehicleModel', function ($q) use ($customerFilter) {
                 $q->where('customer_id', $customerFilter);
             });
         }
 
-        if (request()->has('model_filter') && request('model_filter') !== '') {
+        if (request()->filled('model_filter') && request('model_filter') !== 'null') {
             $modelFilter = request('model_filter');
             $query->whereHas('product', function ($q) use ($modelFilter) {
-                $q->where('vehicle_model_id', $modelFilter);
+                $q->where('model_id', $modelFilter);
             });
         }
 
@@ -64,6 +64,9 @@ class ProductionTrackingController extends Controller
             $query = $this->buildQuery($statusParam, $search);
 
             $dt = \Yajra\DataTables\Facades\DataTables::of($query)
+                ->filter(function ($query) {
+                    // Search is already handled in buildQuery()
+                })
                 ->order(function ($query) {
                     $query->orderBy('created_at', 'desc');
                 })

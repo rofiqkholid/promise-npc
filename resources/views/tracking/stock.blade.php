@@ -18,50 +18,32 @@
 
     <!-- Table -->
     <div class="p-6">
-        <form id="searchForm" method="GET" action="{{ route('tracking.stock') }}" class="w-full mb-4">
-            <div class="flex flex-wrap gap-3 items-end">
-                <div class="w-full sm:w-48">
-                    <select name="customer_id" id="filter_customer" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none" onchange="document.getElementById('searchForm').submit()">
+        <!-- Filters -->
+        <div class="mb-4 flex flex-col md:flex-row justify-between gap-4">
+            <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <div class="w-full md:w-64">
+                    <select id="filter_customer" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
                         <option value="">All Customers</option>
                         @foreach($customers ?? [] as $customer)
-                            <option value="{{ $customer->id }}" {{ request('customer_filter') == $customer->id ? 'selected' : '' }}>
-                                {{ $customer->code }}
-                            </option>
+                            <option value="{{ $customer->id }}" {{ request('customer_filter') == $customer->id ? 'selected' : '' }}>{{ $customer->code }}</option>
                         @endforeach
                     </select>
                 </div>
-                
-                <div class="w-full sm:w-48">
-                    <select name="model_id" id="filter_model" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none" onchange="document.getElementById('searchForm').submit()">
+                <div class="w-full md:w-64">
+                    <select id="filter_model" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
                         <option value="">All Models</option>
-                        @foreach($models ?? [] as $model)
-                            <option value="{{ $model->id }}" {{ request('model_filter') == $model->id ? 'selected' : '' }} data-customer-id="{{ $model->customer_id }}">
-                                {{ $model->name }}
-                            </option>
+                        @foreach($models ?? [] as $mod)
+                            <option value="{{ $mod->id }}" data-customer="{{ $mod->customer_id }}" {{ request('model_filter') == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
                         @endforeach
                     </select>
                 </div>
-
-                @if(isset($status_options) && count($status_options) > 1)
-                <div class="w-full sm:w-48">
-                    <select name="status_filter" id="filter_status" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none" onchange="document.getElementById('searchForm').submit()">
-                        <option value="">All Statuses</option>
-                        @foreach($status_options as $status)
-                            <option value="{{ $status }}" {{ request('status_filter') == $status ? 'selected' : '' }}>
-                                {{ $status }}
-                            </option>
-                        @endforeach
-                    </select>
+                <div class="flex items-end">
+                    <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </button>
                 </div>
-                @endif
-
-                @if(request('search') || request('customer_filter') || request('model_filter') || request('status_filter'))
-                    <a href="{{ route('tracking.stock') }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 transition text-[13px] flex items-center gap-2 shadow-sm rounded-none" title="Clear Filters">
-                        <i class="fa-solid fa-xmark"></i> Clear
-                    </a>
-                @endif
             </div>
-        </form>
+        </div>
 
         <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
             <table id="stockTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
@@ -159,30 +141,66 @@
             ]
         });
 
-        // Filter models based on selected customer
-        function updateModelFilter() {
-            let selectedCustomer = $('#filter_customer').val();
-            let modelSelect = $('#filter_model');
-            let currentModel = modelSelect.val();
-            let modelValid = false;
+        function performSearch() {
+            let customerFilter = $('#filter_customer').val();
+            let modelFilter = $('#filter_model').val();
             
-            modelSelect.find('option').each(function() {
-                let custId = $(this).data('customer-id');
-                if (!custId || !selectedCustomer || custId == selectedCustomer) {
-                    $(this).show();
-                    if ($(this).val() == currentModel) modelValid = true;
+            let url = '{{ route('tracking.stock') }}?customer_filter=' + encodeURIComponent(customerFilter || '') + 
+                      '&model_filter=' + encodeURIComponent(modelFilter || '');
+                      
+            $('#stockTable').DataTable().ajax.url(url).load();
+        }
+
+        $('#filter_customer').on('change', function(e) {
+            let customerId = $(this).val();
+            if ($('#filter_model').data('select2')) {
+                $('#filter_model').select2('destroy');
+            }
+            $('#filter_model option').each(function() {
+                if ($(this).val() == '') {
+                    $(this).prop('disabled', false);
+                    return;
+                }
+                if (!customerId || $(this).data('customer') == customerId) {
+                    $(this).prop('disabled', false).show();
                 } else {
-                    $(this).hide();
+                    $(this).prop('disabled', true).hide();
                 }
             });
+            $('#filter_model').select2({ width: '100%' });
             
-            if (!modelValid && currentModel != '') {
-                modelSelect.val('');
+            // If the currently selected model is now disabled, reset it
+            if ($('#filter_model option:selected').prop('disabled')) {
+                $('#filter_model').val('').trigger('change.select2');
             }
-        }
+            performSearch();
+        });
+
+        $('#filter_model').on('change', function(e) {
+            performSearch();
+        });
+
+        $('#clearFiltersBtn').on('click', function(e) {
+            e.preventDefault();
+            $('#filter_model').val('');
+            $('#filter_customer').val('').trigger('change');
+        });
         
-        $('#filter_customer').on('change', updateModelFilter);
-        updateModelFilter();
+        let initialCustomerId = $('#filter_customer').val();
+        if (initialCustomerId) {
+            if ($('#filter_model').data('select2')) {
+                $('#filter_model').select2('destroy');
+            }
+            $('#filter_model option').each(function() {
+                if ($(this).val() == '') return;
+                if ($(this).data('customer') == initialCustomerId) {
+                    $(this).prop('disabled', false).show();
+                } else {
+                    $(this).prop('disabled', true).hide();
+                }
+            });
+            $('#filter_model').select2({ width: '100%' });
+        }
     });
 
     function openDeliverModal(id, maxQty, url, partNo) {

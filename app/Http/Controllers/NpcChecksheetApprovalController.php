@@ -92,8 +92,12 @@ class NpcChecksheetApprovalController extends Controller
                             ->orWhereHas('npcPart.event', function($q) use ($search) {
                                 $q->where('po_no', 'like', "%{$search}%");
                             })
-                            ->orWhereHas('npcPart.event.customerCategory', function($q) use ($search) {
+                            ->orWhereHas('npcPart.product.vehicleModel', function($q) use ($search) {
                                 $q->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('npcPart.product.vehicleModel.customer', function($q) use ($search) {
+                                $q->where('code', 'like', "%{$search}%")
+                                  ->orWhere('name', 'like', "%{$search}%");
                             });
                         });
                     }

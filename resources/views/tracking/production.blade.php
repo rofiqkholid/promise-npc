@@ -14,8 +14,33 @@
         @endif
     </div>
 
+    <!-- Filters -->
+    <div class="px-6 pt-4 pb-2 flex flex-col md:flex-row gap-4">
+        <div class="w-full md:w-64">
+            <select id="customerFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
+                <option value="">All Customers</option>
+                @foreach($customers ?? [] as $customer)
+                    <option value="{{ $customer->id }}">{{ $customer->code }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="w-full md:w-64">
+            <select id="modelFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
+                <option value="">All Models</option>
+                @foreach($models ?? [] as $mod)
+                    <option value="{{ $mod->id }}" data-customer="{{ $mod->customer_id }}">{{ $mod->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex items-end">
+            <button id="clearFiltersBtn" type="button" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+        </div>
+    </div>
+
     <!-- Table -->
-    <div class="p-6">
+    <div class="p-6 pt-0">
         <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
             <table id="productionTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
@@ -126,10 +151,16 @@ document.getElementById('modal-complete').addEventListener('click', function(e) 
 });
 
 $(document).ready(function() {
-    $('#productionTable').DataTable({
+    let table = $('#productionTable').DataTable({
         processing: true,
         serverSide: true,
-        ajax: "{{ route('tracking.production') }}",
+        ajax: {
+            url: "{{ route('tracking.production') }}",
+            data: function (d) {
+                d.customer_filter = $('#customerFilter').val();
+                d.model_filter = $('#modelFilter').val();
+            }
+        },
         responsive: true,
         pageLength: 15,
         lengthMenu: [[10, 15, 25, 50, 100], [10, 15, 25, 50, 100]],
@@ -177,7 +208,45 @@ $(document).ready(function() {
                 .addClass('py-2 pl-3 pr-8 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm rounded-md shadow-sm');
         }
     });
+
+    $('#customerFilter').on('change', function(e) {
+        let customerId = $(this).val();
+        
+        if ($('#modelFilter').data('select2')) {
+            $('#modelFilter').select2('destroy');
+        }
+
+        $('#modelFilter option').each(function() {
+            if ($(this).val() == '') {
+                $(this).prop('disabled', false);
+                return;
+            }
+            if (!customerId || $(this).data('customer') == customerId) {
+                $(this).prop('disabled', false).show();
+            } else {
+                $(this).prop('disabled', true).hide();
+            }
+        });
+
+        $('#modelFilter').select2({ width: '100%' });
+        
+        // If the currently selected model is now disabled, reset it
+        if ($('#modelFilter option:selected').prop('disabled')) {
+            $('#modelFilter').val('').trigger('change.select2');
+        }
+        
+        table.ajax.reload();
+    });
+
+    $('#modelFilter').on('change', function(e) {
+        table.ajax.reload();
+    });
+
+    $('#clearFiltersBtn').on('click', function(e) {
+        e.preventDefault();
+        $('#modelFilter').val('');
+        $('#customerFilter').val('').trigger('change');
+    });
 });
 </script>
 @endpush
-
