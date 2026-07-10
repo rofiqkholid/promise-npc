@@ -395,8 +395,11 @@
                     </div>
                     <div>
                         <span class="field-label">ECN No</span>
-                        <span class="field-value" title="{{ optional(optional(optional($part->product)->docPackage)->currentRevision)->ecn_no ?? '-' }}">
-                            {{ optional(optional(optional($part->product)->docPackage)->currentRevision)->ecn_no ?? '-' }}
+                        @php
+                            $effectiveDoc = optional($part->product)->getEffectiveDocPackage();
+                        @endphp
+                        <span class="field-value" title="{{ optional(optional($effectiveDoc)->currentRevision)->ecn_no ?? '-' }}">
+                            {{ optional(optional($effectiveDoc)->currentRevision)->ecn_no ?? '-' }}
                         </span>
                     </div>
                 </div>
