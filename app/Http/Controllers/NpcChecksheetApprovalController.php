@@ -129,7 +129,7 @@ class NpcChecksheetApprovalController extends Controller
         }
         
         if ($action === 'rollback') {
-            if (!auth()->user()->roles->contains('code', 'admin')) {
+            if (!auth()->user()->roles->contains('code', 'admin') && !auth()->user()->roles->contains('code', 'npc_admin')) {
                 abort(403, 'Only Admins can rollback approvals.');
             }
             

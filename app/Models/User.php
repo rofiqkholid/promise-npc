@@ -171,7 +171,7 @@ class User extends Authenticatable
     public function hasMenuAccess($routeName, $action = 'view')
     {
         // Admin bypass
-        if ($this->roles->contains('code', 'admin') || $this->roles->contains('role_name', 'admin')) {
+        if ($this->roles->contains('code', 'admin') || $this->roles->contains('code', 'npc_admin') || $this->roles->contains('role_name', 'admin')) {
             return true;
         }
 
@@ -196,7 +196,7 @@ class User extends Authenticatable
     public function canApproveChecksheetStage($stage)
     {
         // Admin bypass
-        if ($this->roles->contains('code', 'admin')) {
+        if ($this->roles->contains('code', 'admin') || $this->roles->contains('code', 'npc_admin')) {
             return true;
         }
 
