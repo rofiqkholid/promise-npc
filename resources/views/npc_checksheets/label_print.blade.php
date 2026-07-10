@@ -371,7 +371,8 @@
 
                 {{-- Label Image --}}
                 @php
-                    $labelImgPath = optional(optional($part->product)->productDetail)->label_image_path;
+                    $effectiveDetail = optional($part->product)->getEffectiveProductDetail();
+                    $labelImgPath = optional($effectiveDetail)->label_image_path;
                     $labelImgUrl  = $labelImgPath
                         ? url('file/storage/' . ltrim(str_replace('public/', '', $labelImgPath), '/'))
                         : null;

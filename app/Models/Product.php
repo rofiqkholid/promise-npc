@@ -70,6 +70,22 @@ class Product extends Model
             }
         }
         
+        // Fallback: Cari Product Master dengan part_no yang sama (versi yang lebih baru)
+        // Ini berguna jika Master Data membuat ID Product baru untuk revisi ECN, 
+        // namun transaksi produksi (NpcPart) masih menunjuk ke ID Product yang lama.
+        if ($this->part_no) {
+            $newerVersion = self::where('part_no', $this->part_no)
+                ->where('id', '!=', $this->id)
+                ->where('is_delete', 0)
+                ->whereHas('docPackage')
+                ->latest('id')
+                ->first();
+                
+            if ($newerVersion && $newerVersion->docPackage) {
+                return $newerVersion->docPackage;
+            }
+        }
+        
         return null;
     }
 
@@ -81,5 +97,30 @@ class Product extends Model
     public function productDetail()
     {
         return $this->hasOne(NpcProductDetail::class, 'product_id');
+    }
+
+    public function getEffectiveProductDetail()
+    {
+        if ($this->productDetail && $this->productDetail->label_image_path) {
+            return $this->productDetail;
+        }
+
+        // Fallback: Cari gambar dari versi yang lebih baru (is_delete = 0) dengan part_no yang sama
+        if ($this->part_no) {
+            $newerVersion = self::where('part_no', $this->part_no)
+                ->where('id', '!=', $this->id)
+                ->where('is_delete', 0)
+                ->whereHas('productDetail', function ($q) {
+                    $q->whereNotNull('label_image_path');
+                })
+                ->latest('id')
+                ->first();
+                
+            if ($newerVersion && $newerVersion->productDetail) {
+                return $newerVersion->productDetail;
+            }
+        }
+        
+        return $this->productDetail;
     }
 }
