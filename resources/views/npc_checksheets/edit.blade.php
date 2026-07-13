@@ -59,6 +59,14 @@
         </div>
     </div>
 
+    <!-- Product Sketch Image -->
+    @if(optional(optional($part->product)->productDetail)->sketch_image_path)
+    <div class="px-4 py-6 bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center">
+        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Part Sketch Reference</h3>
+        <img src="{{ url('file/storage/' . ltrim(str_replace('public/', '', $part->product->productDetail->sketch_image_path), '/')) }}" alt="Sketch Image" class="max-h-[400px] max-w-full object-contain border border-gray-300 dark:border-gray-600 shadow-md p-2 rounded bg-white dark:bg-gray-900">
+    </div>
+    @endif
+
     <form action="{{ route('checksheets.update', $checksheet->hashed_id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
