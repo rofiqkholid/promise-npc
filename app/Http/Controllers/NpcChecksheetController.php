@@ -35,8 +35,15 @@ class NpcChecksheetController extends Controller
             ]);
 
             $this->generateChecksheetDetails($checksheet, $part);
-        } elseif ($checksheet->details->isEmpty()) {
-            $this->generateChecksheetDetails($checksheet, $part);
+        } else {
+            // Auto-sync point checksheet dengan mapping terbaru asalkan MGM belum melakukan tanda tangan.
+            // Ini akan menyelesaikan masalah point hilang/tidak update tanpa menghapus inputan QC (akurasi & gambar).
+            if (!$checksheet->mgm_checked_by) {
+                $checksheet->details()->delete();
+                $this->generateChecksheetDetails($checksheet, $part);
+            } elseif ($checksheet->details->isEmpty()) {
+                $this->generateChecksheetDetails($checksheet, $part);
+            }
         }
 
         return redirect()->route('checksheets.edit', $checksheet->id);
