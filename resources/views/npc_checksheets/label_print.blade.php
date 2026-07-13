@@ -361,7 +361,12 @@
                     <h1>QUALITY PASSED</h1>
                     <span class="company">PT. Summit Adyawinsa Indonesia</span>
                 </div>
-                <span class="label-badge">QC</span>
+                @php
+                    $cat = optional(optional($part->event)->customerCategory)->name;
+                    $gr = optional(optional($part->event)->deliveryGroup)->name;
+                    $catGrText = trim($cat . ' ' . $gr);
+                @endphp
+                <span class="label-badge">QC{{ $catGrText ? ' - ' . $catGrText : '' }}</span>
             </div>
 
             <!-- Body -->
