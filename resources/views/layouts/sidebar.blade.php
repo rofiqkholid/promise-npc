@@ -67,11 +67,11 @@
                         class="w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 group relative {{ $isParentActive ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-400 font-semibold' : 'text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700/50 hover:text-slate-900 dark:hover:text-white' }}"
                         :class="!sidebarExpanded ? 'justify-center' : ''">
                         
-                        <i class="{{ $menu->icon }} w-6 text-center text-lg {{ $isParentActive ? 'text-primary-700 dark:text-primary-400' : 'text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300' }}"></i>
+                        <i class="{{ $menu->icon }} shrink-0 w-6 text-center text-lg {{ $isParentActive ? 'text-primary-700 dark:text-primary-400' : 'text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300' }}"></i>
                         
-                        <span x-show="sidebarExpanded" class="side-label flex-1 text-left text-sm whitespace-nowrap">{{ $menu->title }}</span>
+                        <span x-show="sidebarExpanded" class="side-label flex-1 text-left text-sm leading-tight">{{ $menu->title }}</span>
                         
-                        <i x-show="sidebarExpanded" class="side-label fa-solid fa-chevron-down text-xs transition-transform duration-200" 
+                        <i x-show="sidebarExpanded" class="side-label shrink-0 fa-solid fa-chevron-down text-xs transition-transform duration-200" 
                            :class="open ? 'rotate-180' : ''"></i>
 
                         {{-- Tooltip for Minimized --}}
@@ -100,8 +100,8 @@
                             @endphp
                             <a href="{{ route($child->route) }}"
                                 class="flex items-center gap-3 px-3 py-2 transition-all duration-200 text-sm {{ $isActive ? 'text-primary-700 dark:text-primary-400 font-medium bg-primary-100/50 dark:bg-primary-900/20' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-gray-700/50' }}">
-                                <span class="w-1.5 h-1.5 {{ $isActive ? 'bg-primary-700 dark:bg-primary-400' : 'bg-slate-400 dark:bg-gray-600' }}"></span>
-                                <span class="side-label whitespace-nowrap">{{ $child->title }}</span>
+                                <span class="shrink-0 w-1.5 h-1.5 {{ $isActive ? 'bg-primary-700 dark:bg-primary-400' : 'bg-slate-400 dark:bg-gray-600' }}"></span>
+                                <span class="side-label leading-tight">{{ $child->title }}</span>
                             </a>
                         @endforeach
                     </div>
@@ -112,10 +112,10 @@
                     class="flex items-center gap-3 px-3 py-2.5 transition-all duration-200 group relative {{ $isParentActive ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-400 font-semibold' : 'text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700/50 hover:text-slate-900 dark:hover:text-white' }}"
                     :class="!sidebarExpanded ? 'justify-center' : ''">
 
-                    <i class="{{ $menu->icon }} w-6 text-center text-lg {{ $isParentActive ? 'text-primary-700 dark:text-primary-400' : 'text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300' }}">
+                    <i class="{{ $menu->icon }} shrink-0 w-6 text-center text-lg {{ $isParentActive ? 'text-primary-700 dark:text-primary-400' : 'text-slate-400 dark:text-gray-500 group-hover:text-slate-600 dark:group-hover:text-gray-300' }}">
                     </i>
 
-                    <span x-show="sidebarExpanded" class="side-label text-sm whitespace-nowrap">{{ $menu->title }}</span>
+                    <span x-show="sidebarExpanded" class="side-label flex-1 text-sm leading-tight">{{ $menu->title }}</span>
 
                     {{-- Tooltip for Minimized --}}
                     <div x-show="!sidebarExpanded" x-cloak class="absolute left-full top-2 ml-2 bg-slate-800 dark:bg-black text-white text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none whitespace-nowrap">

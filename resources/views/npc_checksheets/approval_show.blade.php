@@ -5,7 +5,8 @@
 
 @section('content')
 @php
-    $readonly = true;
+    $canApprove = auth()->check() && auth()->user()->canApproveChecksheetStage($checksheet->approval_status);
+    $readonly = !$canApprove;
 @endphp
 
 <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 max-w-5xl mx-auto">
@@ -177,7 +178,7 @@
                                 </td>
                                 @endfor
                                 <td class="px-4 py-2 text-center">
-                                    <select name="details[{{ $detail->id }}][row_result]" id="row-result-{{ $detail->id }}" disabled
+                                    <select name="details[{{ $detail->id }}][row_result]" id="row-result-{{ $detail->id }}" {{ $readonly ? 'disabled' : '' }}
                                             class="w-full text-xs py-1.5 px-2 font-bold border-gray-300 dark:border-gray-600 shadow-sm focus:ring-1 focus:ring-blue-500 bg-gray-100 dark:bg-gray-800 dark:text-white @if($detail->row_result == 'OK') text-green-600 bg-green-50 dark:bg-green-900/20 @elseif($detail->row_result == 'NG') text-red-600 bg-red-50 dark:bg-red-900/20 @endif">
                                         <option value="" class="text-gray-400">- Select -</option>
                                         <option value="OK" class="text-green-600 font-bold" {{ $detail->row_result === 'OK' ? 'selected' : '' }}>OK</option>
@@ -199,7 +200,7 @@
                 <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-purple-50 dark:bg-purple-900/10 p-4 border border-purple-100 dark:border-purple-800/30">
                     <div class="flex items-start gap-4 w-full">
                         <label class="font-bold text-gray-800 dark:text-white text-base whitespace-nowrap mt-2">Remark:</label>
-                        <textarea name="final_result" rows="2" disabled
+                        <textarea name="final_result" rows="2" {{ $readonly ? 'disabled' : '' }}
                                 class="border-purple-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-base py-2 px-3 w-full text-gray-800 bg-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-600">{{ $checksheet->final_result }}</textarea>
                     </div>
                 </div>
@@ -215,7 +216,10 @@
                     <i class="fa-solid fa-backward-fast"></i> Rollback / Reset
                 </button>
             @endif
-            @if(auth()->check() && auth()->user()->canApproveChecksheetStage($checksheet->approval_status))
+            @if($canApprove)
+                <button type="submit" name="action" value="save" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm" onclick="confirmAction(event, 'Are you sure you want to save changes? The checksheet will stay at the current approval level.');">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                </button>
                 <button type="submit" name="action" value="reject" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm" onclick="confirmAction(event, 'Are you sure you want to reject and return to the previous level?');">
                     <i class="fa-solid fa-rotate-left"></i> Reject
                 </button>
@@ -279,6 +283,7 @@
                 const detailId = this.dataset.detailId;
                 const input = this.querySelector('input[type="hidden"]');
                 const iconContainer = this.querySelector('.icon-container');
+                const pointName = this.closest('tr').querySelector('td:nth-child(2)').textContent.trim();
                 
                 let currentValue = input.value;
                 let newValue, iconHtml;
@@ -294,10 +299,53 @@
                     iconHtml = '<i class="fa-solid fa-minus text-gray-300 dark:text-gray-600"></i>';
                 }
 
-                input.value = newValue;
-                iconContainer.innerHTML = iconHtml;
-
-                calculateRowResult(detailId);
+                if (newValue === 'NG') {
+                    Swal.fire({
+                        title: 'NG Found',
+                        text: 'Please provide a reason/remark for this NG:',
+                        input: 'textarea',
+                        inputPlaceholder: 'Enter reason here...',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="fa-solid fa-check"></i> Confirm NG',
+                        cancelButtonText: 'Cancel',
+                        background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                        color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
+                        inputValidator: (value) => {
+                            if (!value || value.trim() === '') {
+                                return 'Reason is required for NG!';
+                            }
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            input.value = 'NG';
+                            iconContainer.innerHTML = iconHtml;
+                            calculateRowResult(detailId);
+                            
+                            // Append remark
+                            const remarkTextarea = document.querySelector('textarea[name="final_result"]');
+                            if (remarkTextarea) {
+                                let currentRemark = remarkTextarea.value.trim();
+                                let addition = `[${pointName}] NG: ${result.value.trim()}`;
+                                remarkTextarea.value = currentRemark ? currentRemark + '\n' + addition : addition;
+                                // trigger input event in case needed
+                                remarkTextarea.dispatchEvent(new Event('input'));
+                            }
+                        }
+                    });
+                } else {
+                    input.value = newValue;
+                    iconContainer.innerHTML = iconHtml;
+                    calculateRowResult(detailId);
+                    
+                    if (newValue === 'OK') {
+                        const remarkTextarea = document.querySelector('textarea[name="final_result"]');
+                        if (remarkTextarea) {
+                            let lines = remarkTextarea.value.split('\n');
+                            let newLines = lines.filter(line => !line.startsWith(`[${pointName}] NG:`));
+                            remarkTextarea.value = newLines.join('\n').trim();
+                        }
+                    }
+                }
             });
         });
 
@@ -319,14 +367,80 @@
             if (hasNg) {
                 resultSelect.value = 'NG';
                 updateSelectStyle(resultSelect, 'NG');
+                resultSelect.dataset.prevValue = 'NG';
             } else if (allOk && !hasEmpty && inputs.length > 0) {
                 resultSelect.value = 'OK';
                 updateSelectStyle(resultSelect, 'OK');
+                resultSelect.dataset.prevValue = 'OK';
             } else {
                 resultSelect.value = '';
                 updateSelectStyle(resultSelect, '');
+                resultSelect.dataset.prevValue = '';
             }
+            
+            checkIfCanApprove();
         }
+
+        // Handle Row Result Select Dropdown Manual Changes
+        document.querySelectorAll('select[id^="row-result-"]').forEach(select => {
+            select.dataset.prevValue = select.value;
+            
+            select.addEventListener('change', function() {
+                const newValue = this.value;
+                const pointName = this.closest('tr').querySelector('td:nth-child(2)').textContent.trim();
+                
+                if (newValue === 'NG') {
+                    Swal.fire({
+                        title: 'NG Found',
+                        text: 'Please provide a reason/remark for this NG:',
+                        input: 'textarea',
+                        inputPlaceholder: 'Enter reason here...',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="fa-solid fa-check"></i> Confirm NG',
+                        cancelButtonText: 'Cancel',
+                        background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                        color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
+                        inputValidator: (value) => {
+                            if (!value || value.trim() === '') {
+                                return 'Reason is required for NG!';
+                            }
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.dataset.prevValue = 'NG';
+                            updateSelectStyle(this, 'NG');
+                            checkIfCanApprove();
+                            
+                            const remarkTextarea = document.querySelector('textarea[name="final_result"]');
+                            if (remarkTextarea) {
+                                let currentRemark = remarkTextarea.value.trim();
+                                let addition = `[${pointName}] NG: ${result.value.trim()}`;
+                                remarkTextarea.value = currentRemark ? currentRemark + '\n' + addition : addition;
+                                remarkTextarea.dispatchEvent(new Event('input'));
+                            }
+                        } else {
+                            // Revert value
+                            this.value = this.dataset.prevValue;
+                            updateSelectStyle(this, this.value);
+                            checkIfCanApprove();
+                        }
+                    });
+                } else {
+                    this.dataset.prevValue = newValue;
+                    updateSelectStyle(this, newValue);
+                    checkIfCanApprove();
+                    
+                    if (newValue === 'OK') {
+                        const remarkTextarea = document.querySelector('textarea[name="final_result"]');
+                        if (remarkTextarea) {
+                            let lines = remarkTextarea.value.split('\n');
+                            let newLines = lines.filter(line => !line.startsWith(`[${pointName}] NG:`));
+                            remarkTextarea.value = newLines.join('\n').trim();
+                        }
+                    }
+                }
+            });
+        });
 
         function updateSelectStyle(select, value) {
             select.classList.remove('text-green-600', 'bg-green-50', 'dark:bg-green-900/20', 'text-red-600', 'bg-red-50', 'dark:bg-red-900/20');
@@ -336,6 +450,41 @@
                 select.classList.add('text-red-600', 'bg-red-50', 'dark:bg-red-900/20');
             }
         }
+        
+        function checkIfCanApprove() {
+            let hasNg = false;
+            document.querySelectorAll('select[id^="row-result-"]').forEach(select => {
+                if (select.value === 'NG') hasNg = true;
+            });
+            
+            const approveBtn = document.querySelector('button[value="approve"]');
+            if (approveBtn) {
+                if (hasNg) {
+                    approveBtn.disabled = true;
+                    approveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    approveBtn.title = 'Cannot approve when there is an NG result. Please use Save Changes.';
+                    approveBtn.onclick = function(e) { e.preventDefault(); return false; };
+                } else {
+                    approveBtn.disabled = false;
+                    approveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    approveBtn.title = '';
+                    approveBtn.onclick = function(e) { confirmAction(e, 'Are you sure you want to approve this checksheet as {{ $levelName ?? "" }}?'); };
+                }
+            }
+            
+            const remarkTextarea = document.querySelector('textarea[name="final_result"]');
+            if (remarkTextarea) {
+                if (hasNg) {
+                    remarkTextarea.required = true;
+                    remarkTextarea.classList.add('border-red-500', 'bg-red-50');
+                } else {
+                    remarkTextarea.required = false;
+                    remarkTextarea.classList.remove('border-red-500', 'bg-red-50');
+                }
+            }
+        }
+        
+        checkIfCanApprove();
     });
 </script>
 @endpush

@@ -131,6 +131,40 @@ class NpcChecksheetApprovalController extends Controller
         if (!auth()->check()) {
             abort(403, 'Unauthorized');
         }
+
+        // Save details and remark if provided
+        if ($request->has('details') && is_array($request->input('details'))) {
+            $hasNg = false;
+            foreach ($request->input('details') as $id => $data) {
+                $detail = \App\Models\NpcChecksheetDetail::find($id);
+                if ($detail && $detail->npc_checksheet_id == $checksheet->id) {
+                    $rowResult = $data['row_result'] ?? null;
+                    if ($rowResult === 'NG') {
+                        $hasNg = true;
+                    }
+                    $detail->update([
+                        'row_result' => $rowResult,
+                        'samples' => $data['samples'] ?? null,
+                    ]);
+                }
+            }
+            
+            if ($request->has('final_result')) {
+                $checksheet->update(['final_result' => $request->input('final_result')]);
+            }
+
+            if ($hasNg && $action === 'approve') {
+                return redirect()->back()->with('error', 'Cannot approve because there is an NG result. Please fix the part and change to OK, or use Save Changes to hold.');
+            }
+            
+            if ($hasNg && $action === 'save' && empty(trim($request->input('final_result')))) {
+                return redirect()->back()->with('error', 'Remark is required when there is an NG result.');
+            }
+        }
+        
+        if ($action === 'save') {
+            return redirect()->route('checksheet-approvals.show', $checksheet->hashed_id)->with('success', 'Changes have been saved successfully.');
+        }
         
         if ($action === 'rollback') {
             if (!auth()->user()->roles->contains('code', 'admin') && !auth()->user()->roles->contains('code', 'npc_admin')) {
