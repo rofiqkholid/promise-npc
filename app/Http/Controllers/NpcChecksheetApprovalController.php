@@ -21,6 +21,22 @@ class NpcChecksheetApprovalController extends Controller
                     $q->whereIn('status', ['WAITING_APPROVAL', 'FINISHED', 'OUTSTANDING', 'CLOSED']);
                 });
 
+            if ($request->filled('stage')) {
+                $query->where('approval_status', $request->stage);
+            }
+
+            if ($request->filled('customer')) {
+                $query->whereHas('npcPart.event.customerCategory.customer', function($q) use ($request) {
+                    $q->where('id', $request->customer);
+                });
+            }
+
+            if ($request->filled('model')) {
+                $query->whereHas('npcPart.product.vehicleModel', function($q) use ($request) {
+                    $q->where('id', $request->model);
+                });
+            }
+
             return \Yajra\DataTables\Facades\DataTables::of($query)
                 ->order(function ($q) {
                     $q->orderBy('created_at', 'desc');
@@ -106,7 +122,10 @@ class NpcChecksheetApprovalController extends Controller
                 ->make(true);
         }
 
-        return view('npc_checksheets.approval_index');
+        $customers = \App\Models\Customer::orderBy('name')->get();
+        $models = \App\Models\VehicleModel::orderBy('name')->get();
+
+        return view('npc_checksheets.approval_index', compact('customers', 'models'));
     }
 
     public function show(NpcChecksheet $checksheet)
