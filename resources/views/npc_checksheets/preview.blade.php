@@ -31,7 +31,7 @@
             width: 210mm;
             margin: 0 auto 10px auto;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
         }
         .btn {
             padding: 8px 16px;
@@ -51,11 +51,12 @@
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
+            border: 1pt solid #000;
             /* To ensure exact fit */
             box-sizing: border-box;
         }
         .excel-table th, .excel-table td {
-            border: 1px solid #000;
+            border: 1pt solid #000;
             padding: 3px;
             vertical-align: middle;
             word-wrap: break-word;
@@ -83,17 +84,16 @@
         .title-cell { font-size: 18px; }
         
         @media print {
-            body { background: white; margin: 0; padding: 0; }
+            body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; zoom: 0.85; }
             .a4-page { box-shadow: none; width: 100%; margin: 0; padding: 0; }
             .header-actions { display: none; }
-            @page { size: A4 portrait; margin: 5mm; }
+            @page { size: A4 portrait; margin: 3mm; }
         }
     </style>
 </head>
 <body>
 
 <div class="header-actions">
-    <a href="javascript:history.back()" class="btn btn-secondary">← Back</a>
     <button onclick="window.print()" class="btn">Print / Save as PDF</button>
 </div>
 
@@ -131,29 +131,29 @@
                 <td colspan="8" class="text-center font-bold">Document Information</td>
             </tr>
             <!-- Row 2 -->
-            <tr class="text-center">
-                <td colspan="2" class="text-left">No. Document</td>
-                <td colspan="2" class="text-left">: FO-17-35</td>
-                <td colspan="2" class="text-left">Revision</td>
-                <td colspan="1">Date</td>
-                <td colspan="1">Item Change</td>
+            <tr class="text-center" style="font-size: 9px; white-space: nowrap;">
+                <td colspan="2" class="text-left" style="padding: 2px;">No. Doc</td>
+                <td colspan="2" class="text-left" style="padding: 2px;">: FO-17-35</td>
+                <td colspan="1" class="text-left" style="padding: 2px;">Rev</td>
+                <td colspan="2" style="padding: 2px; letter-spacing: -0.3px;">Date</td>
+                <td colspan="1" style="padding: 2px; letter-spacing: -0.3px;">Item Change</td>
             </tr>
             <!-- Row 3 -->
-            <tr>
-                <td colspan="2" class="text-left">Revision</td>
-                <td colspan="2" class="text-left">: 00</td>
-                <td colspan="2"></td>
+            <tr style="font-size: 9px; white-space: nowrap;">
+                <td colspan="2" class="text-left" style="padding: 2px;">Rev</td>
+                <td colspan="2" class="text-left" style="padding: 2px;">: 00</td>
                 <td colspan="1"></td>
+                <td colspan="2"></td>
                 <td colspan="1"></td>
             </tr>
             
             <!-- Row 4 -->
-            <tr>
+            <tr style="font-size: 9px; white-space: nowrap;">
                 <td colspan="2" class="text-center" style="font-size: 9px; font-weight: bold; padding: 2px; border-top: none;">New Project Control<br>Dept.</td>
-                <td colspan="2">Date Release</td>
-                <td colspan="2">: {{ \Carbon\Carbon::now()->format('d M Y') }}</td>
-                <td colspan="2"></td>
+                <td colspan="2" style="padding: 2px; letter-spacing: -0.3px;">Date Release</td>
+                <td colspan="2" style="padding: 2px; letter-spacing: -0.4px; font-size: 8.5px;">: {{ \Carbon\Carbon::now()->format('d M Y') }}</td>
                 <td colspan="1"></td>
+                <td colspan="2"></td>
                 <td colspan="1"></td>
             </tr>
 
@@ -179,7 +179,7 @@
                 <td colspan="1" class="text-center text-blue">{{ optional($product)->part_no ?? '-' }}</td>
                 <td colspan="1" class="font-bold text-center">EO No.</td>
                 <td colspan="5" class="text-center text-blue">{{ optional(optional($part)->drawingRevision)->ecn_no ?? optional(optional(optional($product)->docPackage)->currentRevision)->ecn_no ?? optional(optional(optional($product)->getEffectiveDocPackage())->currentRevision)->ecn_no ?? '-' }}</td>
-                <td colspan="4">Quantity Order (pcs)</td>
+                <td colspan="4">Qty Order (pcs)</td>
                 <td colspan="4" class="text-center text-blue">{{ optional($part)->qty ?? '-' }}</td>
             </tr>
             
@@ -205,7 +205,7 @@
             </tr>
             
             <!-- Row 9 Spacer -->
-            <tr><td colspan="17" class="no-border-cell" style="height: 10px;"></td></tr>
+            <tr><td colspan="17" class="no-border-cell" style="height: 2px;"></td></tr>
             
             <!-- Extract Sketch Variables -->
             @php
@@ -245,14 +245,14 @@
             @if($sketchSrc)
             <!-- SKETCH Row -->
             <tr>
-                <td colspan="17" class="text-center font-bold" style="vertical-align: top; padding: 10px;">
-                    <div style="margin-bottom: 10px;">SKETCH</div>
+                <td colspan="17" class="text-center font-bold" style="vertical-align: top; padding: 5px;">
+                    <div style="margin-bottom: 5px;">SKETCH</div>
                     @if(!$isLandscape)
-                        <div style="display: flex; justify-content: center; align-items: center; height: 350px; overflow: hidden;">
-                            <img src="{{ $sketchSrc }}" alt="Sketch" style="max-width: 350px; max-height: 700px; object-fit: contain; transform: rotate(-90deg);">
+                        <div style="display: flex; justify-content: center; align-items: center; height: 250px; overflow: hidden;">
+                            <img src="{{ $sketchSrc }}" alt="Sketch" style="max-width: 250px; max-height: 500px; object-fit: contain; transform: rotate(-90deg);">
                         </div>
                     @else
-                        <img src="{{ $sketchSrc }}" alt="Sketch" style="max-width: 100%; max-height: 400px; object-fit: contain; margin: 0 auto; display: block;">
+                        <img src="{{ $sketchSrc }}" alt="Sketch" style="max-width: 100%; max-height: 250px; object-fit: contain; margin: 0 auto; display: block;">
                     @endif
                 </td>
             </tr>
@@ -404,7 +404,7 @@
             @endforeach
             
             <!-- Footer Signatures Spacer -->
-            <tr><td colspan="17" class="no-border-cell" style="height: 10px;"></td></tr>
+            <tr><td colspan="17" class="no-border-cell" style="height: 2px;"></td></tr>
             
             <!-- Footer Row 1 -->
             <tr>
@@ -433,7 +433,7 @@
             </tr>
             
             <!-- Footer Row 4 (Signature empty space) -->
-            <tr class="text-center" style="height: 50px;">
+            <tr class="text-center" style="height: 35px;">
                 <td colspan="1" style="vertical-align: bottom; font-weight:bold;">
                     @if(optional($checksheet)->qe_mgr_id) <div style="color: green; font-size: 10px; margin-bottom: 2px;">✔ Approved</div> @endif
                     {{ optional($checksheet->qeMgr)->name ?? '' }}
