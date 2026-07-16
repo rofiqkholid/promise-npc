@@ -135,6 +135,7 @@ class NpcChecksheetController extends Controller
             ]);
 
             $hasNg = false;
+            $hasEmpty = false;
             $ngDescriptions = [];
             foreach ($request->input('details', []) as $id => $data) {
                 $detail = NpcChecksheetDetail::find($id);
@@ -143,6 +144,9 @@ class NpcChecksheetController extends Controller
                     if ($rowResult === 'NG') {
                         $hasNg = true;
                         $ngDescriptions[] = "NG found on point: " . $detail->point_check;
+                    }
+                    if (empty($rowResult)) {
+                        $hasEmpty = true;
                     }
                     $detail->update([
                         'row_result' => $rowResult,
@@ -173,7 +177,7 @@ class NpcChecksheetController extends Controller
                 }
             }
 
-            if ($hasNg) {
+            if ($hasNg || $hasEmpty) {
                 $checksheet->update([
                     'final_result' => $request->final_result,
                     'mgm_checked_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
@@ -181,7 +185,7 @@ class NpcChecksheetController extends Controller
                 ]);
 
                 // Auto-record NG history problems
-                if (!empty($ngDescriptions) && $part->product) {
+                if ($hasNg && !empty($ngDescriptions) && $part->product) {
                     $insertData = [];
                     foreach ($ngDescriptions as $desc) {
                         $exists = \App\Models\ProductHistoryProblem::where('product_id', $part->product->id)
@@ -205,7 +209,11 @@ class NpcChecksheetController extends Controller
                     }
                 }
 
-                return redirect()->back()->with('warning', 'Data saved as Draft. NG history has been automatically recorded. Cannot submit to Approval Phase until all results are OK.');
+                if ($hasNg) {
+                    return redirect()->back()->with('warning', 'Data saved as Draft. NG history has been automatically recorded. Cannot submit to Approval Phase until all results are OK.');
+                } else {
+                    return redirect()->back()->with('warning', 'Data saved as Draft. Cannot submit to Approval Phase until all checkpoints are fully filled.');
+                }
             }
 
             $checksheet->update([

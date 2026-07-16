@@ -397,8 +397,10 @@
 
             const allSelects = document.querySelectorAll('input[name$="[row_result]"]');
             let hasNg = false;
+            let hasEmpty = false;
             allSelects.forEach(select => {
                 if (select.value === 'NG') hasNg = true;
+                if (!select.value || select.value === '') hasEmpty = true;
             });
 
             const btnText = document.getElementById('submit-btn-text');
@@ -406,6 +408,11 @@
 
             if (hasNg) {
                 btnText.textContent = 'Save Draft (NG Found)';
+                icon.className = 'fa-solid fa-save';
+                submitBtn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                submitBtn.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+            } else if (hasEmpty) {
+                btnText.textContent = 'Save Draft (Incomplete)';
                 icon.className = 'fa-solid fa-save';
                 submitBtn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
                 submitBtn.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
