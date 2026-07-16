@@ -211,11 +211,6 @@
             <a href="{{ route('checksheet-approvals.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm text-[13px] font-medium">
                 Cancel
             </a>
-            @if(auth()->check() && auth()->user()->roles->contains('code', 'admin'))
-                <button type="submit" name="action" value="rollback" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm" onclick="confirmAction(event, 'WARNING: Rollback will reset ALL approval progress to WAITING_QE_STAFF. Are you sure?');">
-                    <i class="fa-solid fa-backward-fast"></i> Rollback / Reset
-                </button>
-            @endif
             @if($canApprove)
                 <button type="submit" name="action" value="save" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm" onclick="confirmAction(event, 'Are you sure you want to save changes? The checksheet will stay at the current approval level.');">
                     <i class="fa-solid fa-floppy-disk"></i> Save Changes

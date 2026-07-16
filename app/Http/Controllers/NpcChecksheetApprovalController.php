@@ -193,29 +193,7 @@ class NpcChecksheetApprovalController extends Controller
             return redirect()->route('checksheet-approvals.show', $checksheet->hashed_id)->with('success', 'Changes have been saved successfully.');
         }
         
-        if ($action === 'rollback') {
-            if (!auth()->user()->roles->contains('code', 'admin') && !auth()->user()->roles->contains('code', 'npc_admin')) {
-                abort(403, 'Only Admins can rollback approvals.');
-            }
-            
-            $checksheet->update([
-                'approval_status' => 'WAITING_QE_STAFF',
-                'qe_staff_id' => null, 'qe_staff_date' => null,
-                'mgm_staff_id' => null, 'mgm_staff_date' => null,
-                'qe_spv_id' => null, 'qe_spv_date' => null,
-                'mgm_spv_id' => null, 'mgm_spv_date' => null,
-                'qe_assman_id' => null, 'qe_assman_date' => null,
-                'mgm_assman_id' => null, 'mgm_assman_date' => null,
-                'qe_mgr_id' => null, 'qe_mgr_date' => null,
-                'mgm_mgr_id' => null, 'mgm_mgr_date' => null,
-            ]);
-            
-            if ($part) {
-                $part->update(['status' => 'WAITING_APPROVAL']);
-            }
-            
-            return redirect()->route('checksheet-approvals.index')->with('success', 'Checksheet has been successfully rolled back to the first step.');
-        }
+
 
         if (!auth()->user()->canApproveChecksheetStage($status)) {
             abort(403, 'You do not have the required Role or Permission to approve/reject at this stage.');
