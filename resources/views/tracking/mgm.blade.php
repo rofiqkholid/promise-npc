@@ -118,7 +118,7 @@
                                     @if(in_array($part->status, ['WAITING_APPROVAL', 'FINISHED']) && $part->delivered_qty == 0)
                                     @php
                                         $checksheet = $part->checksheet;
-                                        $canRollback = !$checksheet || $checksheet->approval_status === null || $checksheet->approval_status === 'WAITING_MGM_STAFF';
+                                        $canRollback = !$checksheet || $checksheet->approval_status === null || in_array($checksheet->approval_status, ['WAITING_MGM_STAFF', 'APPROVED']);
                                     @endphp
                                     @if($canRollback)
                                     <form action="{{ route('tracking.mgm.rollback', $part->hashed_id) }}" method="POST">

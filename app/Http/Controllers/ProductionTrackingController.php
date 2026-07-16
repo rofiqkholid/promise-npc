@@ -471,10 +471,9 @@ class ProductionTrackingController extends Controller
             return back()->with('error', 'Only parts in Approval or Finished stock can be rolled back to MGM.');
         }
 
-        // Check if Approval has already progressed
-        // For checksheet approval, we check if it has advanced beyond WAITING_MGM_STAFF
-        if ($part->checksheet && $part->checksheet->approval_status !== null && $part->checksheet->approval_status !== 'WAITING_MGM_STAFF') {
-            return back()->with('error', 'Cannot rollback because Checksheet Approval has already started/progressed.');
+        // Check if Approval has already progressed (allow if just started or already fully approved)
+        if ($part->checksheet && $part->checksheet->approval_status !== null && !in_array($part->checksheet->approval_status, ['WAITING_MGM_STAFF', 'APPROVED'])) {
+            return back()->with('error', 'Cannot rollback because Checksheet Approval is currently in progress.');
         }
 
         // If it's FINISHED, check if it has already started being delivered
@@ -485,6 +484,12 @@ class ProductionTrackingController extends Controller
         $part->update([
             'status' => 'WAITING_MGM_CHECK',
         ]);
+
+        if ($part->checksheet) {
+            $part->checksheet->update([
+                'approval_status' => 'WAITING_QE_STAFF'
+            ]);
+        }
 
         $latestActivity = $part->activities()->latest()->first();
         if ($latestActivity && $latestActivity->event === 'updated') {
