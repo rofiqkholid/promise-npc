@@ -486,9 +486,14 @@ class ProductionTrackingController extends Controller
         ]);
 
         if ($part->checksheet) {
-            $part->checksheet->update([
-                'approval_status' => 'WAITING_QE_STAFF'
-            ]);
+            // Delete checkheet details (the snapshot points)
+            $part->checksheet->details()->delete();
+            
+            // Delete any NG history recorded from this checksheet
+            \App\Models\ProductHistoryProblem::where('npc_part_id_finder', $part->id)->delete();
+            
+            // Delete the main checksheet record
+            $part->checksheet->delete();
         }
 
         $latestActivity = $part->activities()->latest()->first();
