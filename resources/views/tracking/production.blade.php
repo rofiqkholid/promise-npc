@@ -18,7 +18,7 @@
     <div class="px-6 pt-4 pb-2 flex flex-col md:flex-row gap-4">
         <div class="w-full md:w-64">
             <select id="customerFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
-                <option value="">All Customers</option>
+                <option value="all">All Customers</option>
                 @foreach($customers ?? [] as $customer)
                     <option value="{{ $customer->id }}">{{ $customer->code }}</option>
                 @endforeach
@@ -26,9 +26,17 @@
         </div>
         <div class="w-full md:w-64">
             <select id="modelFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
-                <option value="">All Models</option>
+                <option value="all">All Models</option>
                 @foreach($models ?? [] as $mod)
                     <option value="{{ $mod->id }}" data-customer="{{ $mod->customer_id }}">{{ $mod->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="w-full md:w-64">
+            <select id="poFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
+                <option value="all">All POs</option>
+                @foreach($poList ?? [] as $po)
+                    <option value="{{ $po->id }}">{{ $po->po_no }}</option>
                 @endforeach
             </select>
         </div>
@@ -159,9 +167,51 @@ $(document).ready(function() {
             data: function (d) {
                 d.customer_filter = $('#customerFilter').val();
                 d.model_filter = $('#modelFilter').val();
+                d.po_filter = $('#poFilter').val();
             }
         },
         responsive: true,
+        stateSave: true,
+        stateDuration: 60 * 60 * 24, // 24 hours
+        stateSaveParams: function (settings, data) {
+            data.customFilters = {
+                customer: $('#customerFilter').val(),
+                model: $('#modelFilter').val(),
+                po: $('#poFilter').val()
+            };
+        },
+        stateLoadParams: function (settings, data) {
+            if (data.customFilters) {
+                if (data.customFilters.customer !== undefined) {
+                    $('#customerFilter').val(data.customFilters.customer);
+                }
+                if (data.customFilters.model !== undefined) {
+                    $('#modelFilter').val(data.customFilters.model);
+                }
+                if (data.customFilters.po !== undefined) {
+                    $('#poFilter').val(data.customFilters.po);
+                }
+            }
+        },
+        initComplete: function(settings, json) {
+            // Trigger visual update for select2 after table init
+            setTimeout(function() {
+                if ($('#customerFilter').val()) {
+                    let customerId = $('#customerFilter').val();
+                    $('#modelFilter option').each(function() {
+                        if ($(this).val() == 'all') return;
+                        if (!customerId || customerId == 'all' || $(this).data('customer') == customerId) {
+                            $(this).prop('disabled', false).show();
+                        } else {
+                            $(this).prop('disabled', true).hide();
+                        }
+                    });
+                }
+                $('#customerFilter').trigger('change.select2');
+                $('#modelFilter').trigger('change.select2');
+                $('#poFilter').trigger('change.select2');
+            }, 100);
+        },
         pageLength: 15,
         lengthMenu: [[10, 15, 25, 50, 100], [10, 15, 25, 50, 100]],
         stripeClasses: ['bg-white dark:bg-gray-800', 'bg-gray-50 dark:bg-gray-750'], // Native zebra striping
@@ -217,11 +267,11 @@ $(document).ready(function() {
         }
 
         $('#modelFilter option').each(function() {
-            if ($(this).val() == '') {
+            if ($(this).val() == 'all') {
                 $(this).prop('disabled', false);
                 return;
             }
-            if (!customerId || $(this).data('customer') == customerId) {
+            if (!customerId || customerId == 'all' || $(this).data('customer') == customerId) {
                 $(this).prop('disabled', false).show();
             } else {
                 $(this).prop('disabled', true).hide();
@@ -232,7 +282,7 @@ $(document).ready(function() {
         
         // If the currently selected model is now disabled, reset it
         if ($('#modelFilter option:selected').prop('disabled')) {
-            $('#modelFilter').val('').trigger('change.select2');
+            $('#modelFilter').val('all').trigger('change.select2');
         }
         
         table.ajax.reload();
@@ -242,10 +292,15 @@ $(document).ready(function() {
         table.ajax.reload();
     });
 
+    $('#poFilter').on('change', function(e) {
+        table.ajax.reload();
+    });
+
     $('#clearFiltersBtn').on('click', function(e) {
         e.preventDefault();
-        $('#modelFilter').val('');
-        $('#customerFilter').val('').trigger('change');
+        $('#modelFilter').val('all');
+        $('#poFilter').val('all').trigger('change');
+        $('#customerFilter').val('all').trigger('change');
     });
 });
 </script>

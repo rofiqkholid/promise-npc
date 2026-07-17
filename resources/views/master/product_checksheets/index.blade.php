@@ -130,7 +130,30 @@
                 { data: 'action', name: 'action', orderable: false, searchable: false, className: 'px-4 py-2 text-right align-middle' }
             ],
             // Since we use custom filters and search box:
-            dom: '<"flex justify-between items-center mb-4"<"text-sm"l>>rt<"flex justify-between items-center mt-4 text-sm"ip>'
+            dom: '<"flex justify-between items-center mb-4"<"text-sm"l>>rt<"flex justify-between items-center mt-4 text-sm"ip>',
+            stateSaveParams: function (settings, data) {
+                data.customFilters = {
+                    customer_id: $('select[name="customer_id"]').val(),
+                    model_id: $('select[name="model_id"]').val(),
+                    status: $('select[name="status"]').val(),
+                    search_input: $('#searchInput').val()
+                };
+            },
+            stateLoadParams: function (settings, data) {
+                if (data.customFilters) {
+                    if (data.customFilters.customer_id !== undefined) $('select[name="customer_id"]').val(data.customFilters.customer_id);
+                    if (data.customFilters.model_id !== undefined) $('select[name="model_id"]').val(data.customFilters.model_id);
+                    if (data.customFilters.status !== undefined) $('select[name="status"]').val(data.customFilters.status);
+                    if (data.customFilters.search_input !== undefined) $('#searchInput').val(data.customFilters.search_input);
+                }
+            },
+            initComplete: function(settings, json) {
+                setTimeout(function() {
+                    $('select[name="customer_id"]').trigger('change.select2');
+                    $('select[name="model_id"]').trigger('change.select2');
+                    $('select[name="status"]').trigger('change.select2');
+                }, 100);
+            }
         });
 
         // Search trigger

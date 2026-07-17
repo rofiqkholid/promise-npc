@@ -146,6 +146,8 @@
             serverSide: true,
             ajax: "{{ route('tracking.qc') }}",
             responsive: true,
+            stateSave: true,
+            stateDuration: 60 * 60 * 24, // 24 hours
             pageLength: 15,
             lengthMenu: [[10, 15, 25, 50, 100], [10, 15, 25, 50, 100]],
             stripeClasses: ['bg-white dark:bg-gray-800', 'bg-gray-50 dark:bg-gray-750'], // Native zebra striping

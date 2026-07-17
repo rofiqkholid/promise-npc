@@ -36,18 +36,23 @@ class ProductionTrackingController extends Controller
             });
         }
         
-        if (request()->filled('customer_filter') && request('customer_filter') !== 'null') {
+        if (request()->filled('customer_filter') && request('customer_filter') !== 'null' && request('customer_filter') !== 'all') {
             $customerFilter = request('customer_filter');
             $query->whereHas('product.vehicleModel', function ($q) use ($customerFilter) {
                 $q->where('customer_id', $customerFilter);
             });
         }
 
-        if (request()->filled('model_filter') && request('model_filter') !== 'null') {
+        if (request()->filled('model_filter') && request('model_filter') !== 'null' && request('model_filter') !== 'all') {
             $modelFilter = request('model_filter');
             $query->whereHas('product', function ($q) use ($modelFilter) {
                 $q->where('model_id', $modelFilter);
             });
+        }
+
+        if (request()->filled('po_filter') && request('po_filter') !== 'null' && request('po_filter') !== 'all') {
+            $poFilter = request('po_filter');
+            $query->where('npc_event_id', $poFilter);
         }
 
         if (request()->has('status_filter') && request('status_filter') !== '') {
@@ -137,12 +142,13 @@ class ProductionTrackingController extends Controller
         
         $customers = \App\Models\Customer::orderBy('name')->get();
         $models = \App\Models\VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
+        $poList = \App\Models\NpcEvent::whereNotNull('po_no')->orderBy('po_no')->get();
         
         // Conditional Status: only fetch statuses that are applicable for the current page
         $baseQuery = $this->buildQuery($statusParam, null);
         $status_options = $baseQuery->select('status')->distinct()->pluck('status');
 
-        return view($viewFile, compact('parts', 'statusParam', 'pageTitle', 'pageIcon', 'pageDesc', 'customers', 'models', 'status_options'));
+        return view($viewFile, compact('parts', 'statusParam', 'pageTitle', 'pageIcon', 'pageDesc', 'customers', 'models', 'poList', 'status_options'));
     }
 
     public function index(\Illuminate\Http\Request $request)
