@@ -81,6 +81,14 @@
                             <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5">{{ optional($part->product)->part_name }}</div>
                             <div class="text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-700 px-2 py-0.5 inline-block border border-gray-200 dark:border-gray-600 mb-2">PO: {{ optional($part->event)->po_no }} | MODEL: {{ optional($part->product->vehicleModel)->name ?? 'Unknown Model' }}</div>
                             <div class="text-gray-800 dark:text-gray-300 font-black flex items-center gap-1.5"><i class="fa-solid fa-boxes-stacked text-gray-400"></i> {{ number_format($part->qty) }} <span class="text-xs font-semibold text-gray-500">PCS</span></div>
+                            @if($part->rollback_reason)
+                            <div class="mt-2 flex items-start gap-1.5 text-[10px] text-red-600 bg-red-50 p-1.5 border border-red-200">
+                                <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                                <div class="font-medium text-balance">
+                                    <span class="font-bold">Rolled Back:</span> {{ $part->rollback_reason }}
+                                </div>
+                            </div>
+                            @endif
                         </td>
                         <td class="px-4 py-2 text-center align-middle">
                             @if(in_array($part->status, ['PO_REGISTERED', 'WAITING_DEPT_CONFIRM', 'WAITING_QE_CHECK']))
@@ -121,9 +129,10 @@
                                         $canRollback = !$checksheet || $checksheet->approval_status === null || in_array($checksheet->approval_status, ['WAITING_MGM_STAFF', 'APPROVED']);
                                     @endphp
                                     @if($canRollback)
-                                    <form action="{{ route('tracking.mgm.rollback', $part->hashed_id) }}" method="POST">
+                                    <form action="{{ route('tracking.mgm.rollback', $part->hashed_id) }}" method="POST" class="rollback-form">
                                         @csrf
-                                        <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold transition mt-1" onclick="confirmAction(event, 'Are you sure you want to rollback this part to MGM Check stage?')">
+                                        <input type="hidden" name="rollback_reason" class="rollback-reason-input">
+                                        <button type="button" class="text-[10px] text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold transition mt-1" onclick="confirmRollbackWithReason(event)">
                                             <i class="fa-solid fa-rotate-left"></i> Rollback MGM
                                         </button>
                                     </form>
@@ -266,5 +275,35 @@ $(document).ready(function() {
             $('#modelFilter').select2({ width: '100%' });
         }
     });
+
+    function confirmRollbackWithReason(event) {
+        event.preventDefault();
+        const form = $(event.currentTarget).closest('.rollback-form');
+        
+        Swal.fire({
+            title: 'Rollback to MGM Check',
+            text: 'Please enter the reason for rolling back this part. The current checksheet will be deleted permanently.',
+            icon: 'warning',
+            input: 'textarea',
+            inputPlaceholder: 'Type your reason here...',
+            inputAttributes: {
+                'aria-label': 'Type your reason here'
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444', // red-500
+            cancelButtonColor: '#6b7280', // gray-500
+            confirmButtonText: 'Yes, Rollback!',
+            inputValidator: (value) => {
+                if (!value || value.trim() === '') {
+                    return 'You need to write something!'
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.find('.rollback-reason-input').val(result.value);
+                form.submit();
+            }
+        });
+    }
 </script>
 @endpush

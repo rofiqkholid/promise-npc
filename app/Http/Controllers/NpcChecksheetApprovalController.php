@@ -90,7 +90,7 @@ class NpcChecksheetApprovalController extends Controller
                         if ($part && $part->delivered_qty == 0) {
                             $rollbackUrl = route('tracking.mgm.rollback', $part->hashed_id);
                             $token = csrf_token();
-                            $rollbackBtn = '<form action="'.$rollbackUrl.'" method="POST" class="inline m-0 p-0"><input type="hidden" name="_token" value="'.$token.'"><button type="submit" class="inline-flex items-center gap-2 px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold transition shadow-sm" title="Rollback Approval" onclick="confirmAction(event, \'Are you sure you want to rollback this checksheet to MGM Check stage?\')"><i class="fa-solid fa-rotate-left"></i> Rollback</button></form>';
+                            $rollbackBtn = '<form action="'.$rollbackUrl.'" method="POST" class="inline m-0 p-0 rollback-form-approval"><input type="hidden" name="_token" value="'.$token.'"><input type="hidden" name="rollback_reason" class="rollback-reason-input"><button type="button" class="inline-flex items-center gap-2 px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold transition shadow-sm" title="Rollback Approval" onclick="confirmRollbackWithReason(event)"><i class="fa-solid fa-rotate-left"></i> Rollback</button></form>';
                         }
                         
                         return '<div class="flex items-center justify-end gap-2"><span class="text-xs text-emerald-600 font-semibold flex items-center justify-end gap-1 whitespace-nowrap mr-2"><i class="fa-solid fa-circle-check"></i> Completed</span>' . $rollbackBtn . $previewBtn . '</div>';

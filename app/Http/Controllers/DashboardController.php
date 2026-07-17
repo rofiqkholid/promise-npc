@@ -222,6 +222,14 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        // c. Rolled Back Parts (Action Required)
+        $rolledBackParts = NpcPart::with(['product', 'event.customerCategory'])
+            ->whereHas('event', $applyEventFilters)
+            ->whereNotNull('rollback_reason')
+            ->orderBy('updated_at', 'desc')
+            ->take(10)
+            ->get();
+
         // 4. Remain Deliveries (Grouped by PO)
         $remainDeliveries = NpcEvent::with(['customerCategory', 'parts.product.vehicleModel'])
             ->where($applyEventFilters)
@@ -251,7 +259,7 @@ class DashboardController extends Controller
         }
 
         return view('dashboard', compact(
-            'metrics', 'nearestEvents', 'ecnUpdates', 'stagnantParts', 'remainDeliveries',
+            'metrics', 'nearestEvents', 'ecnUpdates', 'stagnantParts', 'rolledBackParts', 'remainDeliveries',
             'trendChart', 'departmentChart', 'customerChart',
             'filterYear', 'filterMonth', 'filterCustomer', 'filterPo', 'filterModel', 'customerCategories', 'vehicleModels', 'availableYears'
         ));

@@ -481,8 +481,13 @@ class ProductionTrackingController extends Controller
             return back()->with('error', 'Cannot rollback because part has already started delivery.');
         }
 
+        $request->validate([
+            'rollback_reason' => 'required|string|max:500'
+        ]);
+
         $part->update([
             'status' => 'WAITING_MGM_CHECK',
+            'rollback_reason' => $request->rollback_reason,
         ]);
 
         if ($part->checksheet) {

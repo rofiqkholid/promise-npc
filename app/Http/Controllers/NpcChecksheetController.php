@@ -225,7 +225,12 @@ class NpcChecksheetController extends Controller
 
             // Instead of FINISHED, move part to WAITING_APPROVAL
             if ($part->status === 'WAITING_MGM_CHECK') {
-                $part->update(['status' => 'WAITING_APPROVAL']);
+                $part->update([
+                    'status' => 'WAITING_APPROVAL',
+                    'rollback_reason' => null
+                ]);
+            } else {
+                $part->update(['rollback_reason' => null]);
             }
 
             return redirect()->route('tracking.index')->with('success', 'MGM Checksheet successfully submitted to Approval Phase.');

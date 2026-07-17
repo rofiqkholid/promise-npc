@@ -56,7 +56,23 @@ class ProductChecksheetSetupController extends Controller
                     return '<div class="text-blue-600 dark:text-blue-400 font-bold text-sm">' . $product->part_no . '</div>';
                 })
                 ->addColumn('part_name', function ($product) {
-                    return '<div class="text-gray-800 dark:text-gray-200 font-bold">' . $product->part_name . '</div>';
+                    $html = '<div class="text-gray-800 dark:text-gray-200 font-bold">' . $product->part_name . '</div>';
+                    
+                    // Check if any transactional part of this product is rolled back
+                    $rolledBackPart = \App\Models\NpcPart::where('product_id', $product->id)
+                        ->whereNotNull('rollback_reason')
+                        ->first();
+                        
+                    if ($rolledBackPart) {
+                        $html .= '<div class="mt-2 flex items-start gap-1.5 text-[10px] text-red-600 bg-red-50 p-1.5 border border-red-200">
+                            <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                            <div class="font-medium text-balance">
+                                <span class="font-bold">Rolled Back:</span> ' . htmlspecialchars($rolledBackPart->rollback_reason) . '
+                            </div>
+                        </div>';
+                    }
+                    
+                    return $html;
                 })
                 ->addColumn('ecn_info', function ($product) {
                     $docPackage = $product->getEffectiveDocPackage();
@@ -245,6 +261,11 @@ class ProductChecksheetSetupController extends Controller
             ->log('Part Checksheet Master');
 
         $product->touch(); // Ensure the parent product's updated_at is bumped for sorting
+
+        // Clear rollback_reason for any pending transactional parts since the master data has been updated
+        \App\Models\NpcPart::where('product_id', $product->id)
+            ->whereNotNull('rollback_reason')
+            ->update(['rollback_reason' => null]);
 
         return redirect()->route('master.checksheets.index')->with('success', 'Master Checksheet for Part ' . $product->part_no . ' successfully saved!');
     }

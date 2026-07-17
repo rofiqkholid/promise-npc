@@ -116,5 +116,35 @@
             $('#checksheetApprovalTable').DataTable().ajax.reload();
         });
     });
+
+    function confirmRollbackWithReason(event) {
+        event.preventDefault();
+        const form = $(event.currentTarget).closest('.rollback-form-approval');
+        
+        Swal.fire({
+            title: 'Rollback to MGM Check',
+            text: 'Please enter the reason for rolling back this part. The current checksheet will be deleted permanently.',
+            icon: 'warning',
+            input: 'textarea',
+            inputPlaceholder: 'Type your reason here...',
+            inputAttributes: {
+                'aria-label': 'Type your reason here'
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444', // red-500
+            cancelButtonColor: '#6b7280', // gray-500
+            confirmButtonText: 'Yes, Rollback!',
+            inputValidator: (value) => {
+                if (!value || value.trim() === '') {
+                    return 'You need to write something!'
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.find('.rollback-reason-input').val(result.value);
+                form.submit();
+            }
+        });
+    }
 </script>
 @endpush

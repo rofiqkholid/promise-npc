@@ -325,8 +325,25 @@
                 </div>
                 
                 <div class="flex-1 overflow-y-auto custom-scrollbar p-0">
-                    @if($ecnUpdates->count() > 0 || $stagnantParts->count() > 0)
+                    @if($ecnUpdates->count() > 0 || $stagnantParts->count() > 0 || $rolledBackParts->count() > 0)
                         <div class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                            <!-- Rolled Back Items -->
+                            @foreach($rolledBackParts as $part)
+                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route('tracking.index', ['search' => $part->event->po_no ?? '', 'open_event' => $part->npc_event_id, 'from_dashboard' => 1]) }}'">
+                                    <div class="flex justify-between items-start">
+                                        <div class="w-full">
+                                            <span class="text-[8px] font-bold text-red-600 bg-red-100 px-1 uppercase mb-0.5 inline-block">Rolled Back</span>
+                                            <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
+                                            <div class="text-[9px] text-slate-500 mt-0.5 truncate flex justify-between w-full">
+                                                <span>PO: {{ $part->event->po_no ?? '-' }}</span>
+                                            </div>
+                                            <p class="text-[9px] text-red-600 font-medium mt-1 truncate">
+                                                <i class="fa-solid fa-triangle-exclamation"></i> {{ $part->rollback_reason }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
                             <!-- ECN Items -->
                             @foreach($ecnUpdates as $part)
                                 <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route('tracking.index', ['search' => $part->event->po_no ?? '', 'open_event' => $part->npc_event_id, 'from_dashboard' => 1]) }}'">

@@ -57,7 +57,8 @@ class NpcPart extends Model
         'mgm_target_date',
         'condition',
         'delivered_qty',
-        'part_revision_id'
+        'part_revision_id',
+        'rollback_reason'
     ];
 
     public function event()
