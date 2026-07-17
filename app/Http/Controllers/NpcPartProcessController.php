@@ -132,14 +132,16 @@ class NpcPartProcessController extends Controller
         if ($request->has('routing') && !empty($request->routing)) {
             foreach ($request->routing as $routeData) {
                 $process = \App\Models\NpcProcess::where('process_name', $routeData['process_name'])->first();
-                NpcPartProcess::create([
-                    'npc_part_id' => $part->id,
-                    'process_id' => $process ? $process->id : null,
-                    'department_id' => $routeData['department_id'],
-                    'target_completion_date' => $routeData['target_completion_date'],
-                    'sequence_order' => $routeData['sequence_order'],
-                    'status' => 'WAITING'
-                ]);
+                \Spatie\Activitylog\Facades\Activity::withoutLogs(function() use ($part, $process, $routeData) {
+                    NpcPartProcess::create([
+                        'npc_part_id' => $part->id,
+                        'process_id' => $process ? $process->id : null,
+                        'department_id' => $routeData['department_id'],
+                        'target_completion_date' => $routeData['target_completion_date'],
+                        'sequence_order' => $routeData['sequence_order'],
+                        'status' => 'WAITING'
+                    ]);
+                });
             }
             
             if($part->status === 'PO_REGISTERED') {

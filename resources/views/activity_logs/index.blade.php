@@ -117,18 +117,6 @@
                         </td>
                         <td class="px-4 py-2 whitespace-nowrap text-left">
                             @php
-                                $badgeClass = 'bg-gray-100 text-gray-800';
-                                if($log->event === 'created') $badgeClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
-                                if($log->event === 'updated') $badgeClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
-                                if($log->event === 'deleted') $badgeClass = 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-                                if($log->event === 'rollbacked') $badgeClass = 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400';
-                            @endphp
-                            <span class="inline-flex items-center justify-center min-w-[90px] px-3 py-1 rounded-full text-xs font-bold {{ $badgeClass }} uppercase tracking-wider">
-                                {{ $log->event ?? $log->description }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-2 text-gray-600 dark:text-gray-400 text-xs">
-                            @php
                                 $modelBasename = class_basename($log->subject_type);
                                 
                                 // Map Model to Menu Name
@@ -154,24 +142,47 @@
                                 $oldAttrs = $props['old'] ?? [];
                                 $combinedAttrs = array_merge($oldAttrs, $attrs);
                                 
+                                $displayEvent = $log->event;
+
                                 // Make NpcPart menu specific based on its status
-                                if ($modelBasename === 'NpcPart' && isset($combinedAttrs['status'])) {
-                                    $status = $combinedAttrs['status'];
-                                    if ($status === 'PO_REGISTERED') {
-                                        $baseMenuName = 'Production Routing Setup';
-                                    } elseif (in_array($status, ['WAITING_DEPT_CONFIRM', 'IN_PRODUCTION'])) {
-                                        $baseMenuName = 'Production Process';
-                                    } elseif ($status === 'WAITING_QE_CHECK') {
-                                        $baseMenuName = 'Quality Check (QC)';
-                                    } elseif (in_array($status, ['WAITING_MGM_CHECK', 'WAITING_APPROVAL'])) {
-                                        $baseMenuName = 'Management Check';
-                                    } elseif ($status === 'FINISHED') {
-                                        $baseMenuName = 'Finished Goods Stock';
-                                    } elseif (in_array($status, ['OUTSTANDING', 'CLOSED'])) {
-                                        $baseMenuName = 'Delivery History';
+                                if ($modelBasename === 'NpcPart') {
+                                    if ($log->event === 'created') {
+                                        $baseMenuName = 'Event Data (PO) - Part Detail';
+                                    } elseif (isset($combinedAttrs['status'])) {
+                                        // For 'updated' events, we use the old status to reflect where the user actually did the action
+                                        $statusForMenu = ($log->event === 'updated' && isset($oldAttrs['status'])) ? $oldAttrs['status'] : $combinedAttrs['status'];
+                                        
+                                        if ($statusForMenu === 'PO_REGISTERED') {
+                                            $baseMenuName = 'Production Routing Setup';
+                                            if ($log->event === 'updated' && isset($attrs['status']) && $attrs['status'] === 'WAITING_DEPT_CONFIRM') {
+                                                $displayEvent = 'created';
+                                            }
+                                        } elseif (in_array($statusForMenu, ['WAITING_DEPT_CONFIRM', 'IN_PRODUCTION'])) {
+                                            $baseMenuName = 'Production Process';
+                                        } elseif ($statusForMenu === 'WAITING_QE_CHECK') {
+                                            $baseMenuName = 'Quality Check (QC)';
+                                        } elseif (in_array($statusForMenu, ['WAITING_MGM_CHECK', 'WAITING_APPROVAL'])) {
+                                            $baseMenuName = 'Management Check';
+                                        } elseif ($statusForMenu === 'FINISHED') {
+                                            $baseMenuName = 'Finished Goods Stock';
+                                        } elseif (in_array($statusForMenu, ['OUTSTANDING', 'CLOSED'])) {
+                                            $baseMenuName = 'Delivery History';
+                                        }
                                     }
                                 }
-                                
+
+                                $badgeClass = 'bg-gray-100 text-gray-800';
+                                if($displayEvent === 'created') $badgeClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
+                                if($displayEvent === 'updated') $badgeClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+                                if($displayEvent === 'deleted') $badgeClass = 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+                                if($displayEvent === 'rollbacked') $badgeClass = 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400';
+                            @endphp
+                            <span class="inline-flex items-center justify-center min-w-[90px] px-3 py-1 rounded-full text-xs font-bold {{ $badgeClass }} uppercase tracking-wider">
+                                {{ $displayEvent ?? $log->description }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2 text-gray-600 dark:text-gray-400 text-xs">
+                            @php
                                 $displayModelName = $baseMenuName;
                                 $isRollback = false;
                                 
@@ -186,17 +197,45 @@
                                 }
 
                                 $iconClass = 'fa-file-lines text-gray-500';
-                                if ($log->event === 'created') $iconClass = 'fa-plus-circle text-emerald-500';
-                                if ($log->event === 'updated') $iconClass = 'fa-pen-to-square text-blue-500';
-                                if ($log->event === 'deleted') $iconClass = 'fa-trash-can text-red-500';
-                                if ($log->event === 'rollbacked') $iconClass = 'fa-arrow-rotate-left text-orange-500';
+                                if ($displayEvent === 'created') $iconClass = 'fa-plus-circle text-emerald-500';
+                                if ($displayEvent === 'updated') $iconClass = 'fa-pen-to-square text-blue-500';
+                                if ($displayEvent === 'deleted') $iconClass = 'fa-trash-can text-red-500';
+                                if ($displayEvent === 'rollbacked') $iconClass = 'fa-arrow-rotate-left text-orange-500';
                                 
                                 $changedFieldsStr = '';
                                 if ($log->event === 'updated' && !empty($attrs) && is_array($attrs)) {
                                     $keys = array_keys($attrs);
                                     $keys = array_filter($keys, fn($k) => !in_array($k, ['updated_at', 'created_at']));
+                                    
                                     if (!empty($keys)) {
-                                        $changedFieldsStr = 'Updated: ' . implode(', ', $keys);
+                                        if (in_array('approval_status', $keys) && isset($attrs['approval_status'])) {
+                                            $statusVal = $attrs['approval_status'];
+                                            $actionStr = $statusVal === 'APPROVED' ? 'Approved' : ($statusVal === 'REJECTED' ? 'Rejected' : ucfirst(strtolower($statusVal)));
+                                            
+                                            $approverRole = 'Unknown Role';
+                                            if (in_array('qe_staff_id', $keys)) $approverRole = 'QE Staff';
+                                            elseif (in_array('qe_spv_id', $keys)) $approverRole = 'QE Supervisor';
+                                            elseif (in_array('qe_assman_id', $keys)) $approverRole = 'QE Assistant Manager';
+                                            elseif (in_array('qe_mgr_id', $keys)) $approverRole = 'QE Manager';
+                                            elseif (in_array('mgm_staff_id', $keys)) $approverRole = 'MGM Staff';
+                                            elseif (in_array('mgm_spv_id', $keys)) $approverRole = 'MGM Supervisor';
+                                            elseif (in_array('mgm_assman_id', $keys)) $approverRole = 'MGM Assistant Manager';
+                                            elseif (in_array('mgm_mgr_id', $keys) || in_array('mgm_checked_by', $keys)) $approverRole = 'MGM Manager';
+                                            
+                                            if ($approverRole !== 'Unknown Role') {
+                                                $changedFieldsStr = "{$actionStr} by {$approverRole}";
+                                            } else {
+                                                $changedFieldsStr = "Status: {$actionStr}";
+                                            }
+                                        } elseif (in_array('status', $keys) && count($keys) <= 3 && isset($attrs['status'])) {
+                                            $statusVal = str_replace('_', ' ', $attrs['status']);
+                                            $changedFieldsStr = "Status changed to: {$statusVal}";
+                                            if ($modelBasename === 'NpcPart' && $attrs['status'] === 'WAITING_DEPT_CONFIRM' && isset($oldAttrs['status']) && $oldAttrs['status'] === 'PO_REGISTERED') {
+                                                $changedFieldsStr = "Production Schedule Created";
+                                            }
+                                        } else {
+                                            $changedFieldsStr = 'Updated: ' . implode(', ', $keys);
+                                        }
                                     }
                                 }
                                 
@@ -212,6 +251,10 @@
                                     } elseif ($modelBasename === 'NpcPart') {
                                         if ($subject->product) {
                                             $identifier = "Part: " . $subject->product->part_no;
+                                        }
+                                        if ($subject->event) {
+                                            $eventName = optional($subject->event->customerCategory)->category_name ?? optional($subject->event->customerCategory)->name ?? '';
+                                            $identifier .= " - PO: " . $subject->event->po_no . ($eventName ? " (" . $eventName . ")" : "");
                                         }
                                     } elseif ($modelBasename === 'NpcEvent') {
                                         $eventName = optional($subject->customerCategory)->category_name ?? optional($subject->customerCategory)->name ?? '';
@@ -252,6 +295,13 @@
                                         $prod = \App\Models\Product::find($combinedAttrs['product_id']);
                                         if ($prod) {
                                             $identifier = "Part: " . $prod->part_no;
+                                        }
+                                        if (isset($combinedAttrs['npc_event_id'])) {
+                                            $evt = \App\Models\NpcEvent::find($combinedAttrs['npc_event_id']);
+                                            if ($evt) {
+                                                $eventName = optional($evt->customerCategory)->category_name ?? optional($evt->customerCategory)->name ?? '';
+                                                $identifier .= " - PO: " . $evt->po_no . ($eventName ? " (" . $eventName . ")" : "");
+                                            }
                                         }
                                     } elseif (isset($combinedAttrs['product_id'])) {
                                         $prod = \App\Models\Product::find($combinedAttrs['product_id']);
