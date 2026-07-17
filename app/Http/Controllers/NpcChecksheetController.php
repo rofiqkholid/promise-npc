@@ -55,22 +55,26 @@ class NpcChecksheetController extends Controller
             $checkpoints = $part->product->mappedCheckpoints;
             foreach ($checkpoints as $mapped) {
                 if ($mapped->masterCheckpoint) {
-                    NpcChecksheetDetail::create([
-                        'npc_checksheet_id' => $checksheet->id,
-                        'point_check'       => $mapped->masterCheckpoint->check_item,
-                        'standard'          => $mapped->custom_standard ?? $mapped->masterCheckpoint->standard,
-                    ]);
+                    \Spatie\Activitylog\Facades\Activity::withoutLogs(function() use ($checksheet, $mapped) {
+                        NpcChecksheetDetail::create([
+                            'npc_checksheet_id' => $checksheet->id,
+                            'point_check'       => $mapped->masterCheckpoint->check_item,
+                            'standard'          => $mapped->custom_standard ?? $mapped->masterCheckpoint->standard,
+                        ]);
+                    });
                 }
             }
         } else {
             // Fallback to ALL active master checkpoints
             $checkpoints = \App\Models\NpcMasterCheckpoint::where('is_active', true)->orderBy('point_number')->get();
             foreach ($checkpoints as $mappedPoint) {
-                NpcChecksheetDetail::create([
-                    'npc_checksheet_id' => $checksheet->id,
-                    'point_check'       => $mappedPoint->check_item,
-                    'standard'          => null,
-                ]);
+                \Spatie\Activitylog\Facades\Activity::withoutLogs(function() use ($checksheet, $mappedPoint) {
+                    NpcChecksheetDetail::create([
+                        'npc_checksheet_id' => $checksheet->id,
+                        'point_check'       => $mappedPoint->check_item,
+                        'standard'          => null,
+                    ]);
+                });
             }
         }
     }

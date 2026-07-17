@@ -169,6 +169,14 @@
                                             $baseMenuName = 'Delivery History';
                                         }
                                     }
+                                } elseif ($modelBasename === 'NpcPartProcess') {
+                                    if ($log->event === 'updated' && isset($attrs['status']) && $attrs['status'] === 'FINISHED') {
+                                        $displayEvent = 'completed';
+                                    }
+                                } elseif ($modelBasename === 'NpcChecksheet') {
+                                    if ($log->event === 'updated' && isset($attrs['accuracy_percentage'])) {
+                                        $displayEvent = 'completed';
+                                    }
                                 }
 
                                 $badgeClass = 'bg-gray-100 text-gray-800';
@@ -176,6 +184,7 @@
                                 if($displayEvent === 'updated') $badgeClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
                                 if($displayEvent === 'deleted') $badgeClass = 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
                                 if($displayEvent === 'rollbacked') $badgeClass = 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400';
+                                if($displayEvent === 'completed') $badgeClass = 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400';
                             @endphp
                             <span class="inline-flex items-center justify-center min-w-[90px] px-3 py-1 rounded-full text-xs font-bold {{ $badgeClass }} uppercase tracking-wider">
                                 {{ $displayEvent ?? $log->description }}
@@ -201,6 +210,7 @@
                                 if ($displayEvent === 'updated') $iconClass = 'fa-pen-to-square text-blue-500';
                                 if ($displayEvent === 'deleted') $iconClass = 'fa-trash-can text-red-500';
                                 if ($displayEvent === 'rollbacked') $iconClass = 'fa-arrow-rotate-left text-orange-500';
+                                if ($displayEvent === 'completed') $iconClass = 'fa-check-circle text-indigo-500';
                                 
                                 $changedFieldsStr = '';
                                 if ($log->event === 'updated' && !empty($attrs) && is_array($attrs)) {
@@ -227,6 +237,12 @@
                                             } else {
                                                 $changedFieldsStr = "Status: {$actionStr}";
                                             }
+                                        } elseif ($modelBasename === 'NpcPartProcess' && isset($attrs['status']) && $attrs['status'] === 'FINISHED') {
+                                            $qty = $attrs['actual_qty'] ?? 0;
+                                            $changedFieldsStr = "Process Completed (Qty: {$qty} pcs)";
+                                        } elseif ($modelBasename === 'NpcChecksheet' && in_array('accuracy_percentage', $keys)) {
+                                            $accuracy = (float) ($attrs['accuracy_percentage'] ?? 0);
+                                            $changedFieldsStr = "QC Completed (Accuracy: {$accuracy}%)";
                                         } elseif (in_array('status', $keys) && count($keys) <= 3 && isset($attrs['status'])) {
                                             $statusVal = str_replace('_', ' ', $attrs['status']);
                                             $changedFieldsStr = "Status changed to: {$statusVal}";
@@ -260,8 +276,8 @@
                                         $eventName = optional($subject->customerCategory)->category_name ?? optional($subject->customerCategory)->name ?? '';
                                         $identifier = "PO: " . $subject->po_no . ($eventName ? " - Event: " . $eventName : "");
                                     } elseif ($modelBasename === 'NpcPartProcess') {
-                                        if ($subject->npcPart && $subject->npcPart->product && $subject->npcProcess) {
-                                            $identifier = "Part: " . $subject->npcPart->product->part_no . " - Process: " . $subject->npcProcess->process_name;
+                                        if ($subject->part && $subject->part->product && $subject->process) {
+                                            $identifier = "Part: " . $subject->part->product->part_no . " - Process: " . $subject->process->process_name;
                                         }
                                     } elseif ($modelBasename === 'ProductCheckpoint') {
                                         if ($subject->product) {
