@@ -18,7 +18,7 @@
         <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
             <div class="w-full md:w-64">
                 <select id="customerFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
-                    <option value="">All Customers</option>
+                    <option value="all">All Customers</option>
                     @foreach($customers ?? [] as $customer)
                         <option value="{{ $customer->id }}" {{ request('customer_filter') == $customer->id ? 'selected' : '' }}>{{ $customer->code }}</option>
                     @endforeach
@@ -26,9 +26,17 @@
             </div>
             <div class="w-full md:w-64">
                 <select id="modelFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
-                    <option value="">All Models</option>
+                    <option value="all">All Models</option>
                     @foreach($models ?? [] as $mod)
                         <option value="{{ $mod->id }}" data-customer="{{ $mod->customer_id }}" {{ request('model_filter') == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="w-full md:w-64">
+                <select id="poFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
+                    <option value="all">All POs</option>
+                    @foreach($poList ?? [] as $po)
+                        <option value="{{ $po->id }}" {{ request('po_filter') == $po->id ? 'selected' : '' }}>{{ $po->po_no }}</option>
                     @endforeach
                 </select>
             </div>
@@ -164,10 +172,20 @@ $(document).ready(function() {
         let searchQuery = $('#searchInput').val();
         let customerFilter = $('#customerFilter').val();
         let modelFilter = $('#modelFilter').val();
+        let poFilter = $('#poFilter').val();
         
         let url = '{{ route('tracking.setup') }}?search=' + encodeURIComponent(searchQuery || '') + 
                   '&customer_filter=' + encodeURIComponent(customerFilter || '') + 
-                  '&model_filter=' + encodeURIComponent(modelFilter || '');
+                  '&model_filter=' + encodeURIComponent(modelFilter || '') +
+                  '&po_filter=' + encodeURIComponent(poFilter || '');
+                  
+        // Save to sessionStorage
+        sessionStorage.setItem('setupFilters', JSON.stringify({
+            search: searchQuery,
+            customer: customerFilter,
+            model: modelFilter,
+            po: poFilter
+        }));
                   
         fetch(url)
         .then(res => res.text())
@@ -204,36 +222,40 @@ $(document).ready(function() {
         $('#searchInput').focus();
     });
 
-    $('#customerFilter').on('change', function(e) {
-        let customerId = $(this).val();
-        
-        if ($('#modelFilter').data('select2')) {
-            $('#modelFilter').select2('destroy');
-        }
-
+    function updateModelDropdown(customerId) {
         $('#modelFilter option').each(function() {
-            if ($(this).val() == '') {
+            if ($(this).val() == 'all') {
                 $(this).prop('disabled', false);
                 return;
             }
-            if (!customerId || $(this).data('customer') == customerId) {
+            if (!customerId || customerId == 'all' || $(this).data('customer') == customerId) {
                 $(this).prop('disabled', false).show();
             } else {
                 $(this).prop('disabled', true).hide();
             }
         });
-
-        $('#modelFilter').select2({ width: '100%' });
         
         // If the currently selected model is now disabled, reset it
         if ($('#modelFilter option:selected').prop('disabled')) {
-            $('#modelFilter').val('').trigger('change.select2');
+            $('#modelFilter').val('all');
         }
         
+        // Re-trigger select2 without destroying it
+        setTimeout(function() {
+            $('#modelFilter').trigger('change.select2');
+        }, 10);
+    }
+
+    $('#customerFilter').on('change', function(e) {
+        updateModelDropdown($(this).val());
         performSearch();
     });
 
     $('#modelFilter').on('change', function(e) {
+        performSearch();
+    });
+
+    $('#poFilter').on('change', function(e) {
         performSearch();
     });
 
@@ -243,24 +265,40 @@ $(document).ready(function() {
         $('#searchInput').val('');
         $('#clearSearchBtn').hide();
         
-        $('#modelFilter').val('');
-        $('#customerFilter').val('').trigger('change');
+        $('#modelFilter').val('all').trigger('change.select2');
+        $('#poFilter').val('all').trigger('change.select2');
+        $('#customerFilter').val('all').trigger('change.select2');
+        
+        updateModelDropdown('all');
+        performSearch();
     });
     
-    let initialCustomerId = $('#customerFilter').val();
-    if (initialCustomerId) {
-        if ($('#modelFilter').data('select2')) {
-            $('#modelFilter').select2('destroy');
-        }
-        $('#modelFilter option').each(function() {
-            if ($(this).val() == '') return;
-            if ($(this).data('customer') == initialCustomerId) {
-                $(this).prop('disabled', false).show();
-            } else {
-                $(this).prop('disabled', true).hide();
-            }
-        });
-        $('#modelFilter').select2({ width: '100%' });
+    // Check if we need to load from sessionStorage (e.g., returned from form)
+    let urlParams = new URLSearchParams(window.location.search);
+    let hasParams = urlParams.has('search') || urlParams.has('customer_filter') || urlParams.has('model_filter') || urlParams.has('po_filter');
+    
+    if (!hasParams && sessionStorage.getItem('setupFilters')) {
+        let filters = JSON.parse(sessionStorage.getItem('setupFilters'));
+        $('#searchInput').val(filters.search || '');
+        $('#customerFilter').val(filters.customer || 'all');
+        $('#modelFilter').val(filters.model || 'all');
+        $('#poFilter').val(filters.po || 'all');
+        
+        if (filters.search) $('#clearSearchBtn').show();
+        
+        // Use setTimeout to ensure Select2 has been initialized globally first
+        setTimeout(function() {
+            $('#customerFilter').trigger('change.select2');
+            $('#modelFilter').trigger('change.select2');
+            $('#poFilter').trigger('change.select2');
+            updateModelDropdown(filters.customer || 'all');
+            performSearch();
+        }, 50);
+    } else {
+        // Just apply constraints based on current customerFilter without fetching
+        setTimeout(function() {
+            updateModelDropdown($('#customerFilter').val());
+        }, 50);
     }
 });
 </script>

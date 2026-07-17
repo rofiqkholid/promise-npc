@@ -156,6 +156,6 @@ class NpcPartProcessController extends Controller
             }
         }
 
-        return redirect()->route('tracking.index')->with('success', "Routing process for part {$part->part_no} successfully updated.");
+        return redirect()->route('tracking.setup')->with('success', "Routing process for part {$part->part_no} successfully updated.");
     }
 }

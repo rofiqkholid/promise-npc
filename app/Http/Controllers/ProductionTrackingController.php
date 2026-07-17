@@ -137,7 +137,7 @@ class ProductionTrackingController extends Controller
         } else {
             // For other views that still use normal Laravel pagination
             $search = request('search');
-            $parts = $this->buildQuery($statusParam, $search)->latest()->paginate(15);
+            $parts = $this->buildQuery($statusParam, $search)->latest()->paginate(15)->appends(request()->query());
         }
         
         $customers = \App\Models\Customer::orderBy('name')->get();
