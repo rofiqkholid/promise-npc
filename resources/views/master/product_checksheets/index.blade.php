@@ -26,7 +26,7 @@
                 <!-- Left Side: Dropdown Filters -->
                 <div class="flex flex-wrap gap-3 flex-1">
                     <div class="w-full sm:w-40">
-                        <select name="customer_id" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none" onchange="document.getElementById('searchForm').submit()">
+                        <select name="customer_id" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none">
                             <option value="">All Customers</option>
                             @foreach($customers as $customer)
                                 <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>
@@ -37,7 +37,7 @@
                     </div>
                     
                     <div class="w-full sm:w-40">
-                        <select name="model_id" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none" onchange="document.getElementById('searchForm').submit()">
+                        <select name="model_id" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none">
                             <option value="">All Models</option>
                             @foreach($models as $model)
                                 <option value="{{ $model->id }}" {{ request('model_id') == $model->id ? 'selected' : '' }}>
@@ -48,7 +48,7 @@
                     </div>
 
                     <div class="w-full sm:w-40">
-                        <select name="status" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none" onchange="document.getElementById('searchForm').submit()">
+                        <select name="status" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none">
                             <option value="">All Statuses</option>
                             <option value="mapped" {{ request('status') == 'mapped' ? 'selected' : '' }}>Mapped</option>
                             <option value="unmapped" {{ request('status') == 'unmapped' ? 'selected' : '' }}>Unmapped</option>
