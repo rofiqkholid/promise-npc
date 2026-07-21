@@ -31,6 +31,68 @@
             @endif
 
 
+            <!-- 9-Dots Apps Menu -->
+            <div x-data="{ appsMenuOpen: false }" @click.outside="appsMenuOpen = false" class="relative ml-1 sm:ml-2 flex-shrink-0">
+                <button type="button" @click="appsMenuOpen = !appsMenuOpen"
+                    class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors duration-200 focus:outline-none text-slate-400 dark:text-gray-400 hover:text-slate-600 dark:hover:text-gray-200" title="Apps Menu">
+                    <i class="fa-solid fa-grip text-xl pointer-events-none"></i>
+                </button>
+
+                <!-- Desktop Apps Dropdown -->
+                <div x-show="appsMenuOpen"
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="transform opacity-0 scale-95"
+                    x-transition:enter-end="transform opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-75"
+                    x-transition:leave-start="transform opacity-100 scale-100"
+                    x-transition:leave-end="transform opacity-0 scale-95"
+                    class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-slate-100 dark:border-gray-700 p-3 z-50 origin-top-right"
+                    style="display: none;">
+                    
+                    <div class="grid grid-cols-3 gap-1">
+                        <a href="{{ env('APP_DRAWING_URL') }}"
+                            class="flex flex-col items-center justify-center p-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 group text-center">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 mb-1 group-hover:scale-105 transition-transform shadow-sm">
+                                <i class="fa-solid fa-pen-ruler text-sm"></i>
+                            </div>
+                            <span class="text-[0.65rem] font-semibold text-gray-700 dark:text-gray-300 leading-tight">Drawing</span>
+                        </a>
+
+                        <a href="{{ env('APP_INVENTORY_URL') }}"
+                            class="flex flex-col items-center justify-center p-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 group text-center">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mb-1 group-hover:scale-105 transition-transform shadow-sm">
+                                <i class="fa-solid fa-boxes-stacked text-sm"></i>
+                            </div>
+                            <span class="text-[0.65rem] font-semibold text-gray-700 dark:text-gray-300 leading-tight">Inventory</span>
+                        </a>
+
+                        <a href="{{ env('APP_NPC_URL') }}"
+                            class="flex flex-col items-center justify-center p-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 group text-center">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 mb-1 group-hover:scale-105 transition-transform shadow-sm">
+                                <i class="fa-solid fa-users-gear text-sm"></i>
+                            </div>
+                            <span class="text-[0.65rem] font-semibold text-gray-700 dark:text-gray-300 leading-tight">NPC</span>
+                        </a>
+
+                        <a href="{{ env('APP_ALL_DASHBOARD_URL') }}"
+                            class="flex flex-col items-center justify-center p-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 group text-center">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400 mb-1 group-hover:scale-105 transition-transform shadow-sm">
+                                <i class="fa-solid fa-chart-pie text-sm"></i>
+                            </div>
+                            <span class="text-[0.65rem] font-semibold text-gray-700 dark:text-gray-300 leading-tight">All Dashboard</span>
+                        </a>
+
+                        <a href="{{ env('APP_MNG_URL') }}"
+                            class="flex flex-col items-center justify-center p-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 group text-center">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 mb-1 group-hover:scale-105 transition-transform shadow-sm">
+                                <i class="fa-solid fa-briefcase text-sm"></i>
+                            </div>
+                            <span class="text-[0.65rem] font-semibold text-gray-700 dark:text-gray-300 leading-tight">Management</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             <!-- Theme Toggle -->
             <button x-data="{ 
                         darkMode: localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
