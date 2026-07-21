@@ -348,10 +348,28 @@
                             @foreach($ecnUpdates as $part)
                                 <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route('tracking.index', ['search' => $part->event->po_no ?? '', 'open_event' => $part->npc_event_id, 'from_dashboard' => 1]) }}'">
                                     <div class="flex justify-between items-start">
+                                        @php
+                                            $oldRev = optional($part->drawingRevision)->revision_no !== null && optional($part->drawingRevision)->revision_no !== '' ? optional($part->drawingRevision)->revision_no : '-';
+                                            $oldEcn = optional($part->drawingRevision)->ecn_no ?: 'No ECN';
+                                            
+                                            $newRevObj = optional(optional(optional($part->product)->docPackage)->currentRevision);
+                                            $newRev = $newRevObj->revision_no !== null && $newRevObj->revision_no !== '' ? $newRevObj->revision_no : '-';
+                                            $newEcn = $newRevObj->ecn_no ?: 'No ECN';
+                                            
+                                            $isIdentical = ("Rev $oldRev ($oldEcn)" === "Rev $newRev ($newEcn)");
+                                        @endphp
                                         <div>
-                                            <span class="text-[8px] font-bold text-rose-600 bg-rose-100 px-1 uppercase mb-0.5 inline-block">ECN Update</span>
+                                            @if($isIdentical)
+                                                <span class="text-[8px] font-bold text-amber-600 bg-amber-100 px-1 uppercase mb-0.5 inline-block" title="Document file re-uploaded">File Updated</span>
+                                            @else
+                                                <span class="text-[8px] font-bold text-rose-600 bg-rose-100 px-1 uppercase mb-0.5 inline-block">ECN Update</span>
+                                            @endif
                                             <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
-                                            <p class="text-[9px] text-slate-500 mt-0.5">PO: {{ $part->event->po_no ?? '-' }}</p>
+                                            @if(isset($part->po_count) && $part->po_count > 1)
+                                                <p class="text-[9px] text-slate-500 mt-0.5" title="{{ $part->po_list ?? '' }}">{{ $part->po_count }} Active PO(s)</p>
+                                            @else
+                                                <p class="text-[9px] text-slate-500 mt-0.5">PO: {{ $part->event->po_no ?? '-' }}</p>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

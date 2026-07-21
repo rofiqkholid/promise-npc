@@ -67,18 +67,33 @@
                                     <div class="font-bold text-blue-600 dark:text-blue-400">{{ optional($ep->product)->part_no }}</div>
                                     <div class="text-xs text-slate-500">{{ optional($ep->product)->part_name }}</div>
                                     <div class="mt-1 flex items-center gap-2 text-[11px] font-medium bg-slate-100 dark:bg-gray-700 w-fit px-2 py-1">
+                                        @php
+                                            $oldRev = optional($ep->drawingRevision)->revision_no !== null && optional($ep->drawingRevision)->revision_no !== '' ? optional($ep->drawingRevision)->revision_no : '-';
+                                            $oldEcn = optional($ep->drawingRevision)->ecn_no ?: 'No ECN';
+                                            
+                                            $newRevObj = optional(optional(optional($ep->product)->docPackage)->currentRevision);
+                                            $newRev = $newRevObj->revision_no !== null && $newRevObj->revision_no !== '' ? $newRevObj->revision_no : '-';
+                                            $newEcn = $newRevObj->ecn_no ?: 'No ECN';
+                                            
+                                            $oldText = "Rev $oldRev ($oldEcn)";
+                                            $newText = "Rev $newRev ($newEcn)";
+                                        @endphp
                                         <span class="text-red-500 line-through" title="Old ECN">
-                                            Rev {{ optional($ep->drawingRevision)->revision_no ?: '-' }} ({{ optional($ep->drawingRevision)->ecn_no ?: 'No ECN' }})
+                                            {{ $oldText }}
                                         </span>
                                         <i class="fa-solid fa-arrow-right text-gray-400"></i>
                                         <span class="text-green-600" title="New ECN">
-                                            Rev {{ optional(optional(optional($ep->product)->docPackage)->currentRevision)->revision_no ?: '-' }} ({{ optional(optional(optional($ep->product)->docPackage)->currentRevision)->ecn_no ?: 'No ECN' }})
+                                            @if($oldText === $newText)
+                                                {{ $newText }} <span class="text-amber-600 text-[10px] ml-1 bg-amber-100 px-1 rounded">(New File Uploaded)</span>
+                                            @else
+                                                {{ $newText }}
+                                            @endif
                                         </span>
                                     </div>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <span class="px-2 py-1 bg-slate-100 dark:bg-gray-700 text-xs font-semibold border border-slate-200 dark:border-gray-600">
-                                        {{ optional($ep->event)->po_no }}
+                                    <span class="px-2 py-1 bg-slate-100 dark:bg-gray-700 text-xs font-semibold border border-slate-200 dark:border-gray-600" title="{{ $ep->po_list ?? optional($ep->event)->po_no }}">
+                                        {{ isset($ep->po_count) && $ep->po_count > 1 ? $ep->po_count . ' Active PO(s)' : (optional($ep->event)->po_no ?? '-') }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-xs">

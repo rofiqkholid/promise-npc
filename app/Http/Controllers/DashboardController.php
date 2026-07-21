@@ -203,15 +203,21 @@ class DashboardController extends Controller
 
         // 3. Action Required (To-Do List)
         // a. ECN Updates
-        $ecnUpdates = NpcPart::with(['product', 'event.customerCategory'])
+        $allEcnUpdates = NpcPart::with(['product.docPackage.currentRevision', 'event.customerCategory', 'drawingRevision'])
             ->whereHas('event', $applyEventFilters)
             ->whereNotIn('status', ['FINISHED', 'CLOSED'])
             ->whereNotNull('part_revision_id')
             ->whereHas('product.docPackage', function ($q) {
                 $q->whereColumn('doc_packages.current_revision_id', '!=', 'npc_parts.part_revision_id');
             })
-            ->take(5)
+            ->latest()
             ->get();
+            
+        $ecnUpdates = $allEcnUpdates->groupBy('product_id')->map(function($group) {
+            $first = $group->first();
+            $first->po_count = $group->count();
+            return $first;
+        })->values()->take(5);
 
         // b. Stagnant Parts (No update for > 3 days, excluding finished/closed)
         $stagnantParts = NpcPart::with(['product', 'event.customerCategory'])

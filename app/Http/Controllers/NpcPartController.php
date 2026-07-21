@@ -93,6 +93,13 @@ class NpcPartController extends Controller
             ->where('customer_id', $customerId)
             ->first();
 
+        if ($product) {
+            $missing = $product->getMissingMasterData();
+            if (!empty($missing)) {
+                return back()->withInput()->with('error', 'Cannot register this Part Number. The Master Data is incomplete. Please complete the following in Master Data first: ' . implode(', ', $missing));
+            }
+        }
+
         $currentRevisionId = null;
         if ($product && $product->docPackage) {
             $currentRevisionId = $product->docPackage->current_revision_id;
@@ -106,6 +113,40 @@ class NpcPartController extends Controller
             'delivery_date' => $request->delivery_date,
             'status' => 'PO_REGISTERED'
         ]);
+
+        // Generate checksheet immediately to lock in current checkpoints (Master Data snapshot)
+        $checksheet = \App\Models\NpcChecksheet::create([
+            'npc_part_id' => $part->id,
+            'final_result' => null
+        ]);
+
+        $part->load('product.mappedCheckpoints.masterCheckpoint');
+        if ($part->product && $part->product->mappedCheckpoints->isNotEmpty()) {
+            $checkpoints = $part->product->mappedCheckpoints;
+            foreach ($checkpoints as $mapped) {
+                if ($mapped->masterCheckpoint) {
+                    \Spatie\Activitylog\Facades\Activity::withoutLogs(function() use ($checksheet, $mapped) {
+                        \App\Models\NpcChecksheetDetail::create([
+                            'npc_checksheet_id' => $checksheet->id,
+                            'point_check'       => $mapped->masterCheckpoint->check_item,
+                            'standard'          => $mapped->custom_standard ?? $mapped->masterCheckpoint->standard,
+                        ]);
+                    });
+                }
+            }
+        } else {
+            // Fallback to ALL active master checkpoints
+            $checkpoints = \App\Models\NpcMasterCheckpoint::where('is_active', true)->orderBy('point_number')->get();
+            foreach ($checkpoints as $mappedPoint) {
+                \Spatie\Activitylog\Facades\Activity::withoutLogs(function() use ($checksheet, $mappedPoint) {
+                    \App\Models\NpcChecksheetDetail::create([
+                        'npc_checksheet_id' => $checksheet->id,
+                        'point_check'       => $mappedPoint->check_item,
+                        'standard'          => null,
+                    ]);
+                });
+            }
+        }
 
         // Process schedules will be configured natively using the Setup Routing feature.
 
@@ -139,6 +180,13 @@ class NpcPartController extends Controller
             ->where('customer_id', $customerId)
             ->first();
 
+        if ($product) {
+            $missing = $product->getMissingMasterData();
+            if (!empty($missing)) {
+                return back()->withInput()->with('error', 'Cannot update to this Part Number. The Master Data is incomplete. Please complete the following in Master Data first: ' . implode(', ', $missing));
+            }
+        }
+
         $part->update([
             'npc_event_id' => $event->id,
             'product_id' => $product ? $product->id : null,
@@ -160,10 +208,12 @@ class NpcPartController extends Controller
         $product = \App\Models\Product::with('docPackage')->find($part->product_id);
         
         if ($product && $product->docPackage) {
-            $part->update([
-                'part_revision_id' => $product->docPackage->current_revision_id
-            ]);
-            return back()->with('success', 'Latest ECN revision successfully applied for part ' . $product->part_no);
+            \App\Models\NpcPart::where('product_id', $product->id)
+                ->whereNotIn('status', ['FINISHED', 'CLOSED'])
+                ->update([
+                    'part_revision_id' => $product->docPackage->current_revision_id
+                ]);
+            return back()->with('success', 'Latest ECN revision successfully applied for all active POs of part ' . $product->part_no);
         }
 
         return back()->with('error', 'Failed to apply ECN revision. Master Data Drawing not found.');

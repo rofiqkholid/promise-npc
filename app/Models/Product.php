@@ -123,4 +123,42 @@ class Product extends Model
         
         return $this->productDetail;
     }
+
+    /**
+     * Check if the master data for this product is completely configured.
+     * Returns an array of missing components. If empty, the master data is complete.
+     */
+    public function getMissingMasterData()
+    {
+        $missing = [];
+        $detail = $this->getEffectiveProductDetail();
+
+        // 1. Label Image
+        if (!$detail || empty($detail->label_image_path)) {
+            $missing[] = 'Label Image';
+        }
+
+        // 2. Sketch/Image Checksheet
+        if (!$detail || empty($detail->sketch_image_path)) {
+            $missing[] = 'Image Checksheet (Sketch)';
+        }
+
+        // 3. Route Process
+        $hasRouting = \App\Models\NpcMasterRouting::where('part_id', $this->id)->exists();
+        if (!$hasRouting) {
+            $missing[] = 'Route Process';
+        }
+
+        // 4. Point Checksheet
+        if ($this->mappedCheckpoints()->count() === 0) {
+            $missing[] = 'Point Checksheet (Check Points)';
+        }
+
+        // 5. Customer Mapping Master (Vehicle Model)
+        if (empty($this->model_id)) {
+            $missing[] = 'Customer Mapping Master (Vehicle Model)';
+        }
+
+        return $missing;
+    }
 }

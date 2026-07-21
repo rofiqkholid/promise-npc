@@ -141,6 +141,21 @@ class NpcEventController extends Controller
             'po_no.unique' => 'The combination of PO No and Delivery Group already exists.'
         ]);
 
+        // Validate Master Data completeness for all parts before creating Event
+        foreach ($request->parts as $index => $partData) {
+            $product = \App\Models\Product::where('part_no', $partData['part_no'])
+                ->where('customer_id', $request->customer_id)
+                ->first();
+            
+            if ($product) {
+                $missing = $product->getMissingMasterData();
+                if (!empty($missing)) {
+                    $rowNum = $index + 1;
+                    return back()->withInput()->with('error', "Cannot create Event. Part Number '{$partData['part_no']}' (Row {$rowNum}) has incomplete Master Data. Please complete the following first: " . implode(', ', $missing));
+                }
+            }
+        }
+
         $event = \App\Models\NpcEvent::create([
             'po_no' => $request->po_no,
             'customer_category_id' => $request->customer_category_id,
@@ -240,6 +255,21 @@ class NpcEventController extends Controller
             'parts.*.part_no.exists' => 'One of the Part Numbers entered is invalid or not part of the Model.',
             'po_no.unique' => 'The combination of PO No and Delivery Group already exists.'
         ]);
+
+        // Validate Master Data completeness for all parts before updating Event
+        foreach ($request->parts as $index => $partData) {
+            $product = \App\Models\Product::where('part_no', $partData['part_no'])
+                ->where('customer_id', $request->customer_id)
+                ->first();
+            
+            if ($product) {
+                $missing = $product->getMissingMasterData();
+                if (!empty($missing)) {
+                    $rowNum = $index + 1;
+                    return back()->withInput()->with('error', "Cannot update Event. Part Number '{$partData['part_no']}' (Row {$rowNum}) has incomplete Master Data. Please complete the following first: " . implode(', ', $missing));
+                }
+            }
+        }
 
         $event->update([
             'po_no' => $request->po_no,
@@ -387,6 +417,12 @@ class NpcEventController extends Controller
 
                 if (!$product) {
                     $rowErrors[] = "Row {$actualRowNumber}: Product Part No '{$partNo}' (Model: '{$modelName}') not found.";
+                    continue;
+                }
+
+                $missing = $product->getMissingMasterData();
+                if (!empty($missing)) {
+                    $rowErrors[] = "Row {$actualRowNumber}: Product Part No '{$partNo}' has incomplete Master Data. Missing: " . implode(', ', $missing);
                     continue;
                 }
 

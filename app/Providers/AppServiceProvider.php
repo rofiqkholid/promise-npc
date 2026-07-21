@@ -39,15 +39,22 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer(['layouts.header', 'components.stock-alert-modal', 'components.ecn-alert-modal'], function ($view) {
             // Hitung part aktif yang memiliki ECN update
-            $ecnQuery = \App\Models\NpcPart::with(['event.customerCategory', 'product'])
+            $ecnQuery = \App\Models\NpcPart::with(['event.customerCategory', 'product.docPackage.currentRevision', 'drawingRevision'])
                 ->whereNotIn('status', ['FINISHED', 'CLOSED'])
                 ->whereNotNull('part_revision_id')
                 ->whereHas('product.docPackage', function ($query) {
                     $query->whereColumn('doc_packages.current_revision_id', '!=', 'npc_parts.part_revision_id');
                 });
 
-            $ecnNotificationCount = $ecnQuery->count();
-            $ecnUpdatedParts = $ecnQuery->latest()->take(10)->get();
+            $allEcnParts = $ecnQuery->latest()->get();
+            $ecnUpdatedParts = $allEcnParts->groupBy('product_id')->map(function($group) {
+                $first = $group->first();
+                $first->po_count = $group->count();
+                $first->po_list = $group->pluck('event.po_no')->filter()->unique()->implode(', ');
+                return $first;
+            })->values()->take(10);
+
+            $ecnNotificationCount = $ecnUpdatedParts->count();
 
             $view->with('stockAlerts', collect([]))
                 ->with('stockAlertAutoOpen', false)
