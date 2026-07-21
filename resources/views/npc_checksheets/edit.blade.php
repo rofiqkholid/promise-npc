@@ -79,6 +79,7 @@
         @csrf
         @method('PUT')
         <input type="hidden" name="role" value="{{ $role }}">
+        <input type="hidden" name="previous_url" value="{{ $previousUrl ?? route('tracking.index') }}">
 
         @if ($errors->any())
             <div class="px-4 py-2 mx-6 mt-4 bg-red-50 border border-red-200 text-red-600 text-[13px]">
@@ -279,7 +280,7 @@
         </div>
 
         <div class="px-4 py-2 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-            <a href="{{ route('tracking.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm text-[13px] font-medium">
+            <a href="{{ $previousUrl ?? route('tracking.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm text-[13px] font-medium">
                 {{ $readonly ? 'Back to Tracking' : 'Cancel' }}
             </a>
             @if(!$readonly)

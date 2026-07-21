@@ -94,6 +94,40 @@
                     d.model_id = $('#filter_model').val();
                 }
             },
+            stateSaveParams: function (settings, data) {
+                data.customFilters = {
+                    customer_id: $('#filter_customer').val(),
+                    model_id: $('#filter_model').val()
+                };
+            },
+            stateLoadParams: function (settings, data) {
+                if (data.customFilters) {
+                    if (data.customFilters.customer_id !== undefined) {
+                        $('#filter_customer').val(data.customFilters.customer_id);
+                    }
+                    if (data.customFilters.model_id !== undefined) {
+                        $('#filter_model').val(data.customFilters.model_id);
+                    }
+                }
+            },
+            initComplete: function(settings, json) {
+                setTimeout(function() {
+                    let hasFilter = false;
+                    if ($('#filter_customer').val()) {
+                        $('#filter_customer').trigger('change');
+                        hasFilter = true;
+                    }
+                    if ($('#filter_model').val() && !hasFilter) {
+                        $('#filter_model').trigger('change');
+                    }
+                    if ($('#filter_customer').hasClass('select2-hidden-accessible')) {
+                        $('#filter_customer').trigger('change.select2');
+                    }
+                    if ($('#filter_model').hasClass('select2-hidden-accessible')) {
+                        $('#filter_model').trigger('change.select2');
+                    }
+                }, 100);
+            },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-4 py-2 text-slate-800 dark:text-slate-200 text-[13px]' },
                 { data: 'part_no', name: 'part_no', className: 'px-4 py-2 text-[13px]' },

@@ -144,9 +144,49 @@
         $('#qcTable').DataTable({
             processing: true,
             serverSide: true,
-            ajax: "{{ route('tracking.qc') }}",
+            ajax: {
+                url: "{{ route('tracking.qc') }}",
+                data: function (d) {
+                    d.customer_filter = $('#customerFilter').val();
+                    d.model_filter = $('#modelFilter').val();
+                }
+            },
             responsive: true,
             stateSave: true,
+            stateSaveParams: function (settings, data) {
+                data.customFilters = {
+                    customer: $('#customerFilter').val(),
+                    model: $('#modelFilter').val()
+                };
+            },
+            stateLoadParams: function (settings, data) {
+                if (data.customFilters) {
+                    if (data.customFilters.customer !== undefined) {
+                        $('#customerFilter').val(data.customFilters.customer);
+                    }
+                    if (data.customFilters.model !== undefined) {
+                        $('#modelFilter').val(data.customFilters.model);
+                    }
+                }
+            },
+            initComplete: function(settings, json) {
+                setTimeout(function() {
+                    let hasFilter = false;
+                    if ($('#customerFilter').val()) {
+                        $('#customerFilter').trigger('change');
+                        hasFilter = true;
+                    }
+                    if ($('#modelFilter').val() && !hasFilter) {
+                        $('#modelFilter').trigger('change');
+                    }
+                    if ($('#customerFilter').hasClass('select2-hidden-accessible')) {
+                        $('#customerFilter').trigger('change.select2');
+                    }
+                    if ($('#modelFilter').hasClass('select2-hidden-accessible')) {
+                        $('#modelFilter').trigger('change.select2');
+                    }
+                }, 100);
+            },
             stateDuration: 60 * 60 * 24, // 24 hours
             pageLength: 15,
             lengthMenu: [[10, 15, 25, 50, 100], [10, 15, 25, 50, 100]],
@@ -197,13 +237,7 @@
         });
 
         function performSearch() {
-            let customerFilter = $('#customerFilter').val();
-            let modelFilter = $('#modelFilter').val();
-            
-            let url = '{{ route('tracking.qc') }}?customer_filter=' + encodeURIComponent(customerFilter || '') + 
-                      '&model_filter=' + encodeURIComponent(modelFilter || '');
-                      
-            $('#qcTable').DataTable().ajax.url(url).load();
+            $('#qcTable').DataTable().ajax.reload();
         }
 
         $('#customerFilter').on('change', function(e) {

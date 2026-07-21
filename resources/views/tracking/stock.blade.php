@@ -131,6 +131,50 @@
                     d.status_filter = $('#filter_status').val();
                 }
             },
+            stateSaveParams: function (settings, data) {
+                data.customFilters = {
+                    customer: $('#filter_customer').val(),
+                    model: $('#filter_model').val(),
+                    status: $('#filter_status').val()
+                };
+            },
+            stateLoadParams: function (settings, data) {
+                if (data.customFilters) {
+                    if (data.customFilters.customer !== undefined) {
+                        $('#filter_customer').val(data.customFilters.customer);
+                    }
+                    if (data.customFilters.model !== undefined) {
+                        $('#filter_model').val(data.customFilters.model);
+                    }
+                    if (data.customFilters.status !== undefined) {
+                        $('#filter_status').val(data.customFilters.status);
+                    }
+                }
+            },
+            initComplete: function(settings, json) {
+                setTimeout(function() {
+                    let hasCustomer = false;
+                    if ($('#filter_customer').val()) {
+                        $('#filter_customer').trigger('change');
+                        hasCustomer = true;
+                    }
+                    if ($('#filter_model').val() && !hasCustomer) {
+                        $('#filter_model').trigger('change');
+                    }
+                    if ($('#filter_status').val()) {
+                        $('#filter_status').trigger('change');
+                    }
+                    if ($('#filter_customer').hasClass('select2-hidden-accessible')) {
+                        $('#filter_customer').trigger('change.select2');
+                    }
+                    if ($('#filter_model').hasClass('select2-hidden-accessible')) {
+                        $('#filter_model').trigger('change.select2');
+                    }
+                    if ($('#filter_status').hasClass('select2-hidden-accessible')) {
+                        $('#filter_status').trigger('change.select2');
+                    }
+                }, 100);
+            },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-4 py-2 text-slate-800 dark:text-slate-200 text-[13px]' },
                 { data: 'delivery_target', name: 'delivery_target', className: 'px-4 py-2', orderable: false },
@@ -142,13 +186,7 @@
         });
 
         function performSearch() {
-            let customerFilter = $('#filter_customer').val();
-            let modelFilter = $('#filter_model').val();
-            
-            let url = '{{ route('tracking.stock') }}?customer_filter=' + encodeURIComponent(customerFilter || '') + 
-                      '&model_filter=' + encodeURIComponent(modelFilter || '');
-                      
-            $('#stockTable').DataTable().ajax.url(url).load();
+            $('#stockTable').DataTable().ajax.reload();
         }
 
         $('#filter_customer').on('change', function(e) {

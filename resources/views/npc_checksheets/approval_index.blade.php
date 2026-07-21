@@ -87,6 +87,48 @@
                     d.model = $('#filterModel').val();
                 }
             },
+            stateSaveParams: function (settings, data) {
+                data.customFilters = {
+                    stage: $('#filterStage').val(),
+                    customer: $('#filterCustomer').val(),
+                    model: $('#filterModel').val()
+                };
+            },
+            stateLoadParams: function (settings, data) {
+                if (data.customFilters) {
+                    if (data.customFilters.stage !== undefined) {
+                        $('#filterStage').val(data.customFilters.stage);
+                    }
+                    if (data.customFilters.customer !== undefined) {
+                        $('#filterCustomer').val(data.customFilters.customer);
+                    }
+                    if (data.customFilters.model !== undefined) {
+                        $('#filterModel').val(data.customFilters.model);
+                    }
+                }
+            },
+            initComplete: function(settings, json) {
+                setTimeout(function() {
+                    if ($('#filterStage').val()) {
+                        $('#filterStage').trigger('change');
+                    }
+                    if ($('#filterCustomer').val()) {
+                        $('#filterCustomer').trigger('change');
+                    }
+                    if ($('#filterModel').val()) {
+                        $('#filterModel').trigger('change');
+                    }
+                    if ($('#filterStage').hasClass('select2-hidden-accessible')) {
+                        $('#filterStage').trigger('change.select2');
+                    }
+                    if ($('#filterCustomer').hasClass('select2-hidden-accessible')) {
+                        $('#filterCustomer').trigger('change.select2');
+                    }
+                    if ($('#filterModel').hasClass('select2-hidden-accessible')) {
+                        $('#filterModel').trigger('change.select2');
+                    }
+                }, 100);
+            },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-4 py-2 text-slate-800 dark:text-slate-200 text-[13px]' },
                 { data: 'part_info', name: 'part_info', className: 'px-4 py-2', orderable: false },
