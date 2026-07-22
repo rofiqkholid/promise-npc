@@ -11,8 +11,14 @@ class MasterChecksheetApprovalController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = Product::has('mappedCheckpoints')
-                ->with('mappedCheckpoints', 'customer', 'vehicleModel', 'docPackage.currentRevision', 'productDetail');
+            $query = Product::has('mappedCheckpoints')->with([
+                'customer', 
+                'vehicleModel', 
+                'productDetail', 
+                'mappedCheckpoints',
+                'docPackage.currentRevision',
+                'siblings.docPackage.currentRevision'
+            ]);
 
             if ($request->has('customer_id') && $request->customer_id != '' && $request->customer_id != 'ALL') {
                 $query->where('customer_id', $request->customer_id);
