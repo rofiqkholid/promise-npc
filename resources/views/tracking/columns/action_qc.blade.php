@@ -3,7 +3,17 @@
         <i class="fa-solid fa-lock text-[8px]"></i> Not Yet Registered in QC
     </div>
 @elseif($part->status === 'WAITING_QE_CHECK')
-    <a href="{{ route('checksheets.create', $part->hashed_id) }}" class="inline-flex px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white shadow-sm font-bold transition items-center gap-2 text-[11px]" style="background-color: #f97316;">
+    @php
+        $masterStatus = optional($part->product->productDetail)->master_checksheet_status ?? 'DRAFT';
+    @endphp
+    @if($masterStatus !== 'APPROVED')
+        <div class="px-3 py-2 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800/50 text-[10px] text-yellow-700 dark:text-yellow-400 font-bold flex flex-col items-center justify-center gap-1.5 w-full max-w-[150px] text-center float-right cursor-not-allowed mb-2">
+            <div><i class="fa-solid fa-clock"></i> Master Not Approved</div>
+            <div class="font-normal text-[8px] leading-tight">Please wait for QC to approve the Master Checksheet.</div>
+        </div>
+        <div class="clear-both"></div>
+    @endif
+    <a href="{{ $masterStatus === 'APPROVED' ? route('checksheets.create', $part->hashed_id) : '#' }}" class="inline-flex px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white shadow-sm font-bold transition items-center gap-2 text-[11px] {{ $masterStatus !== 'APPROVED' ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}" style="background-color: #f97316;">
         <i class="fa-regular fa-clipboard"></i> Input Quality (QC)
     </a>
     <p class="text-[9px] text-gray-400 mt-2 italic text-right max-w-[150px] mx-auto float-right text-balance">Fill quality parameter form & pass to MGM</p>

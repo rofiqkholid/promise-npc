@@ -93,9 +93,11 @@
 </head>
 <body>
 
+@if(!request()->has('hide_print'))
 <div class="header-actions">
     <button onclick="window.print()" class="btn">Print / Save as PDF</button>
 </div>
+@endif
 
 <div class="a4-page">
     <table class="excel-table">
@@ -201,7 +203,14 @@
                         Manual / Auto/Robot
                     @endif
                 </td>
-                <td colspan="8" class="no-border-cell"></td>
+                <td colspan="4" class="font-bold">QC Approved</td>
+                <td colspan="4" class="text-center">
+                    @if(optional(optional($product)->productDetail)->master_checksheet_status === 'APPROVED')
+                        <span style="color: #16a34a; font-weight: bold; font-size: 1.2em;">&#10003;</span>
+                    @else
+                        -
+                    @endif
+                </td>
             </tr>
             
             <!-- Row 9 Spacer -->

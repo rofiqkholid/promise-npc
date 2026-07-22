@@ -12,9 +12,15 @@
 
 <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 max-w-5xl mx-auto">
     <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50 dark:bg-gray-800/50">
-        <div>
-            <h2 class="text-xl font-semibold text-gray-800 dark:text-white">
-                <i class="fa-solid fa-clipboard-check text-blue-500 mr-2"></i> PART EVENT DELIVERY CHECKSHEET
+        <div class="flex-1 min-w-0 pr-4">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-white flex flex-wrap items-center gap-2">
+                <i class="fa-solid fa-clipboard-check text-blue-500"></i> 
+                <span class="leading-tight">PART EVENT DELIVERY CHECKSHEET</span>
+                @if(optional(optional(optional($part->product)->productDetail))->master_checksheet_status === 'APPROVED')
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold bg-green-100 text-green-800 border border-green-200 shadow-sm whitespace-nowrap flex-shrink-0">
+                        <i class="fa-solid fa-circle-check"></i> QC Approved
+                    </span>
+                @endif
             </h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 <strong>Part No:</strong> {{ optional($part->product)->part_no ?? 'N/A' }} | <strong>Customer:</strong> {{ optional(optional(optional($part->event)->customerCategory)->customer)->code ?? 'N/A' }}

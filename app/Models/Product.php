@@ -151,7 +151,12 @@ class Product extends Model
 
         // 4. Point Checksheet
         if ($this->mappedCheckpoints()->count() === 0) {
-            $missing[] = 'Point Checksheet (Check Points)';
+            $missing[] = 'Point Checksheet (Not Mapped)';
+        } else {
+            $masterStatus = optional($detail)->master_checksheet_status;
+            if ($masterStatus !== 'APPROVED') {
+                $missing[] = 'Point Checksheet (Not Approved by QC)';
+            }
         }
 
         // 5. Customer Mapping Master (Vehicle Model)

@@ -78,6 +78,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('product-checksheets/import', [\App\Http\Controllers\ProductChecksheetSetupController::class, 'importForm'])->name('checksheets.import');
         Route::post('product-checksheets/import', [\App\Http\Controllers\ProductChecksheetSetupController::class, 'importData'])->name('checksheets.import.store');
         Route::get('product-checksheets', [\App\Http\Controllers\ProductChecksheetSetupController::class, 'index'])->name('checksheets.index');
+        
+        Route::get('master-checksheet-approvals', [\App\Http\Controllers\MasterChecksheetApprovalController::class, 'index'])->name('checksheet_approvals.index');
+        Route::get('master-checksheet-approvals/{product}/show', [\App\Http\Controllers\MasterChecksheetApprovalController::class, 'show'])->name('checksheet_approvals.show');
+        Route::post('master-checksheet-approvals/{product}/approve', [\App\Http\Controllers\MasterChecksheetApprovalController::class, 'approve'])->name('checksheet_approvals.approve');
+        Route::post('master-checksheet-approvals/{product}/reject', [\App\Http\Controllers\MasterChecksheetApprovalController::class, 'reject'])->name('checksheet_approvals.reject');
 
         Route::resource('internal-categories', \App\Http\Controllers\NpcInternalCategoryController::class)->except(['show']);
         Route::resource('customer-categories', \App\Http\Controllers\NpcCustomerCategoryController::class)->except(['show']);

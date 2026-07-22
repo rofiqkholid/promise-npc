@@ -83,11 +83,22 @@ class ProductChecksheetSetupController extends Controller
                     return '<span class="text-xs text-gray-400 italic">No Data</span>';
                 })
                 ->addColumn('mapping_status', function ($product) {
+                    $status = optional($product->productDetail)->master_checksheet_status ?? 'DRAFT';
+                    $html = '';
                     if ($product->mappedCheckpoints->isNotEmpty()) {
-                        return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50 text-[10px] font-bold uppercase tracking-wider"><i class="fa-solid fa-check-circle"></i> Mapped (' . $product->mappedCheckpoints->count() . ' Points)</span>';
+                        $html .= '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50 text-[10px] font-bold uppercase tracking-wider mb-1"><i class="fa-solid fa-check-circle"></i> Mapped (' . $product->mappedCheckpoints->count() . ' Points)</span>';
                     } else {
-                        return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600 text-[10px] font-bold uppercase tracking-wider"><i class="fa-solid fa-minus"></i> Unmapped</span>';
+                        $html .= '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600 text-[10px] font-bold uppercase tracking-wider mb-1"><i class="fa-solid fa-minus"></i> Unmapped</span>';
                     }
+                    
+                    if ($status === 'APPROVED') {
+                        $html .= '<br><span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800/50 text-[10px] font-bold uppercase tracking-wider"><i class="fa-solid fa-thumbs-up"></i> QC Approved</span>';
+                    } elseif ($status === 'WAITING_APPROVAL') {
+                        $html .= '<br><span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800/50 text-[10px] font-bold uppercase tracking-wider"><i class="fa-solid fa-clock"></i> Waiting QC</span>';
+                    } elseif ($status === 'REJECTED') {
+                        $html .= '<br><span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50 text-[10px] font-bold uppercase tracking-wider"><i class="fa-solid fa-times-circle"></i> QC Rejected</span>';
+                    }
+                    return $html;
                 })
                 ->addColumn('action', function ($product) {
                     $buttons = '';
@@ -159,7 +170,12 @@ class ProductChecksheetSetupController extends Controller
         ]);
 
         // 1. Handle Master Config (Sketch Image & Process Type)
-        $detailData = [];
+        $detailData = [
+            'master_checksheet_status' => 'WAITING_APPROVAL',
+            'checksheet_approved_by' => null,
+            'checksheet_approved_at' => null,
+            'reject_reason' => null,
+        ];
         
         if ($request->has('process_type')) {
             $detailData['process_type'] = $request->process_type;
@@ -457,6 +473,16 @@ class ProductChecksheetSetupController extends Controller
             // Touch all updated products to bump their sorting order
             if (!empty($partsProcessed)) {
                 Product::whereIn('id', $partsProcessed)->update(['updated_at' => now()]);
+                foreach ($partsProcessed as $pid) {
+                    \App\Models\NpcProductDetail::updateOrCreate(
+                        ['product_id' => $pid],
+                        [
+                            'master_checksheet_status' => 'WAITING_APPROVAL',
+                            'checksheet_approved_by' => null,
+                            'checksheet_approved_at' => null
+                        ]
+                    );
+                }
             }
 
             DB::commit();
@@ -473,4 +499,5 @@ class ProductChecksheetSetupController extends Controller
             return back()->with('error', 'Failed processing Excel: ' . $e->getMessage());
         }
     }
+
 }

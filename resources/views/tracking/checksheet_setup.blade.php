@@ -26,6 +26,23 @@
         
         <div class="p-6 space-y-8">
             
+            @if(optional($product->productDetail)->master_checksheet_status === 'REJECTED')
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded shadow-sm">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <i class="fa-solid fa-circle-xmark text-red-600 mt-0.5"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm text-red-800 font-bold uppercase">Checksheet Rejected</h3>
+                        <div class="mt-1 text-sm text-red-700">
+                            <p><strong>Reason:</strong> {{ optional($product->productDetail)->reject_reason ?? 'No reason provided.' }}</p>
+                        </div>
+                        <p class="mt-2 text-xs text-red-600 italic">Please fix the configuration below and save to request approval again.</p>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- SECTION: Spec Child Parts & Sketch -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 
