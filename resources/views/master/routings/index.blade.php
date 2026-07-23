@@ -34,7 +34,7 @@
         <form id="searchForm" method="GET" action="{{ route('master.routings.index') }}" class="w-full mb-4">
             <div class="flex flex-wrap gap-3 items-end">
                 <div class="w-full sm:w-48">
-                    <select name="customer_id" id="filter_customer" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none" onchange="document.getElementById('searchForm').submit()">
+                    <select name="customer_id" id="filter_customer" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none">
                         <option value="">All Customers</option>
                         @foreach($customers as $customer)
                             <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>
@@ -45,7 +45,7 @@
                 </div>
                 
                 <div class="w-full sm:w-48">
-                    <select name="model_id" id="filter_model" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none" onchange="document.getElementById('searchForm').submit()">
+                    <select name="model_id" id="filter_model" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none">
                         <option value="">All Models</option>
                         @foreach($models as $model)
                             <option value="{{ $model->id }}" {{ request('model_id') == $model->id ? 'selected' : '' }} data-customer-id="{{ $model->customer_id }}">
@@ -172,7 +172,15 @@
             }
         }
         
-        $('#filter_customer').on('change', updateModelFilter);
+        $('#filter_customer').on('change', function() {
+            updateModelFilter();
+            $('#routingsTable').DataTable().ajax.reload();
+        });
+        
+        $('#filter_model').on('change', function() {
+            $('#routingsTable').DataTable().ajax.reload();
+        });
+        
         updateModelFilter();
     });
 
