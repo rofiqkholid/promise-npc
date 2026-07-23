@@ -396,11 +396,11 @@
                 </div>
             </div>
 
-            <!-- Remain Delivery -->
+            <!-- Achievment Delivery -->
             <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden">
                 <div class="py-1.5 px-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex-none flex justify-between items-center">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
-                        <i class="fa-solid fa-truck-ramp-box text-emerald-500 mr-1.5"></i> Remain Delivery
+                        <i class="fa-solid fa-truck-ramp-box text-emerald-500 mr-1.5"></i> Achievment Delivery (Remain Delivery)
                     </h3>
                     <a href="{{ route('tracking.index') }}" class="text-[9px] text-primary-600 font-medium">View All</a>
                 </div>
@@ -411,20 +411,16 @@
                             <thead class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-10 border-b border-slate-200 dark:border-slate-700">
                                 <tr>
                                     <th class="py-1 px-3 text-[9px] font-semibold text-slate-500 uppercase">Model</th>
-                                    <th class="py-1 px-3 text-[9px] font-semibold text-slate-500 uppercase text-right">Remain Qty</th>
+                                    <th class="py-1 px-3 text-[9px] font-semibold text-slate-500 uppercase text-right">Achievment</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
                                 @foreach($remainDeliveries as $deliv)
                                     @php
-                                        $models = [];
-                                        foreach($deliv->parts as $part) {
-                                            if ($part->product && $part->product->vehicleModel) {
-                                                $models[] = $part->product->vehicleModel->name;
-                                            }
-                                        }
-                                        $modelStr = count($models) > 0 ? implode(', ', array_unique($models)) : '-';
-                                        $percentage = $deliv->total_items > 0 ? round(($deliv->remaining_items / $deliv->total_items) * 100) : 0;
+                                        $modelStr = $deliv->vehicleModel ? $deliv->vehicleModel->name : '-';
+                                        $completed_items = $deliv->total_items - $deliv->remaining_items;
+                                        $percentage = $deliv->total_items > 0 ? floor(($completed_items / $deliv->total_items) * 100) : 0;
+                                        $percentage = min(99, $percentage); // Cap at 99% for non-closed deliveries
                                     @endphp
                                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route('tracking.index', ['search' => $deliv->po_no ?? '', 'open_event' => $deliv->id, 'from_dashboard' => 1]) }}'">
                                         <td class="py-1.5 px-3">
@@ -445,7 +441,7 @@
                     @else
                         <div class="h-full flex flex-col items-center justify-center p-4 text-center text-slate-400">
                             <i class="fa-regular fa-circle-check text-xl mb-1 text-emerald-400"></i>
-                            <p class="text-[10px]">No remaining deliveries.</p>
+                            <p class="text-[10px]">No achievment deliveries.</p>
                         </div>
                     @endif
                 </div>

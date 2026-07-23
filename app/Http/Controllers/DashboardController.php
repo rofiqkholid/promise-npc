@@ -237,7 +237,7 @@ class DashboardController extends Controller
             ->get();
 
         // 4. Remain Deliveries (Grouped by PO)
-        $remainDeliveries = NpcEvent::with(['customerCategory', 'parts.product.vehicleModel'])
+        $remainDeliveries = NpcEvent::with(['customerCategory', 'vehicleModel', 'parts.product.vehicleModel'])
             ->where($applyEventFilters)
             ->whereHas('parts', function($q) {
                 $q->whereNotIn('status', ['CLOSED', 'OUTSTANDING']);

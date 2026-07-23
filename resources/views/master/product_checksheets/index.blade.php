@@ -55,11 +55,9 @@
                         </select>
                     </div>
                     
-                    @if(request('search') || request('customer_id') || request('model_id') || request('status'))
-                        <a href="{{ route('master.checksheets.index') }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 transition text-[13px] flex items-center gap-2 shadow-sm rounded-none" title="Clear Filters">
-                            <i class="fa-solid fa-xmark"></i> Clear
-                        </a>
-                    @endif
+                    <button type="button" id="resetFiltersBtn" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 transition text-[13px] flex items-center gap-2 shadow-sm rounded-none" title="Reset Filters">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </button>
                 </div>
 
                 <!-- Right Side: Search Input -->
@@ -174,6 +172,17 @@
 
         // Dropdown triggers
         $('select[name="customer_id"], select[name="model_id"], select[name="status"]').on('change', function() {
+            table.ajax.reload();
+        });
+
+        // Reset Filters
+        $('#resetFiltersBtn').on('click', function() {
+            $('select[name="customer_id"]').val('').trigger('change.select2');
+            $('select[name="model_id"]').val('').trigger('change.select2');
+            $('select[name="status"]').val('').trigger('change.select2');
+            $('#searchInput').val('');
+            
+            // Reload table once after all filters are cleared
             table.ajax.reload();
         });
     });
