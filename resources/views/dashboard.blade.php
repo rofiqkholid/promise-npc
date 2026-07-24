@@ -12,7 +12,7 @@
 
 @section('content')
 <!-- Dashboard Wrapper to dynamically fill space seamlessly -->
-<div class="flex-1 flex flex-col gap-4 min-h-0 overflow-hidden">
+<div class="flex flex-col gap-4 h-[calc(100vh-10rem)] overflow-hidden">
 
     <!-- KPI Cards (Row 1) -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 flex-none">
@@ -162,107 +162,146 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="flex-1 flex gap-4 min-h-0 overflow-hidden">
+    <div class="flex-1 flex flex-col gap-4 min-h-0 overflow-hidden">
         
-        <!-- Left Column: Pipeline & Charts -->
-        <div class="w-3/5 flex flex-col gap-4 min-h-0">
+        <!-- Top Row: Charts Container -->
+        <div class="flex-1 flex gap-4 min-h-0">
             
-
-
-            <!-- Charts Row -->
-            <div class="flex-1 flex flex-col min-h-0">
-                <!-- Trend Chart -->
-                <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col relative min-h-0">
-                    @php 
-                        $hasFilter = ($filterYear != date('Y') || $filterMonth || $filterCustomer || !empty($filterPo) || !empty($filterModel)); 
-                    @endphp
-                    <div class="flex justify-between items-center mb-2 flex-none">
-                        <h3 class="text-sm font-bold text-slate-800 dark:text-white">Plan vs Actual</h3>
+            @php 
+                $hasFilter = ($filterYear != date('Y') || $filterMonth || $filterCustomer || !empty($filterPo) || !empty($filterModel)); 
+            @endphp
+            
+            <!-- Left Widget: Plan vs Actual -->
+            <div class="w-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 rounded overflow-hidden" x-data="{ currentSlide: 0, maxSlide: {{ count($poChunks) > 0 ? count($poChunks) - 1 : 0 }} }">
+                <!-- Header & Controls -->
+                <div class="p-2.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex justify-between items-center flex-none">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
+                        <i class="fa-solid fa-chart-line text-primary-500 mr-2"></i> Plan vs Actual
+                    </h3>
+                    <div class="flex items-center gap-3">
+                        <!-- Slider Controls -->
+                        <div class="flex items-center bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 overflow-hidden" x-show="maxSlide > 0" style="display: none;">
+                            <button @click="currentSlide = Math.max(0, currentSlide - 1)" :disabled="currentSlide === 0" :class="{'opacity-30 cursor-not-allowed bg-slate-100 dark:bg-slate-800': currentSlide === 0, 'hover:bg-slate-100 text-primary-600': currentSlide > 0}" class="px-2 py-0.5 transition-colors text-slate-500">
+                                <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                            </button>
+                            <span class="px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300 border-x border-slate-200 dark:border-slate-600 min-w-[3rem] text-center" x-text="(currentSlide + 1) + ' / ' + (maxSlide + 1)"></span>
+                            <button @click="currentSlide = Math.min(maxSlide, currentSlide + 1)" :disabled="currentSlide === maxSlide" :class="{'opacity-30 cursor-not-allowed bg-slate-100 dark:bg-slate-800': currentSlide === maxSlide, 'hover:bg-slate-100 text-primary-600': currentSlide < maxSlide}" class="px-2 py-0.5 transition-colors text-slate-500">
+                                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                            </button>
+                        </div>
                         <button type="button" onclick="document.getElementById('chartFilterForm').classList.toggle('hidden')" class="text-slate-500 hover:text-primary-600 focus:outline-none transition-colors" title="Toggle Filters">
                             <i class="fa-solid fa-filter {{ $hasFilter ? 'text-primary-500' : '' }}"></i>
                         </button>
                     </div>
-                    
-                    <form id="chartFilterForm" method="GET" action="{{ route('dashboard') }}" class="{{ $hasFilter ? '' : 'hidden' }} mb-3 bg-slate-50 dark:bg-slate-700/50 p-2 rounded border border-slate-200 dark:border-slate-600">
-                        <div class="flex flex-wrap md:flex-nowrap items-end gap-2 text-[10px] pb-1">
-                            <div class="flex-1 min-w-[90px]">
-                                <label class="font-semibold text-slate-500 mb-0.5 block truncate">PO No.</label>
-                                <input type="text" name="chart_po" value="{{ $filterPo }}" placeholder="Search..." class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors" onchange="this.form.submit()">
-                            </div>
-                            
-                            <div class="flex-1 min-w-[90px]">
-                                <label class="font-semibold text-slate-500 mb-0.5 block truncate">Model</label>
-                                <select name="chart_model" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors truncate" onchange="this.form.submit()">
-                                    <option value="">All Models</option>
-                                    @foreach($vehicleModels as $mod)
-                                        <option value="{{ $mod->id }}" {{ $filterModel == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="flex-1 min-w-[70px]">
-                                <label class="font-semibold text-slate-500 mb-0.5 block truncate">Year</label>
-                                <select name="chart_year" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors" onchange="this.form.submit()">
-                                    @foreach($availableYears as $y)
-                                        <option value="{{ $y }}" {{ $filterYear == $y ? 'selected' : '' }}>{{ $y }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            
-                            <div class="flex-1 min-w-[80px]">
-                                <label class="font-semibold text-slate-500 mb-0.5 block truncate">Month</label>
-                                <select name="chart_month" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors" onchange="this.form.submit()">
-                                    <option value="">All</option>
-                                    @foreach(range(1, 12) as $m)
-                                        <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}" {{ $filterMonth == str_pad($m, 2, '0', STR_PAD_LEFT) ? 'selected' : '' }}>
-                                            {{ date('M', mktime(0, 0, 0, $m, 10)) }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="flex-1 min-w-[90px]">
-                                <label class="font-semibold text-slate-500 mb-0.5 block truncate">Customer</label>
-                                <select name="chart_customer" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors truncate" onchange="this.form.submit()">
-                                    <option value="">All</option>
-                                    @foreach($customerCategories as $cust)
-                                        <option value="{{ $cust->id }}" {{ $filterCustomer == $cust->id ? 'selected' : '' }}>{{ $cust->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            @if($hasFilter)
-                                <div class="flex-none">
-                                    <a href="{{ route('dashboard') }}" class="inline-flex justify-center items-center bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 dark:text-rose-400 border border-rose-200 dark:border-rose-800 rounded px-2.5 py-1 transition-colors font-medium">
-                                        <i class="fa-solid fa-xmark"></i>
-                                    </a>
-                                </div>
-                            @endif
-                        </div>
-                    </form>
-                    <div class="flex-1 w-full relative">
-                        <div style="min-height: {{ max(150, count($trendChart['labels']) * 90) }}px; height: 100%;">
-                            <canvas id="trendChart"></canvas>
-                        </div>
-                    </div>
                 </div>
+                
+                <!-- Form Filter -->
+                <form id="chartFilterForm" method="GET" action="{{ route('dashboard') }}" class="{{ $hasFilter ? '' : 'hidden' }} bg-slate-50 dark:bg-slate-700/50 p-2 border-b border-slate-200 dark:border-slate-600 flex-none">
+                    <div class="flex flex-wrap md:flex-nowrap items-end gap-2 text-[10px] pb-1">
+                        <div class="flex-1 min-w-[90px]">
+                            <label class="font-semibold text-slate-500 mb-0.5 block truncate">PO No.</label>
+                            <input type="text" name="chart_po" value="{{ $filterPo }}" placeholder="Search..." class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors" onchange="this.form.submit()">
+                        </div>
+                        
+                        <div class="flex-1 min-w-[90px]">
+                            <label class="font-semibold text-slate-500 mb-0.5 block truncate">Model</label>
+                            <select name="chart_model" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors truncate" onchange="this.form.submit()">
+                                <option value="">All</option>
+                                @foreach($vehicleModels as $mod)
+                                    <option value="{{ $mod->id }}" {{ $filterModel == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                <!-- Dept / Customer Charts (Tabs/Stacked or Side by Side internally) -->
-                <!-- Let's put Dept Workload here -->
-                {{-- Department Bottleneck temporarily hidden
-                <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col relative min-h-0">
-                    <h3 class="text-sm font-bold text-slate-800 dark:text-white flex-none mb-2">Department Bottleneck</h3>
-                    <div class="flex-1 w-full relative">
-                        <canvas id="deptChart"></canvas>
+                        <div class="flex-1 min-w-[70px]">
+                            <label class="font-semibold text-slate-500 mb-0.5 block truncate">Year</label>
+                            <select name="chart_year" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors" onchange="this.form.submit()">
+                                @foreach($availableYears as $y)
+                                    <option value="{{ $y }}" {{ $filterYear == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        
+                        <div class="flex-1 min-w-[80px]">
+                            <label class="font-semibold text-slate-500 mb-0.5 block truncate">Month</label>
+                            <select name="chart_month" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors" onchange="this.form.submit()">
+                                <option value="">All</option>
+                                @foreach(range(1, 12) as $m)
+                                    <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}" {{ $filterMonth == str_pad($m, 2, '0', STR_PAD_LEFT) ? 'selected' : '' }}>
+                                        {{ date('M', mktime(0, 0, 0, $m, 10)) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        @if($hasFilter)
+                            <div class="flex-none">
+                                <a href="{{ route('dashboard') }}" class="inline-flex justify-center items-center bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-900/30 border border-rose-200 rounded px-2.5 py-1 font-medium">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </a>
+                            </div>
+                        @endif
                     </div>
+                </form>
+
+                <!-- Canvas Wrapper -->
+                <div class="flex-1 relative overflow-hidden flex flex-col min-h-0 bg-slate-50/50 dark:bg-slate-900/20">
+                    @if(count($poChunks) > 0)
+                        @foreach($poChunks as $index => $chunk)
+                        <div :class="currentSlide === {{ $index }} ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'" class="absolute inset-0 flex flex-col min-h-0 w-full h-full p-4 transition-opacity duration-300">
+                            <canvas id="trendChart-{{ $index }}"></canvas>
+                        </div>
+                        @endforeach
+                    @else
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+                            <i class="fa-solid fa-chart-line text-2xl mb-2 opacity-50"></i>
+                            <p class="text-xs">No active POs</p>
+                        </div>
+                    @endif
                 </div>
-                --}}
             </div>
 
-        </div>
+            <!-- Right Widget: PO Progress -->
+            <div class="w-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 rounded overflow-hidden" x-data="{ currentSlide: 0, maxSlide: {{ count($poChunks) > 0 ? count($poChunks) - 1 : 0 }} }">
+                <!-- Header -->
+                <div class="p-2.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex justify-between items-center flex-none">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
+                        <i class="fa-solid fa-chart-column text-emerald-500 mr-2"></i> PO Progress
+                    </h3>
+                    <!-- Slider Controls -->
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 overflow-hidden" x-show="maxSlide > 0" style="display: none;">
+                            <button @click="currentSlide = Math.max(0, currentSlide - 1)" :disabled="currentSlide === 0" :class="{'opacity-30 cursor-not-allowed bg-slate-100 dark:bg-slate-800': currentSlide === 0, 'hover:bg-slate-100 text-primary-600': currentSlide > 0}" class="px-2 py-0.5 transition-colors text-slate-500">
+                                <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                            </button>
+                            <span class="px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300 border-x border-slate-200 dark:border-slate-600 min-w-[3rem] text-center" x-text="(currentSlide + 1) + ' / ' + (maxSlide + 1)"></span>
+                            <button @click="currentSlide = Math.min(maxSlide, currentSlide + 1)" :disabled="currentSlide === maxSlide" :class="{'opacity-30 cursor-not-allowed bg-slate-100 dark:bg-slate-800': currentSlide === maxSlide, 'hover:bg-slate-100 text-primary-600': currentSlide < maxSlide}" class="px-2 py-0.5 transition-colors text-slate-500">
+                                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Right Column: Lists & Tables -->
-        <div class="w-2/5 flex flex-col gap-2 min-h-0">
+                <!-- Canvas Wrapper -->
+                <div class="flex-1 relative overflow-hidden flex flex-col min-h-0 bg-slate-50/50 dark:bg-slate-900/20">
+                    @if(count($poChunks) > 0)
+                        @foreach($poChunks as $index => $chunk)
+                        <div :class="currentSlide === {{ $index }} ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'" class="absolute inset-0 flex flex-col min-h-0 w-full h-full p-4 transition-opacity duration-300">
+                            <canvas id="progressChart-{{ $index }}"></canvas>
+                        </div>
+                        @endforeach
+                    @else
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+                            <i class="fa-solid fa-chart-column text-2xl mb-2 opacity-50"></i>
+                            <p class="text-xs">No active POs</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+            
+        <!-- Bottom Row: Lists & Tables -->
+        <div class="h-[220px] flex-none flex gap-4 min-h-0">
             
             <!-- Nearest Events -->
             <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col min-h-0">
@@ -273,34 +312,34 @@
                 
                 <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar relative">
                     @if($nearestEvents->count() > 0)
-                        <table class="w-full text-left border-collapse">
+                        <table class="w-full table-fixed text-left border-collapse">
                             <thead class="sticky top-0 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 z-10">
                                 <tr>
-                                    <th class="py-1 px-2 pl-3 text-[9px] font-semibold text-slate-500 uppercase">Customer</th>
-                                    <th class="py-1 px-2 text-[9px] font-semibold text-slate-500 uppercase">Model</th>
-                                    <th class="py-1 px-2 text-[9px] font-semibold text-slate-500 uppercase">Event</th>
-                                    <th class="py-1 px-2 text-[9px] font-semibold text-slate-500 uppercase">Batch</th>
-                                    <th class="py-1 px-2 pr-3 text-[9px] font-semibold text-slate-500 uppercase text-right">Delv Date</th>
+                                    <th class="w-[24%] py-1 px-1 pl-2 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Customer</th>
+                                    <th class="w-[22%] py-1 px-1 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Model</th>
+                                    <th class="w-[15%] py-1 px-1 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Event</th>
+                                    <th class="w-[15%] py-1 px-1 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Batch</th>
+                                    <th class="w-[24%] py-1 px-1 pr-2 text-[8px] font-semibold text-slate-500 uppercase text-right tracking-tighter">Delv Date</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
                                 @foreach($nearestEvents as $evt)
                                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors" onclick="window.location.href='{{ route('tracking.index', ['search' => $evt->event->po_no, 'open_event' => $evt->npc_event_id, 'from_dashboard' => 1]) }}'">
-                                        <td class="py-1 px-2 pl-3">
-                                            <p class="text-[9px] font-semibold text-slate-800 dark:text-white">{{ $evt->product->customer->code ?? '-' }}</p>
+                                        <td class="py-1.5 px-1 pl-2 overflow-hidden">
+                                            <p class="text-[9px] font-semibold text-slate-800 dark:text-white truncate" title="{{ $evt->product->customer->code ?? '-' }}">{{ $evt->product->customer->code ?? '-' }}</p>
                                         </td>
-                                        <td class="py-1 px-2">
-                                            <p class="text-[9px] text-slate-600 dark:text-slate-400">{{ $evt->product->vehicleModel->name ?? '-' }}</p>
+                                        <td class="py-1.5 px-1 overflow-hidden">
+                                            <p class="text-[9px] text-slate-600 dark:text-slate-400 truncate" title="{{ $evt->product->vehicleModel->name ?? '-' }}">{{ $evt->product->vehicleModel->name ?? '-' }}</p>
                                         </td>
-                                        <td class="py-1 px-2">
-                                            <p class="text-[9px] text-slate-600 dark:text-slate-400">{{ $evt->event->customerCategory->name ?? '-' }}</p>
+                                        <td class="py-1.5 px-1">
+                                            <p class="text-[9px] text-slate-600 dark:text-slate-400" title="{{ $evt->event->customerCategory->name ?? '-' }}">{{ $evt->event->customerCategory->name ?? '-' }}</p>
                                         </td>
-                                        <td class="py-1 px-2">
-                                            <span class="text-[8px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-1 py-0.5 rounded">{{ $evt->event->deliveryGroup->name ?? '-' }}</span>
+                                        <td class="py-1.5 px-1">
+                                            <span class="text-[8px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-1 py-0.5 rounded whitespace-nowrap" title="{{ $evt->event->deliveryGroup->name ?? '-' }}">{{ $evt->event->deliveryGroup->name ?? '-' }}</span>
                                         </td>
-                                        <td class="py-1 px-2 pr-3 text-right">
-                                            <span class="text-[9px] font-bold {{ \Carbon\Carbon::parse($evt->delivery_date)->isPast() ? 'text-rose-500' : 'text-slate-700 dark:text-slate-300' }}">
-                                                {{ \Carbon\Carbon::parse($evt->delivery_date)->format('d M Y') }}
+                                        <td class="py-1.5 px-1 pr-2 text-right">
+                                            <span class="text-[9px] font-bold whitespace-nowrap {{ \Carbon\Carbon::parse($evt->delivery_date)->isPast() ? 'text-rose-500' : 'text-slate-700 dark:text-slate-300' }}">
+                                                {{ \Carbon\Carbon::parse($evt->delivery_date)->format('d M y') }}
                                             </span>
                                         </td>
                                     </tr>
@@ -468,84 +507,179 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 1. Trend Chart (Horizontal Grouped Bar for Plan vs Actual)
-    const trendCtx = document.getElementById('trendChart');
-    if (trendCtx) {
-        new Chart(trendCtx, {
-            type: 'bar',
-            data: {
-                labels: @json($trendChart['labels']),
-                datasets: [
-                    {
-                        label: 'Plan',
-                        data: @json($trendChart['new']),
-                        backgroundColor: '#3b82f6', // blue
-                        borderRadius: 4,
-                        maxBarThickness: 20,
-                        order: 2
+    const poChunks = @json($poChunks);
+    
+    if (poChunks && poChunks.length > 0) {
+        poChunks.forEach((chunk, index) => {
+            const labels = chunk.map(po => po.chartLabel);
+            const ctx = document.getElementById('trendChart-' + index);
+            if (ctx) {
+                const dataPlan = chunk.map(po => po.totalItems);
+                const dataActual = chunk.map(po => po.finishedItems);
+                
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Plan',
+                                data: dataPlan,
+                                backgroundColor: '#3b82f6',
+                                borderRadius: 4,
+                                maxBarThickness: 35,
+                                categoryPercentage: 0.8,
+                                barPercentage: 0.8,
+                                order: 2
+                            },
+                            {
+                                label: 'Actual',
+                                data: dataActual,
+                                backgroundColor: '#10b981',
+                                borderRadius: 4,
+                                maxBarThickness: 35,
+                                categoryPercentage: 0.8,
+                                barPercentage: 0.8,
+                                order: 3
+                            }
+                        ]
                     },
-                    {
-                        label: 'Actual',
-                        data: @json($trendChart['finished']),
-                        backgroundColor: '#10b981', // emerald
-                        borderRadius: 4,
-                        maxBarThickness: 20,
-                        order: 3
-                    }
-                ]
-            },
-            options: {
-                indexAxis: 'y', // Make it horizontal
-                layout: {
-                    padding: { top: 10, right: 20 }
-                },
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    datalabels: {
-                        color: '#ffffff',
-                        font: { weight: 'bold', size: 11 },
-                        formatter: function(value) {
-                            return value > 0 ? value : '';
+                    options: {
+                        layout: { padding: { top: 25, right: 5 } },
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            datalabels: {
+                                color: '#ffffff',
+                                font: { weight: 'bold', size: 9 },
+                                formatter: function(value) { return value > 0 ? value : ''; },
+                                anchor: 'end',
+                                align: 'bottom'
+                            },
+                            legend: {
+                                position: 'top',
+                                labels: { usePointStyle: true, boxWidth: 6, font: { size: 10 } }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                axis: 'x',
+                                intersect: false,
+                                backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                                titleColor: isDark ? '#f8fafc' : '#0f172a',
+                                bodyColor: isDark ? '#cbd5e1' : '#475569',
+                                borderColor: isDark ? '#334155' : '#e2e8f0',
+                                borderWidth: 1,
+                                callbacks: {
+                                    title: function(tooltipItems) {
+                                        const tIndex = tooltipItems[0].dataIndex;
+                                        return chunk[tIndex].chartTooltip || tooltipItems[0].chart.data.labels[tIndex];
+                                    }
+                                }
+                            }
                         },
-                        anchor: 'center',
-                        align: 'center'
-                    },
-                    legend: {
-                        position: 'top',
-                        labels: { usePointStyle: true, boxWidth: 8 }
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        axis: 'y',
-                        intersect: false,
-                        backgroundColor: isDark ? '#1e293b' : '#ffffff',
-                        titleColor: isDark ? '#f8fafc' : '#0f172a',
-                        bodyColor: isDark ? '#cbd5e1' : '#475569',
-                        borderColor: isDark ? '#334155' : '#e2e8f0',
-                        borderWidth: 1,
-                        callbacks: {
-                            title: function(tooltipItems) {
-                                const index = tooltipItems[0].dataIndex;
-                                const originalLabel = tooltipItems[0].chart.data.labels[index];
-                                return originalLabel;
+                        scales: {
+                            x: { 
+                                grid: { display: false }, 
+                                ticks: { autoSkip: false, font: { size: 9 }, maxRotation: 0, minRotation: 0 }
+                            },
+                            y: { 
+                                type: 'linear', display: true, position: 'left',
+                                grid: { color: gridColor }, beginAtZero: true,
+                                ticks: { stepSize: 1, font: { size: 9 } }
                             }
                         }
                     }
-                },
-                scales: {
-                    x: { 
-                        type: 'linear',
-                        display: true,
-                        position: 'bottom',
-                        grid: { color: gridColor }, 
-                        beginAtZero: true,
-                        ticks: { stepSize: 1 }
+                });
+            }
+
+            // --- PO Progress (Stacked Vertical Bar Chart) ---
+            const ctxProg = document.getElementById('progressChart-' + index);
+            if (ctxProg) {
+                const deptColors = {
+                    'Finished': '#10b981',
+                    'Draft': '#94a3b8',
+                    'QC': '#fbbf24',
+                    'MGM': '#a855f7',
+                    'Produksi': '#60a5fa',
+                    'ME': '#6366f1',
+                    'CAM': '#06b6d4',
+                    'CNC': '#f97316',
+                    'Unknown': '#fb7185'
+                };
+                
+                const departments = ['Finished', 'Draft', 'QC', 'MGM', 'Produksi', 'ME', 'CAM', 'CNC', 'Unknown'];
+                
+                const datasetsProg = departments.map(dept => {
+                    const data = chunk.map(po => {
+                        if (dept === 'Finished') return po.finishedItems || 0;
+                        return po.deptCounts[dept] || 0;
+                    });
+                    
+                    return {
+                        label: dept,
+                        data: data,
+                        backgroundColor: deptColors[dept] || '#38bdf8',
+                        borderRadius: 0,
+                        maxBarThickness: 50,
+                        categoryPercentage: 0.7,
+                        barPercentage: 0.8,
+                    };
+                }).filter(ds => ds.data.some(val => val > 0)); // Only include departments with data
+
+                new Chart(ctxProg, {
+                    type: 'bar',
+                    data: {
+                        labels: labels, // same labels as plan vs actual
+                        datasets: datasetsProg
                     },
-                    y: { 
-                        grid: { display: false }, 
-                        ticks: { autoSkip: false }
+                    options: {
+                        layout: { padding: { top: 25, right: 5 } },
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            datalabels: {
+                                color: '#ffffff',
+                                font: { weight: 'bold', size: 9 },
+                                formatter: function(value) { return value > 0 ? value : ''; },
+                                anchor: 'center',
+                                align: 'center'
+                            },
+                            legend: {
+                                position: 'top',
+                                labels: { usePointStyle: true, boxWidth: 6, font: { size: 9 } }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                axis: 'x',
+                                intersect: false,
+                                backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                                titleColor: isDark ? '#f8fafc' : '#0f172a',
+                                bodyColor: isDark ? '#cbd5e1' : '#475569',
+                                borderColor: isDark ? '#334155' : '#e2e8f0',
+                                borderWidth: 1,
+                                callbacks: {
+                                    title: function(tooltipItems) {
+                                        const tIndex = tooltipItems[0].dataIndex;
+                                        return chunk[tIndex].chartTooltip || tooltipItems[0].chart.data.labels[tIndex];
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { 
+                                stacked: true,
+                                grid: { display: false }, 
+                                ticks: { autoSkip: false, font: { size: 9 }, maxRotation: 0, minRotation: 0 }
+                            },
+                            y: { 
+                                stacked: true,
+                                type: 'linear', display: true, position: 'left',
+                                grid: { color: gridColor }, beginAtZero: true,
+                                ticks: { stepSize: 1, font: { size: 9 } }
+                            }
+                        }
                     }
-                }
+                });
             }
         });
     }

@@ -88,38 +88,69 @@ class DashboardController extends Controller
 
         // --- DASHBOARD V2 CHARTS DATA ---
         
-        // Chart 1: Plan vs Actual
+        // Chart 1 & PO Progress: Plan vs Actual
         $queryEvents = NpcEvent::with(['customerCategory', 'deliveryGroup', 'vehicleModel', 'parts' => function($q) {
-            $q->select('id', 'npc_event_id', 'status', 'product_id')->with(['product.customer', 'product.vehicleModel']);
+            $q->select('id', 'npc_event_id', 'status', 'product_id')->with(['product.customer', 'product.vehicleModel', 'processes', 'processes.department']);
         }]);
 
         $applyEventFilters($queryEvents);
 
         $recentEvents = $queryEvents->orderBy('created_at', 'desc')
-        ->take(15)
+        ->whereHas('parts', function($q) {
+            $q->whereNotIn('status', ['FINISHED', 'CLOSED']); // Only active POs
+        })
+        ->take(20)
         ->get()
         ->reverse(); // reverse to show oldest of the recent on the left
 
-        $eventLabels = [];
-        $totalItemsData = [];
-        $finishedItemsData = [];
-        $inProgressItemsData = [];
-        $completionRates = [];
-
+        $poChunks = [];
+        $currentChunk = [];
+        
+        // Group the events first by PO No and Event Type
+        $groupedEvents = [];
         foreach ($recentEvents as $ev) {
-            // Use Customer + PO No as label
             $poLabel = $ev->po_no ? $ev->po_no : 'EV-'.$ev->id;
-            $custName = $ev->customerCategory ? $ev->customerCategory->name : 'Unknown';
-            $grName = $ev->deliveryGroup ? $ev->deliveryGroup->name : '';
+            $groupKey = $poLabel . '_' . ($ev->customer_category_id ?? '0');
+            $grName = $ev->deliveryGroup ? $ev->deliveryGroup->name : 'Unknown Batch';
             
-            $firstLineLabel = $custName . ' (' . $poLabel . ')';
-            if ($grName) {
-                $firstLineLabel .= ' - ' . $grName;
+            if (!isset($groupedEvents[$groupKey])) {
+                $groupedEvents[$groupKey] = [
+                    'id' => $ev->id,
+                    'po_no' => $poLabel,
+                    'custName' => $ev->customerCategory ? $ev->customerCategory->name : 'Unknown',
+                    'modelStr' => $ev->vehicleModel ? $ev->vehicleModel->name : '-',
+                    'parts' => [],
+                    'batches' => []
+                ];
             }
+            
+            if (!isset($groupedEvents[$groupKey]['batches'][$grName])) {
+                $groupedEvents[$groupKey]['batches'][$grName] = [
+                    'plan' => 0,
+                    'actual' => 0
+                ];
+            }
+            
+            $groupedEvents[$groupKey]['batches'][$grName]['plan'] += $ev->parts->count();
+            
+            foreach ($ev->parts as $part) {
+                $groupedEvents[$groupKey]['parts'][] = $part;
+                if (in_array($part->status, ['FINISHED', 'CLOSED', 'OUTSTANDING'])) {
+                    $groupedEvents[$groupKey]['batches'][$grName]['actual']++;
+                }
+            }
+        }
+        
+        foreach ($groupedEvents as $group) {
+            $poLabel = $group['po_no'];
+            $custName = $group['custName'];
+            
+            // Delivery Group is omitted since multiple batches are aggregated
+            $firstLineLabel = $custName . ' (' . $poLabel . ')';
 
-            // Get unique customers and models from parts (or event header)
+            // Get unique customers and models from parts
             $customers = [];
-            foreach($ev->parts as $part) {
+            foreach($group['parts'] as $part) {
                 if ($part->product && $part->product->customer) {
                     $customers[] = $part->product->customer->code;
                 }
@@ -127,33 +158,90 @@ class DashboardController extends Controller
             $customers = array_unique($customers);
             $customerStr = count($customers) > 0 ? implode(', ', $customers) : '-';
             
-            // Get model from event header
-            $modelStr = $ev->vehicleModel ? $ev->vehicleModel->name : '-';
+            $modelStr = $group['modelStr'];
 
-            // Multi-line label for Chart.js
-            $eventLabels[] = [
+            // Multi-line label for Chart.js Tooltip
+            $chartTooltip = [
                 $firstLineLabel,
                 $customerStr . ' | ' . $modelStr
             ];
             
-            $totalItems = $ev->parts->count();
-            $finishedItems = $ev->parts->whereIn('status', ['CLOSED', 'OUTSTANDING'])->count();
+            if (count($group['batches']) > 1) {
+                $chartTooltip[] = '----------------';
+                foreach ($group['batches'] as $grName => $counts) {
+                    $chartTooltip[] = $grName . ' - Plan: ' . $counts['plan'] . ', Act: ' . $counts['actual'];
+                }
+            } elseif (count($group['batches']) == 1) {
+                $singleBatch = array_key_first($group['batches']);
+                $chartTooltip[1] .= ' | ' . $singleBatch;
+            }
+            
+            // X-Axis label (Full string, let Chart.js handle it)
+            $chartLabel = $poLabel;
+            
+            $totalItems = count($group['parts']);
+            $finishedItems = 0;
+            $unfinishedItems = 0;
+            $deptCounts = [];
+            
+            foreach($group['parts'] as $part) {
+                if (in_array($part->status, ['FINISHED', 'CLOSED', 'OUTSTANDING'])) {
+                    $finishedItems++;
+                } else {
+                    $unfinishedItems++;
+                    $currentDept = 'Unknown';
+                    if ($part->status === 'PO_REGISTERED') {
+                        $currentDept = 'Draft';
+                    } elseif ($part->status === 'WAITING_DEPT_CONFIRM') {
+                        $activeProc = $part->processes->firstWhere('actual_completion_date', null);
+                        if ($activeProc && $activeProc->department) {
+                            $currentDept = $activeProc->department->name;
+                        } else {
+                            $currentDept = 'Produksi';
+                        }
+                    } elseif ($part->status === 'WAITING_QE_CHECK' || $part->status === 'WAITING_APPROVAL') {
+                        $currentDept = 'QC';
+                    } elseif ($part->status === 'WAITING_MGM_CHECK') {
+                        $currentDept = 'MGM';
+                    } elseif ($part->status === 'WAITING_ME_CHECK') {
+                        $currentDept = 'ME';
+                    }
+                    
+                    if(!isset($deptCounts[$currentDept])) $deptCounts[$currentDept] = 0;
+                    $deptCounts[$currentDept]++;
+                }
+            }
+            
             $inProgressItems = $totalItems - $finishedItems;
             $rate = $totalItems > 0 ? round(($finishedItems / $totalItems) * 100) : 0;
             
-            $totalItemsData[] = $totalItems;
-            $finishedItemsData[] = $finishedItems;
-            $inProgressItemsData[] = $inProgressItems;
-            $completionRates[] = $rate;
+            $poData = [
+                'id' => $group['id'],
+                'po_no' => $poLabel,
+                'chartLabel' => $chartLabel,
+                'chartTooltip' => $chartTooltip,
+                'totalItems' => $totalItems,
+                'finishedItems' => $finishedItems,
+                'inProgressItems' => $inProgressItems,
+                'unfinishedItems' => $unfinishedItems,
+                'rate' => $rate,
+                'deptCounts' => $deptCounts
+            ];
+            
+            $currentChunk[] = $poData;
+            
+            if (count($currentChunk) == 5) {
+                $poChunks[] = $currentChunk;
+                $currentChunk = [];
+            }
+        }
+        
+        if (count($currentChunk) > 0) {
+            $poChunks[] = $currentChunk;
         }
 
-        $trendChart = [
-            'labels' => array_values($eventLabels),
-            'new' => array_values($totalItemsData),
-            'finished' => array_values($finishedItemsData),
-            'in_progress' => array_values($inProgressItemsData),
-            'rates' => array_values($completionRates),
-        ];
+        // We still need to provide $trendChart in a format that works, or pass chunks directly to view.
+        // Let's pass $poChunks directly.
 
         // Chart 2: Department Workload (Waiting Processes)
         $waitingProcesses = \App\Models\NpcPartProcess::with('department')
@@ -266,7 +354,7 @@ class DashboardController extends Controller
 
         return view('dashboard', compact(
             'metrics', 'nearestEvents', 'ecnUpdates', 'stagnantParts', 'rolledBackParts', 'remainDeliveries',
-            'trendChart', 'departmentChart', 'customerChart',
+            'poChunks', 'departmentChart', 'customerChart',
             'filterYear', 'filterMonth', 'filterCustomer', 'filterPo', 'filterModel', 'customerCategories', 'vehicleModels', 'availableYears'
         ));
     }
