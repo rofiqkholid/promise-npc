@@ -550,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         maintainAspectRatio: false,
                         plugins: {
                             datalabels: {
-                                color: '#ffffff',
+                                color: '#000000',
                                 font: { weight: 'bold', size: 9 },
                                 formatter: function(value) { return value > 0 ? value : ''; },
                                 anchor: 'end',
@@ -638,7 +638,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         maintainAspectRatio: false,
                         plugins: {
                             datalabels: {
-                                color: '#ffffff',
+                                color: '#000000',
                                 font: { weight: 'bold', size: 9 },
                                 formatter: function(value) { return value > 0 ? value : ''; },
                                 anchor: 'center',
