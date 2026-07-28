@@ -124,7 +124,8 @@ class NpcEventController extends Controller
                 'required',
                 'string',
                 \Illuminate\Validation\Rule::unique('npc_events')->where(function ($query) use ($request) {
-                    return $query->where('delivery_group_id', $request->delivery_group_id);
+                    return $query->where('delivery_group_id', $request->delivery_group_id)
+                                 ->where('customer_category_id', $request->customer_category_id);
                 })
             ],
             'parts' => 'required|array|min:1',
@@ -138,7 +139,7 @@ class NpcEventController extends Controller
             'parts.*.delivery_date' => 'required|date'
         ], [
             'parts.*.part_no.exists' => 'One of the Part Numbers entered is invalid or not part of the Model.',
-            'po_no.unique' => 'The combination of PO No and Delivery Group already exists.'
+            'po_no.unique' => 'The combination of PO No, Delivery Group, and Category Event already exists.'
         ]);
 
         // Validate Master Data completeness for all parts before creating Event
@@ -236,7 +237,8 @@ class NpcEventController extends Controller
                 'required',
                 'string',
                 \Illuminate\Validation\Rule::unique('npc_events')->where(function ($query) use ($request) {
-                    return $query->where('delivery_group_id', $request->delivery_group_id);
+                    return $query->where('delivery_group_id', $request->delivery_group_id)
+                                 ->where('customer_category_id', $request->customer_category_id);
                 })->ignore($event->id)
             ],
             'customer_category_id' => 'required|exists:npc_customer_categories,id',
@@ -253,7 +255,7 @@ class NpcEventController extends Controller
             'parts.*.delivery_date' => 'required|date'
         ], [
             'parts.*.part_no.exists' => 'One of the Part Numbers entered is invalid or not part of the Model.',
-            'po_no.unique' => 'The combination of PO No and Delivery Group already exists.'
+            'po_no.unique' => 'The combination of PO No, Delivery Group, and Category Event already exists.'
         ]);
 
         // Validate Master Data completeness for all parts before updating Event
