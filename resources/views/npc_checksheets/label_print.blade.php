@@ -289,6 +289,7 @@
                 background: white !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                filter: grayscale(100%);
             }
 
             #labels-wrapper {
