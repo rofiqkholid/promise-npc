@@ -81,8 +81,8 @@ class NpcPartProcessController extends Controller
             'routing.*.department_id' => 'required|exists:npc_departments,id',
             'routing.*.target_completion_date' => 'required|date|before_or_equal:' . $part->delivery_date,
             'routing.*.sequence_order' => 'required|integer',
-            'qc_target_date' => 'nullable|date|before_or_equal:' . $part->delivery_date,
-            'mgm_target_date' => 'nullable|date|before_or_equal:' . $part->delivery_date,
+            'qc_target_date' => 'required|date|before_or_equal:' . $part->delivery_date,
+            'mgm_target_date' => 'required|date|before_or_equal:' . $part->delivery_date,
         ], [
             'routing.*.target_completion_date.before_or_equal' => 'Target completion date cannot exceed the delivery target date.',
             'qc_target_date.before_or_equal' => 'QC target date cannot exceed the delivery target date.',

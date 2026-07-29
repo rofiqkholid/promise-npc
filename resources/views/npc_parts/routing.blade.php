@@ -85,7 +85,7 @@
                             <label class="block text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
                                 Target Quality Check (QE)
                             </label>
-                            <input type="date" name="qc_target_date" value="{{ $part->qc_target_date }}" max="{{ \Carbon\Carbon::parse($part->delivery_date)->format('Y-m-d') }}"
+                            <input type="date" name="qc_target_date" value="{{ $part->qc_target_date }}" max="{{ \Carbon\Carbon::parse($part->delivery_date)->format('Y-m-d') }}" required
                                 class="w-full border-emerald-200 dark:border-emerald-800 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm dark:bg-gray-700 dark:text-white">
                             <p class="text-[10px] text-emerald-600/70 dark:text-emerald-400/70 italic mt-1 leading-tight">The schedule for the part to be checked and inputted by the Quality team.</p>
                         </div>
@@ -93,7 +93,7 @@
                             <label class="block text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
                                 Target Management Check (MGM)
                             </label>
-                            <input type="date" name="mgm_target_date" value="{{ $part->mgm_target_date }}" max="{{ \Carbon\Carbon::parse($part->delivery_date)->format('Y-m-d') }}"
+                            <input type="date" name="mgm_target_date" value="{{ $part->mgm_target_date }}" max="{{ \Carbon\Carbon::parse($part->delivery_date)->format('Y-m-d') }}" required
                                 class="w-full border-emerald-200 dark:border-emerald-800 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm dark:bg-gray-700 dark:text-white">
                             <p class="text-[10px] text-emerald-600/70 dark:text-emerald-400/70 italic mt-1 leading-tight">The schedule for the part to be validated and approved by the Management team.</p>
                         </div>
