@@ -194,6 +194,16 @@
                             <label class="font-semibold text-slate-500 mb-0.5 block truncate">PO No.</label>
                             <input type="text" name="chart_po" value="{{ $filterPo }}" placeholder="Search..." class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors" onchange="this.form.submit()">
                         </div>
+
+                        <div class="flex-1 min-w-[90px]">
+                            <label class="font-semibold text-slate-500 mb-0.5 block truncate">Customer</label>
+                            <select name="chart_customer" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors truncate" onchange="this.form.submit()">
+                                <option value="">All</option>
+                                @foreach($customers as $cust)
+                                    <option value="{{ $cust->id }}" {{ $filterCustomer == $cust->id ? 'selected' : '' }}>{{ $cust->code }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         
                         <div class="flex-1 min-w-[90px]">
                             <label class="font-semibold text-slate-500 mb-0.5 block truncate">Model</label>
@@ -228,11 +238,18 @@
 
                         @if($hasFilter)
                             <div class="flex-none">
-                                <a href="{{ route('dashboard') }}" class="inline-flex justify-center items-center bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-900/30 border border-rose-200 rounded px-2.5 py-1 font-medium">
+                                <a href="{{ request()->fullUrlWithQuery(['chart_po' => null, 'chart_customer' => null, 'chart_model' => null, 'chart_year' => null, 'chart_month' => null]) }}" class="inline-flex justify-center items-center bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-900/30 border border-rose-200 rounded px-2.5 py-1 font-medium">
                                     <i class="fa-solid fa-xmark"></i>
                                 </a>
                             </div>
                         @endif
+
+                        <!-- Keep existing progress filters during submit -->
+                        @if(!empty($progressPo)) <input type="hidden" name="progress_po" value="{{ $progressPo }}"> @endif
+                        @if(!empty($progressCustomer)) <input type="hidden" name="progress_customer" value="{{ $progressCustomer }}"> @endif
+                        @if(!empty($progressModel)) <input type="hidden" name="progress_model" value="{{ $progressModel }}"> @endif
+                        @if(!empty($progressYear) && $progressYear != date('Y')) <input type="hidden" name="progress_year" value="{{ $progressYear }}"> @endif
+                        @if(!empty($progressMonth)) <input type="hidden" name="progress_month" value="{{ $progressMonth }}"> @endif
                     </div>
                 </form>
 
@@ -254,7 +271,7 @@
             </div>
 
             <!-- Right Widget: PO Progress -->
-            <div class="w-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 rounded overflow-hidden" x-data="{ currentSlide: 0, maxSlide: {{ count($poChunks) > 0 ? count($poChunks) - 1 : 0 }} }">
+            <div class="w-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 rounded overflow-hidden" x-data="{ currentSlide: 0, maxSlide: {{ count($progressChunks) > 0 ? count($progressChunks) - 1 : 0 }} }">
                 <!-- Header -->
                 <div class="p-2.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex justify-between items-center flex-none">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
@@ -271,13 +288,85 @@
                                 <i class="fa-solid fa-chevron-right text-[10px]"></i>
                             </button>
                         </div>
+                        @php 
+                            $hasProgressFilter = ($progressYear != date('Y') || $progressMonth || $progressCustomer || !empty($progressPo) || !empty($progressModel)); 
+                        @endphp
+                        <button type="button" onclick="document.getElementById('progressFilterForm').classList.toggle('hidden')" class="text-slate-500 hover:text-primary-600 focus:outline-none transition-colors" title="Toggle Filters">
+                            <i class="fa-solid fa-filter {{ $hasProgressFilter ? 'text-primary-500' : '' }}"></i>
+                        </button>
                     </div>
                 </div>
 
+                <!-- Form Filter -->
+                <form id="progressFilterForm" method="GET" action="{{ route('dashboard') }}" class="{{ $hasProgressFilter ? '' : 'hidden' }} bg-slate-50 dark:bg-slate-700/50 p-2 border-b border-slate-200 dark:border-slate-600 flex-none">
+                    <div class="flex flex-wrap md:flex-nowrap items-end gap-2 text-[10px] pb-1">
+                        <div class="flex-1 min-w-[90px]">
+                            <label class="font-semibold text-slate-500 mb-0.5 block truncate">PO No.</label>
+                            <input type="text" name="progress_po" value="{{ $progressPo }}" placeholder="Search..." class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors" onchange="this.form.submit()">
+                        </div>
+
+                        <div class="flex-1 min-w-[90px]">
+                            <label class="font-semibold text-slate-500 mb-0.5 block truncate">Customer</label>
+                            <select name="progress_customer" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors truncate" onchange="this.form.submit()">
+                                <option value="">All</option>
+                                @foreach($customers as $cust)
+                                    <option value="{{ $cust->id }}" {{ $progressCustomer == $cust->id ? 'selected' : '' }}>{{ $cust->code }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        
+                        <div class="flex-1 min-w-[90px]">
+                            <label class="font-semibold text-slate-500 mb-0.5 block truncate">Model</label>
+                            <select name="progress_model" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors truncate" onchange="this.form.submit()">
+                                <option value="">All</option>
+                                @foreach($vehicleModels as $mod)
+                                    <option value="{{ $mod->id }}" {{ $progressModel == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="flex-1 min-w-[70px]">
+                            <label class="font-semibold text-slate-500 mb-0.5 block truncate">Year</label>
+                            <select name="progress_year" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors" onchange="this.form.submit()">
+                                @foreach($availableYears as $y)
+                                    <option value="{{ $y }}" {{ $progressYear == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        
+                        <div class="flex-1 min-w-[80px]">
+                            <label class="font-semibold text-slate-500 mb-0.5 block truncate">Month</label>
+                            <select name="progress_month" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-primary-500 transition-colors" onchange="this.form.submit()">
+                                <option value="">All</option>
+                                @foreach(range(1, 12) as $m)
+                                    <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}" {{ $progressMonth == str_pad($m, 2, '0', STR_PAD_LEFT) ? 'selected' : '' }}>
+                                        {{ date('M', mktime(0, 0, 0, $m, 10)) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        @if($hasProgressFilter)
+                            <div class="flex-none">
+                                <a href="{{ request()->fullUrlWithQuery(['progress_po' => null, 'progress_customer' => null, 'progress_model' => null, 'progress_year' => null, 'progress_month' => null]) }}" class="inline-flex justify-center items-center bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-900/30 border border-rose-200 rounded px-2.5 py-1 font-medium">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </a>
+                            </div>
+                        @endif
+                        
+                        <!-- Keep existing chart filters during submit -->
+                        @if(!empty($filterPo)) <input type="hidden" name="chart_po" value="{{ $filterPo }}"> @endif
+                        @if(!empty($filterCustomer)) <input type="hidden" name="chart_customer" value="{{ $filterCustomer }}"> @endif
+                        @if(!empty($filterModel)) <input type="hidden" name="chart_model" value="{{ $filterModel }}"> @endif
+                        @if(!empty($filterYear) && $filterYear != date('Y')) <input type="hidden" name="chart_year" value="{{ $filterYear }}"> @endif
+                        @if(!empty($filterMonth)) <input type="hidden" name="chart_month" value="{{ $filterMonth }}"> @endif
+                    </div>
+                </form>
+
                 <!-- Canvas Wrapper -->
                 <div class="flex-1 relative overflow-hidden flex flex-col min-h-0 bg-slate-50/50 dark:bg-slate-900/20">
-                    @if(count($poChunks) > 0)
-                        @foreach($poChunks as $index => $chunk)
+                    @if(count($progressChunks) > 0)
+                        @foreach($progressChunks as $index => $chunk)
                         <div :class="currentSlide === {{ $index }} ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'" class="absolute inset-0 flex flex-col min-h-0 w-full h-full p-4 transition-opacity duration-300">
                             <canvas id="progressChart-{{ $index }}"></canvas>
                         </div>
@@ -583,8 +672,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             }
+        });
+    }
 
-            // --- PO Progress (Stacked Vertical Bar Chart) ---
+    // --- PO Progress (Stacked Vertical Bar Chart) ---
+    const progressChunks = @json($progressChunks);
+    
+    if (progressChunks && progressChunks.length > 0) {
+        progressChunks.forEach((chunk, index) => {
+            const labels = chunk.map(po => po.chartLabel);
             const ctxProg = document.getElementById('progressChart-' + index);
             if (ctxProg) {
                 const deptColors = {
