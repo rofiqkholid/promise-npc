@@ -146,6 +146,7 @@
                                 <input type="text" class="part-no-display w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Search Part No..." autocomplete="off" value="{{ optional($part->product)->part_no }}">
                                 <input type="hidden" name="parts[{{ $index }}][part_no]" class="part-no-input" value="{{ optional($part->product)->part_no }}" required>
                                 <input type="hidden" name="parts[{{ $index }}][part_name]" class="part-name-input" value="{{ optional($part->product)->part_name }}">
+                                <input type="hidden" name="parts[{{ $index }}][product_id]" class="product-id-input" value="{{ optional($part->product)->id }}">
                                 <input type="hidden" name="parts[{{ $index }}][id]" value="{{ $part->id }}">
                                 <div class="part-autocomplete hidden absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg max-h-52 overflow-y-auto text-sm"></div>
                             </div>
@@ -294,6 +295,7 @@
             const displayInput = partItem.querySelector('.part-no-display');
             const partNoInput = partItem.querySelector('.part-no-input');
             const partNameInput = partItem.querySelector('.part-name-input');
+            const productIdInput = partItem.querySelector('.product-id-input');
             const dropdown = partItem.querySelector('.part-autocomplete');
             let acTimer;
 
@@ -310,12 +312,13 @@
                         data.results.forEach(item => {
                             const div = document.createElement('div');
                             div.className = 'px-3 py-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0';
-                            div.innerHTML = `<span class="font-semibold font-mono text-blue-600 dark:text-blue-400 text-xs">${item.part_no}</span> <span class="text-gray-600 dark:text-gray-300 text-xs">${item.part_name}</span>`;
+                            div.innerHTML = `<span class="font-semibold font-mono text-blue-600 dark:text-blue-400 text-xs">${item.part_no}</span> <span class="text-gray-600 dark:text-gray-300 text-xs">${item.part_name}</span> <span class="text-orange-500 dark:text-orange-400 text-[10px] ml-1">(Model: ${item.model_name})</span>`;
                             div.addEventListener('mousedown', function(e) {
                                 e.preventDefault();
                                 displayInput.value = item.part_no;
                                 partNoInput.value = item.part_no;
                                 partNameInput.value = item.part_name;
+                                if(productIdInput) productIdInput.value = item.id;
                                 dropdown.classList.add('hidden');
                             });
                             dropdown.appendChild(div);
@@ -340,6 +343,7 @@
                 clearTimeout(acTimer);
                 partNoInput.value = '';
                 partNameInput.value = '';
+                if(productIdInput) productIdInput.value = '';
                 const q = this.value.trim();
                 acTimer = setTimeout(() => {
                     fetchProducts(q);
@@ -373,6 +377,7 @@
                             <input type="text" class="part-no-display w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Search Part No..." autocomplete="off">
                             <input type="hidden" name="parts[${partIndex}][part_no]" class="part-no-input" required>
                             <input type="hidden" name="parts[${partIndex}][part_name]" class="part-name-input">
+                            <input type="hidden" name="parts[${partIndex}][product_id]" class="product-id-input">
                             <div class="part-autocomplete hidden absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg max-h-52 overflow-y-auto text-sm"></div>
                         </div>
                         <div class="space-y-1">

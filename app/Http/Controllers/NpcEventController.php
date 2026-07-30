@@ -144,9 +144,14 @@ class NpcEventController extends Controller
 
         // Validate Master Data completeness for all parts before creating Event
         foreach ($request->parts as $index => $partData) {
-            $product = \App\Models\Product::where('part_no', $partData['part_no'])
-                ->where('customer_id', $request->customer_id)
-                ->first();
+            $product = null;
+            if (!empty($partData['product_id'])) {
+                $product = \App\Models\Product::find($partData['product_id']);
+            } else {
+                $product = \App\Models\Product::where('part_no', $partData['part_no'])
+                    ->where('customer_id', $request->customer_id)
+                    ->first();
+            }
             
             if ($product) {
                 $missing = $product->getMissingMasterData();
@@ -167,10 +172,15 @@ class NpcEventController extends Controller
 
         foreach ($request->parts as $partData) {
             // Coba cari produk berdasarkan part_no dan customer_id
-            $product = \App\Models\Product::with('docPackage')
-                ->where('part_no', $partData['part_no'])
-                ->where('customer_id', $request->customer_id)
-                ->first();
+            $product = null;
+            if (!empty($partData['product_id'])) {
+                $product = \App\Models\Product::with('docPackage')->find($partData['product_id']);
+            } else {
+                $product = \App\Models\Product::with('docPackage')
+                    ->where('part_no', $partData['part_no'])
+                    ->where('customer_id', $request->customer_id)
+                    ->first();
+            }
             $processName = null;
             $departmentName = 'PUD';
 
@@ -260,9 +270,14 @@ class NpcEventController extends Controller
 
         // Validate Master Data completeness for all parts before updating Event
         foreach ($request->parts as $index => $partData) {
-            $product = \App\Models\Product::where('part_no', $partData['part_no'])
-                ->where('customer_id', $request->customer_id)
-                ->first();
+            $product = null;
+            if (!empty($partData['product_id'])) {
+                $product = \App\Models\Product::find($partData['product_id']);
+            } else {
+                $product = \App\Models\Product::where('part_no', $partData['part_no'])
+                    ->where('customer_id', $request->customer_id)
+                    ->first();
+            }
             
             if ($product) {
                 $missing = $product->getMissingMasterData();
@@ -283,10 +298,15 @@ class NpcEventController extends Controller
 
         $existingPartIds = [];
         foreach ($request->parts as $partData) {
-            $product = \App\Models\Product::with('docPackage')
-                ->where('part_no', $partData['part_no'])
-                ->where('customer_id', $request->customer_id)
-                ->first();
+            $product = null;
+            if (!empty($partData['product_id'])) {
+                $product = \App\Models\Product::with('docPackage')->find($partData['product_id']);
+            } else {
+                $product = \App\Models\Product::with('docPackage')
+                    ->where('part_no', $partData['part_no'])
+                    ->where('customer_id', $request->customer_id)
+                    ->first();
+            }
             if (!$product) continue;
 
             $currentRevisionId = null;

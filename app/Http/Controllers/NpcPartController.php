@@ -88,10 +88,15 @@ class NpcPartController extends Controller
             'part_no.exists' => "The Part Number you entered is invalid or not part of this event's Customer."
         ]);
 
-        $product = \App\Models\Product::with('docPackage')
-            ->where('part_no', $request->part_no)
-            ->where('customer_id', $customerId)
-            ->first();
+        $product = null;
+        if ($request->filled('product_id')) {
+            $product = \App\Models\Product::with('docPackage')->find($request->product_id);
+        } else {
+            $product = \App\Models\Product::with('docPackage')
+                ->where('part_no', $request->part_no)
+                ->where('customer_id', $customerId)
+                ->first();
+        }
 
         if ($product) {
             $missing = $product->getMissingMasterData();
@@ -176,9 +181,14 @@ class NpcPartController extends Controller
             'part_no.exists' => "The Part Number you entered is invalid or not part of this event's Customer."
         ]);
 
-        $product = \App\Models\Product::where('part_no', $request->part_no)
-            ->where('customer_id', $customerId)
-            ->first();
+        $product = null;
+        if ($request->filled('product_id')) {
+            $product = \App\Models\Product::find($request->product_id);
+        } else {
+            $product = \App\Models\Product::where('part_no', $request->part_no)
+                ->where('customer_id', $customerId)
+                ->first();
+        }
 
         if ($product) {
             $missing = $product->getMissingMasterData();

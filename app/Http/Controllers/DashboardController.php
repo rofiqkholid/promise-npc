@@ -101,7 +101,7 @@ class DashboardController extends Controller
         // --- DASHBOARD V2 CHARTS DATA ---
         
         // Chart 1: Plan vs Actual
-        $poChunks = $this->buildChartChunks($applyEventFilters);
+        $poChunks = $this->buildCustomerChartChunks($applyEventFilters);
 
         // Chart 1b: PO Progress
         $progressYear = $request->input('progress_year', date('Y'));
@@ -397,6 +397,88 @@ class DashboardController extends Controller
             ];
             
             $currentChunk[] = $poData;
+            
+            if (count($currentChunk) == 5) {
+                $chunks[] = $currentChunk;
+                $currentChunk = [];
+            }
+        }
+        
+        if (count($currentChunk) > 0) {
+            $chunks[] = $currentChunk;
+        }
+        
+        return $chunks;
+    }
+
+    private function buildCustomerChartChunks($applyFilterCallback)
+    {
+        $queryEvents = NpcEvent::with(['customerCategory', 'deliveryGroup', 'vehicleModel', 'parts' => function($q) {
+            $q->select('id', 'npc_event_id', 'status', 'product_id')->with(['product.customer', 'product.vehicleModel', 'processes', 'processes.department']);
+        }]);
+
+        $applyFilterCallback($queryEvents);
+
+        $recentEvents = $queryEvents->orderBy('created_at', 'desc')
+        ->whereHas('parts', function($q) {
+            $q->whereNotIn('status', ['FINISHED', 'CLOSED']); // Only active POs
+        })
+        ->get();
+
+        $chunks = [];
+        $currentChunk = [];
+        
+        // Group the events first by Customer
+        $groupedCustomers = [];
+        foreach ($recentEvents as $ev) {
+            foreach ($ev->parts as $part) {
+                if ($part->product && $part->product->customer) {
+                    $custCode = $part->product->customer->code;
+                    $custName = $part->product->customer->name;
+                    
+                    if (!isset($groupedCustomers[$custCode])) {
+                        $groupedCustomers[$custCode] = [
+                            'code' => $custCode,
+                            'name' => $custName,
+                            'totalItems' => 0,
+                            'finishedItems' => 0,
+                        ];
+                    }
+                    
+                    $groupedCustomers[$custCode]['totalItems']++;
+                    
+                    if (in_array($part->status, ['FINISHED', 'CLOSED', 'OUTSTANDING'])) {
+                        $groupedCustomers[$custCode]['finishedItems']++;
+                    }
+                }
+            }
+        }
+        
+        foreach ($groupedCustomers as $custCode => $group) {
+            $totalItems = $group['totalItems'];
+            $finishedItems = $group['finishedItems'];
+            
+            $planPercentage = 100;
+            $actualPercentage = $totalItems > 0 ? round(($finishedItems / $totalItems) * 100) : 0;
+            
+            $chartTooltip = [
+                $group['name'] . ' (' . $custCode . ')',
+                'Plan: ' . $totalItems . ' items',
+                'Actual: ' . $finishedItems . ' items (' . $actualPercentage . '%)'
+            ];
+            
+            $custData = [
+                'id' => $custCode,
+                'po_no' => $custCode,
+                'chartLabel' => $custCode,
+                'chartTooltip' => $chartTooltip,
+                'totalItems' => $totalItems,
+                'finishedItems' => $finishedItems,
+                'planPercentage' => $planPercentage,
+                'actualPercentage' => $actualPercentage
+            ];
+            
+            $currentChunk[] = $custData;
             
             if (count($currentChunk) == 5) {
                 $chunks[] = $currentChunk;

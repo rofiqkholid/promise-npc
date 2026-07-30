@@ -595,8 +595,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const labels = chunk.map(po => po.chartLabel);
             const ctx = document.getElementById('trendChart-' + index);
             if (ctx) {
-                const dataPlan = chunk.map(po => po.totalItems);
-                const dataActual = chunk.map(po => po.finishedItems);
+                const dataPlan = chunk.map(po => po.planPercentage);
+                const dataActual = chunk.map(po => po.actualPercentage);
                 
                 new Chart(ctx, {
                     type: 'bar',
@@ -633,7 +633,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             datalabels: {
                                 color: '#000000',
                                 font: { weight: 'bold', size: 9 },
-                                formatter: function(value) { return value > 0 ? value : ''; },
+                                formatter: function(value) { return value > 0 ? value + '%' : ''; },
                                 anchor: 'end',
                                 align: 'bottom'
                             },
@@ -654,7 +654,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                     title: function(tooltipItems) {
                                         const tIndex = tooltipItems[0].dataIndex;
                                         return chunk[tIndex].chartTooltip || tooltipItems[0].chart.data.labels[tIndex];
-                                    }
+                                    },
+                                    label: function(context) { return ''; } // Title already has the detailed data
                                 }
                             }
                         },
@@ -666,7 +667,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             y: { 
                                 type: 'linear', display: true, position: 'left',
                                 grid: { color: gridColor }, beginAtZero: true,
-                                ticks: { stepSize: 1, font: { size: 9 } }
+                                max: 110,
+                                ticks: { stepSize: 25, font: { size: 9 }, callback: function(value) { return value <= 100 ? value + '%' : ''; } }
                             }
                         }
                     }

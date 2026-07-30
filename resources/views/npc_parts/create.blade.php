@@ -55,6 +55,7 @@
                         class="w-full border-gray-300 dark:border-gray-600 shadow-sm sm:text-sm dark:bg-gray-800 dark:text-gray-400 bg-gray-100 text-gray-500 cursor-not-allowed focus:ring-0 focus:border-gray-300"
                         placeholder="Select from search above...">
                     @error('part_no') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                    <input type="hidden" id="product_id_input" name="product_id">
                 </div>
 
                 <div class="space-y-1">
@@ -128,14 +129,15 @@
                     data.results.forEach(product => {
                         let div = document.createElement('div');
                         div.className = 'px-4 py-3 hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer text-sm text-slate-700 dark:text-slate-200 border-b border-gray-100 dark:border-gray-700 last:border-0';
-                        div.innerHTML = `<span class="font-bold font-mono text-blue-600 dark:text-blue-400">${product.part_no}</span> - ${product.part_name}`;
+                        div.innerHTML = `<span class="font-bold font-mono text-blue-600 dark:text-blue-400">${product.part_no}</span> - ${product.part_name} <span class="text-orange-500 text-xs ml-1">(Model: ${product.model_name})</span>`;
                         div.addEventListener('click', function() {
                             partNoInput.value = product.part_no;
                             partNameInput.value = product.part_name;
                             searchInput.value = product.part_no;
+                            if (document.getElementById('product_id_input')) {
+                                document.getElementById('product_id_input').value = product.id;
+                            }
                             searchResults.classList.add('hidden');
-
-
                         });
                         searchResults.appendChild(div);
                     });
