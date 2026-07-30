@@ -28,24 +28,22 @@
                 </div>
             </div>
             <!-- Popover -->
-            <div x-show="open" x-transition.opacity class="absolute top-full left-0 mt-1 w-full max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg z-50 p-2 custom-scrollbar" style="display: none;">
+            <div x-show="open" x-transition.opacity class="absolute top-full left-0 mt-1 w-full max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg z-50 px-2 pb-2 custom-scrollbar" style="display: none;">
                 @if(count($metrics['total_po_list'] ?? []) > 0)
-                    <table class="w-full text-left text-xs">
-                        <thead class="sticky top-0 bg-white dark:bg-slate-800 z-10">
-                            <tr class="text-slate-500 border-b border-slate-200 dark:border-slate-700">
-                                <th class="pb-1 px-1 w-8">No</th>
-                                <th class="pb-1 px-1">PO No.</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="w-full text-left text-xs">
+                        <div class="sticky top-0 bg-white dark:bg-slate-800 z-20 flex text-slate-500 font-bold border-b border-slate-200 dark:border-slate-700 pt-2 pb-1 px-1">
+                            <div class="w-8">No</div>
+                            <div class="flex-1">PO No.</div>
+                        </div>
+                        <div class="flex flex-col">
                             @foreach($metrics['total_po_list'] ?? [] as $idx => $item)
-                            <tr class="border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30">
-                                <td class="py-1.5 px-1 text-slate-500">{{ $idx + 1 }}</td>
-                                <td class="py-1.5 px-1 font-medium text-slate-800 dark:text-slate-200">{{ $item->po_no ?? '-' }}</td>
-                            </tr>
+                            <div class="flex items-center border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 py-1.5 px-1">
+                                <div class="w-8 text-slate-500">{{ $idx + 1 }}</div>
+                                <div class="flex-1 font-medium text-slate-800 dark:text-slate-200">{{ $item->po_no ?? '-' }}</div>
+                            </div>
                             @endforeach
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
                 @else
                     <p class="text-xs text-center text-slate-500 py-2">No data</p>
                 @endif
@@ -64,24 +62,22 @@
                 </div>
             </div>
             <!-- Popover -->
-            <div x-show="open" x-transition.opacity class="absolute top-full left-0 mt-1 w-full max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg z-50 p-2 custom-scrollbar" style="display: none;">
+            <div x-show="open" x-transition.opacity class="absolute top-full left-0 mt-1 w-full max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg z-50 px-2 pb-2 custom-scrollbar" style="display: none;">
                 @if(count($metrics['po_on_hand_list'] ?? []) > 0)
-                    <table class="w-full text-left text-xs">
-                        <thead class="sticky top-0 bg-white dark:bg-slate-800 z-10">
-                            <tr class="text-slate-500 border-b border-slate-200 dark:border-slate-700">
-                                <th class="pb-1 px-1 w-8">No</th>
-                                <th class="pb-1 px-1">Model</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="w-full text-left text-xs">
+                        <div class="sticky top-0 bg-white dark:bg-slate-800 z-20 flex text-slate-500 font-bold border-b border-slate-200 dark:border-slate-700 pt-2 pb-1 px-1">
+                            <div class="w-8">No</div>
+                            <div class="flex-1">Model</div>
+                        </div>
+                        <div class="flex flex-col">
                             @foreach($metrics['po_on_hand_list'] ?? [] as $idx => $item)
-                            <tr class="border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30">
-                                <td class="py-1.5 px-1 text-slate-500">{{ $idx + 1 }}</td>
-                                <td class="py-1.5 px-1 font-medium text-slate-800 dark:text-slate-200">{{ optional(optional(optional($item->parts->first())->product)->vehicleModel)->name ?? '-' }}</td>
-                            </tr>
+                            <div class="flex items-center border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 py-1.5 px-1">
+                                <div class="w-8 text-slate-500">{{ $idx + 1 }}</div>
+                                <div class="flex-1 font-medium text-slate-800 dark:text-slate-200">{{ optional(optional(optional($item->parts->first())->product)->vehicleModel)->name ?? '-' }}</div>
+                            </div>
                             @endforeach
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
                 @else
                     <p class="text-xs text-center text-slate-500 py-2">No data</p>
                 @endif
@@ -100,24 +96,22 @@
                 </div>
             </div>
             <!-- Popover -->
-            <div x-show="open" x-transition.opacity class="absolute top-full left-0 mt-1 w-full max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg z-50 p-2 custom-scrollbar" style="display: none;">
+            <div x-show="open" x-transition.opacity class="absolute top-full left-0 mt-1 w-full max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg z-50 px-2 pb-2 custom-scrollbar" style="display: none;">
                 @if(count($metrics['po_complete_list'] ?? []) > 0)
-                    <table class="w-full text-left text-xs">
-                        <thead class="sticky top-0 bg-white dark:bg-slate-800 z-10">
-                            <tr class="text-slate-500 border-b border-slate-200 dark:border-slate-700">
-                                <th class="pb-1 px-1 w-8">No</th>
-                                <th class="pb-1 px-1">PO No.</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="w-full text-left text-xs">
+                        <div class="sticky top-0 bg-white dark:bg-slate-800 z-20 flex text-slate-500 font-bold border-b border-slate-200 dark:border-slate-700 pt-2 pb-1 px-1">
+                            <div class="w-8">No</div>
+                            <div class="flex-1">PO No.</div>
+                        </div>
+                        <div class="flex flex-col">
                             @foreach($metrics['po_complete_list'] ?? [] as $idx => $item)
-                            <tr class="border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30">
-                                <td class="py-1.5 px-1 text-slate-500">{{ $idx + 1 }}</td>
-                                <td class="py-1.5 px-1 font-medium text-slate-800 dark:text-slate-200">{{ $item->po_no ?? '-' }}</td>
-                            </tr>
+                            <div class="flex items-center border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 py-1.5 px-1">
+                                <div class="w-8 text-slate-500">{{ $idx + 1 }}</div>
+                                <div class="flex-1 font-medium text-slate-800 dark:text-slate-200">{{ $item->po_no ?? '-' }}</div>
+                            </div>
                             @endforeach
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
                 @else
                     <p class="text-xs text-center text-slate-500 py-2">No data</p>
                 @endif
@@ -136,24 +130,22 @@
                 </div>
             </div>
             <!-- Popover -->
-            <div x-show="open" x-transition.opacity class="absolute top-full left-0 mt-1 w-full max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg z-50 p-2 custom-scrollbar" style="display: none;">
+            <div x-show="open" x-transition.opacity class="absolute top-full left-0 mt-1 w-full max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg z-50 px-2 pb-2 custom-scrollbar" style="display: none;">
                 @if(count($metrics['stock_list'] ?? []) > 0)
-                    <table class="w-full text-left text-xs">
-                        <thead class="sticky top-0 bg-white dark:bg-slate-800 z-10">
-                            <tr class="text-slate-500 border-b border-slate-200 dark:border-slate-700">
-                                <th class="pb-1 px-1 w-8">No</th>
-                                <th class="pb-1 px-1">PO No.</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="w-full text-left text-xs">
+                        <div class="sticky top-0 bg-white dark:bg-slate-800 z-20 flex text-slate-500 font-bold border-b border-slate-200 dark:border-slate-700 pt-2 pb-1 px-1">
+                            <div class="w-8">No</div>
+                            <div class="flex-1">PO No.</div>
+                        </div>
+                        <div class="flex flex-col">
                             @foreach($metrics['stock_list'] ?? [] as $idx => $item)
-                            <tr class="border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30">
-                                <td class="py-1.5 px-1 text-slate-500">{{ $idx + 1 }}</td>
-                                <td class="py-1.5 px-1 font-medium text-slate-800 dark:text-slate-200">{{ $item->event->po_no ?? '-' }}</td>
-                            </tr>
+                            <div class="flex items-center border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 py-1.5 px-1">
+                                <div class="w-8 text-slate-500">{{ $idx + 1 }}</div>
+                                <div class="flex-1 font-medium text-slate-800 dark:text-slate-200">{{ $item->event->po_no ?? '-' }}</div>
+                            </div>
                             @endforeach
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
                 @else
                     <p class="text-xs text-center text-slate-500 py-2">No data</p>
                 @endif
@@ -313,13 +305,13 @@
                 <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar relative">
                     @if($nearestEvents->count() > 0)
                         <table class="w-full table-fixed text-left border-collapse">
-                            <thead class="sticky top-0 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 z-10">
+                            <thead class="bg-slate-50 dark:bg-slate-800">
                                 <tr>
-                                    <th class="w-[24%] py-1 px-1 pl-2 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Customer</th>
-                                    <th class="w-[22%] py-1 px-1 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Model</th>
-                                    <th class="w-[15%] py-1 px-1 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Event</th>
-                                    <th class="w-[15%] py-1 px-1 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Batch</th>
-                                    <th class="w-[24%] py-1 px-1 pr-2 text-[8px] font-semibold text-slate-500 uppercase text-right tracking-tighter">Delv Date</th>
+                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[24%] py-1 px-1 pl-2 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Customer</th>
+                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[22%] py-1 px-1 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Model</th>
+                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[15%] py-1 px-1 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Event</th>
+                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[15%] py-1 px-1 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Batch</th>
+                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[24%] py-1 px-1 pr-2 text-[8px] font-semibold text-slate-500 uppercase text-right tracking-tighter">Delv Date</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
@@ -447,10 +439,10 @@
                 <div class="flex-1 overflow-y-auto custom-scrollbar p-0">
                     @if($remainDeliveries->count() > 0)
                         <table class="w-full text-left border-collapse">
-                            <thead class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-10 border-b border-slate-200 dark:border-slate-700">
+                            <thead class="bg-slate-50 dark:bg-slate-800">
                                 <tr>
-                                    <th class="py-1 px-3 text-[9px] font-semibold text-slate-500 uppercase">Model</th>
-                                    <th class="py-1 px-3 text-[9px] font-semibold text-slate-500 uppercase text-right">Achievment</th>
+                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-200 dark:border-slate-700 py-1 px-3 text-[9px] font-semibold text-slate-500 uppercase">Model</th>
+                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-200 dark:border-slate-700 py-1 px-3 text-[9px] font-semibold text-slate-500 uppercase text-right">Achievment</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">

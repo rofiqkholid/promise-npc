@@ -39,15 +39,19 @@ class DashboardController extends Controller
 
         // 1. Top Level Metrics (KPI Cards)
         $totalPOQuery = NpcEvent::where($applyEventFilters);
-        $totalPO = $totalPOQuery->count();
-        $totalPOList = $totalPOQuery->select('id', 'po_no')->get();
+        $totalPOList = $totalPOQuery->select('id', 'po_no')->get()->unique(function($item) {
+            return $item->po_no ?: 'EV-'.$item->id;
+        })->values();
+        $totalPO = $totalPOList->count();
 
         // A PO is complete if it has parts and NONE of its parts are in an active status or just finished
         $poCompleteQuery = NpcEvent::where($applyEventFilters)->whereHas('parts')->whereDoesntHave('parts', function($q) {
             $q->whereNotIn('status', ['CLOSED', 'OUTSTANDING']);
         });
-        $poComplete = $poCompleteQuery->count();
-        $poCompleteList = $poCompleteQuery->select('id', 'po_no')->get();
+        $poCompleteList = $poCompleteQuery->select('id', 'po_no')->get()->unique(function($item) {
+            return $item->po_no ?: 'EV-'.$item->id;
+        })->values();
+        $poComplete = $poCompleteList->count();
 
         $poOnHandList = clone $totalPOQuery;
         $poOnHandList = NpcEvent::with(['parts.product.vehicleModel'])->where($applyEventFilters)->where(function($q) {
@@ -55,16 +59,20 @@ class DashboardController extends Controller
               ->orWhereHas('parts', function($q2) {
                   $q2->whereNotIn('status', ['CLOSED', 'OUTSTANDING']);
               });
-        })->select('id', 'po_no')->get();
+        })->select('id', 'po_no')->get()->unique(function($item) {
+            return $item->po_no ?: 'EV-'.$item->id;
+        })->values();
         $poOnHand = $poOnHandList->count();
 
         $stockQuery = NpcPart::where('status', 'FINISHED')->whereHas('event', $applyEventFilters);
-        $stock = $stockQuery->count();
         $stockList = $stockQuery->with(['event' => function($q) {
             $q->select('id', 'po_no');
         }, 'product' => function($q) {
             $q->select('id', 'part_no');
-        }])->select('id', 'npc_event_id', 'product_id')->get();
+        }])->select('id', 'npc_event_id', 'product_id')->get()->unique(function($item) {
+            return ($item->event && $item->event->po_no) ? $item->event->po_no : 'EV-'.($item->npc_event_id ?? $item->id);
+        })->values();
+        $stock = $stockList->count();
 
         $metrics = [
             'total_po' => $totalPO,
@@ -110,7 +118,7 @@ class DashboardController extends Controller
         $groupedEvents = [];
         foreach ($recentEvents as $ev) {
             $poLabel = $ev->po_no ? $ev->po_no : 'EV-'.$ev->id;
-            $groupKey = $poLabel . '_' . ($ev->customer_category_id ?? '0');
+            $groupKey = $poLabel;
             $grName = $ev->deliveryGroup ? $ev->deliveryGroup->name : 'Unknown Batch';
             
             if (!isset($groupedEvents[$groupKey])) {
