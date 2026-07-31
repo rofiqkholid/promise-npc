@@ -587,59 +587,139 @@ document.addEventListener('DOMContentLoaded', function() {
         Chart.register(ChartDataLabels);
     }
 
-    // 1. Trend Chart (Horizontal Grouped Bar for Plan vs Actual)
+    // 1. Trend Chart (Grouped Stacked Bar for Plan vs Actual)
     const poChunks = @json($poChunks);
     
     if (poChunks && poChunks.length > 0) {
+        // Base category colors
+        const categoryColors = {
+            'DCV': { plan: 'rgba(59, 130, 246, 0.4)', actual: 'rgba(59, 130, 246, 1)' }, // Blue
+            'MPP': { plan: 'rgba(16, 185, 129, 0.4)', actual: 'rgba(16, 185, 129, 1)' }, // Emerald
+            'PJ': { plan: 'rgba(245, 158, 11, 0.4)', actual: 'rgba(245, 158, 11, 1)' }, // Amber
+            'GCE': { plan: 'rgba(139, 92, 246, 0.4)', actual: 'rgba(139, 92, 246, 1)' }, // Violet
+            'NRE': { plan: 'rgba(236, 72, 153, 0.4)', actual: 'rgba(236, 72, 153, 1)' }, // Pink
+            'Unknown': { plan: 'rgba(148, 163, 184, 0.4)', actual: 'rgba(148, 163, 184, 1)' } // Slate
+        };
+        const defaultColors = [
+            { plan: 'rgba(6, 182, 212, 0.4)', actual: 'rgba(6, 182, 212, 1)' }, // Cyan
+            { plan: 'rgba(249, 115, 22, 0.4)', actual: 'rgba(249, 115, 22, 1)' }, // Orange
+            { plan: 'rgba(132, 204, 22, 0.4)', actual: 'rgba(132, 204, 22, 1)' }, // Lime
+        ];
+
         poChunks.forEach((chunk, index) => {
             const labels = chunk.map(po => po.chartLabel);
             const ctx = document.getElementById('trendChart-' + index);
+            
             if (ctx) {
-                const dataPlan = chunk.map(po => po.planPercentage);
-                const dataActual = chunk.map(po => po.actualPercentage);
+                // Find all unique categories in this chunk
+                let allCategories = new Set();
+                chunk.forEach(po => {
+                    Object.keys(po.categories).forEach(cat => allCategories.add(cat));
+                });
+                
+                const uniqueCategories = Array.from(allCategories);
+                let datasets = [];
+                let colorIndex = 0;
+                
+                uniqueCategories.forEach(cat => {
+                    const dataPlan = chunk.map(po => po.categories[cat] ? po.categories[cat].planPct : 0);
+                    const dataActual = chunk.map(po => po.categories[cat] ? po.categories[cat].actualPct : 0);
+                    
+                    const borderColor = isDark ? '#1e293b' : '#ffffff';
+                    
+                    datasets.push({
+                        label: `Plan - ${cat}`,
+                        data: dataPlan,
+                        backgroundColor: '#3b82f6',
+                        borderColor: borderColor,
+                        borderWidth: 1,
+                        stack: 'Plan',
+                        maxBarThickness: 35,
+                        categoryPercentage: 0.8,
+                        barPercentage: 0.8,
+                    });
+                    
+                    datasets.push({
+                        label: `Actual - ${cat}`,
+                        data: dataActual,
+                        backgroundColor: 'rgba(16, 185, 129, 1)',
+                        borderColor: borderColor,
+                        borderWidth: 1,
+                        stack: 'Actual',
+                        maxBarThickness: 35,
+                        categoryPercentage: 0.8,
+                        barPercentage: 0.8,
+                    });
+                });
                 
                 new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: labels,
-                        datasets: [
-                            {
-                                label: 'Plan',
-                                data: dataPlan,
-                                backgroundColor: '#3b82f6',
-                                borderRadius: 4,
-                                maxBarThickness: 35,
-                                categoryPercentage: 0.8,
-                                barPercentage: 0.8,
-                                order: 2
-                            },
-                            {
-                                label: 'Actual',
-                                data: dataActual,
-                                backgroundColor: '#10b981',
-                                borderRadius: 4,
-                                maxBarThickness: 35,
-                                categoryPercentage: 0.8,
-                                barPercentage: 0.8,
-                                order: 3
-                            }
-                        ]
+                        datasets: datasets
                     },
                     options: {
-                        layout: { padding: { top: 25, right: 5 } },
+                        layout: { padding: { top: 5, right: 5 } },
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
                             datalabels: {
-                                color: '#000000',
-                                font: { weight: 'bold', size: 9 },
-                                formatter: function(value) { return value > 0 ? value + '%' : ''; },
-                                anchor: 'end',
-                                align: 'bottom'
+                                color: isDark ? '#ffffff' : '#000000',
+                                font: function(context) {
+                                    const val = context.dataset.data[context.dataIndex];
+                                    return { weight: 'bold', size: val < 10 ? 8 : 9 };
+                                },
+                                formatter: function(value, context) { 
+                                    if (value > 0) {
+                                        const dsLabel = context.dataset.label;
+                                        const cat = dsLabel.split(' - ')[1];
+                                        if (value < 10) {
+                                            return cat + ' ' + value + '%';
+                                        }
+                                        return cat + '\n' + value + '%';
+                                    }
+                                    return ''; 
+                                },
+                                anchor: 'center',
+                                align: function(context) {
+                                    const val = context.dataset.data[context.dataIndex];
+                                    if (val < 10) {
+                                        const dsLabel = context.dataset.label;
+                                        return dsLabel.startsWith('Plan') ? 'left' : 'right';
+                                    }
+                                    return 'center';
+                                },
+                                offset: function(context) {
+                                    const val = context.dataset.data[context.dataIndex];
+                                    return val < 10 ? 15 : 0;
+                                },
+                                textAlign: 'center',
+                                display: true
                             },
                             legend: {
                                 position: 'top',
-                                labels: { usePointStyle: true, boxWidth: 6, font: { size: 10 } }
+                                onClick: null,
+                                labels: { 
+                                    usePointStyle: true, 
+                                    boxWidth: 8, 
+                                    font: { size: 10 },
+                                    generateLabels: function(chart) {
+                                        return [
+                                            {
+                                                text: 'Plan',
+                                                fillStyle: '#3b82f6',
+                                                strokeStyle: '#3b82f6',
+                                                lineWidth: 1
+                                            },
+                                            {
+                                                text: 'Actual',
+                                                fillStyle: '#10b981',
+                                                strokeStyle: '#10b981',
+                                                lineWidth: 1
+                                            }
+                                        ];
+                                    }
+                                }
                             },
                             tooltip: {
                                 mode: 'index',
@@ -653,21 +733,56 @@ document.addEventListener('DOMContentLoaded', function() {
                                 callbacks: {
                                     title: function(tooltipItems) {
                                         const tIndex = tooltipItems[0].dataIndex;
-                                        return chunk[tIndex].chartTooltip || tooltipItems[0].chart.data.labels[tIndex];
+                                        let title = chunk[tIndex].chartTooltip || tooltipItems[0].chart.data.labels[tIndex];
+                                        if (Array.isArray(title)) {
+                                            title = title[0];
+                                        }
+                                        return title;
                                     },
-                                    label: function(context) { return ''; } // Title already has the detailed data
+                                    label: function(context) { 
+                                        const dsLabel = context.dataset.label;
+                                        const val = context.raw;
+                                        if (val === 0) return null;
+                                        
+                                        const tIndex = context.dataIndex;
+                                        const catName = dsLabel.split(' - ')[1];
+                                        const isPlan = dsLabel.startsWith('Plan');
+                                        
+                                        const catData = chunk[tIndex].categories[catName];
+                                        if (!catData) return `${dsLabel}: ${val}%`;
+                                        
+                                        let lines = [];
+                                        if (catData.groups && Object.keys(catData.groups).length > 0) {
+                                            for (const [gName, gData] of Object.entries(catData.groups)) {
+                                                const gItems = isPlan ? gData.planItems : gData.actualItems;
+                                                const gPct = isPlan ? gData.planPct : gData.actualPct;
+                                                if (gItems > 0) {
+                                                    lines.push(`${dsLabel} - ${gName}: ${gPct}% (${gItems} items)`);
+                                                }
+                                            }
+                                        }
+                                        
+                                        if (lines.length > 0) {
+                                            return lines;
+                                        }
+                                        
+                                        const items = isPlan ? catData.planItems : catData.actualItems;
+                                        return `${dsLabel}: ${val}% (${items} items)`;
+                                    }
                                 }
                             }
                         },
                         scales: {
                             x: { 
+                                stacked: true,
                                 grid: { display: false }, 
                                 ticks: { autoSkip: false, font: { size: 9 }, maxRotation: 0, minRotation: 0 }
                             },
                             y: { 
+                                stacked: true,
                                 type: 'linear', display: true, position: 'left',
                                 grid: { color: gridColor }, beginAtZero: true,
-                                max: 110,
+                                max: 105,
                                 ticks: { stepSize: 25, font: { size: 9 }, callback: function(value) { return value <= 100 ? value + '%' : ''; } }
                             }
                         }
@@ -686,22 +801,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const ctxProg = document.getElementById('progressChart-' + index);
             if (ctxProg) {
                 const deptColors = {
-                    'Finished': '#10b981',
-                    'Draft': '#94a3b8',
-                    'QC': '#fbbf24',
+                    'NPC': '#94a3b8',
+                    'Production': '#3b82f6',
+                    'Quality': '#eab308',
                     'MGM': '#a855f7',
-                    'Produksi': '#60a5fa',
-                    'ME': '#6366f1',
-                    'CAM': '#06b6d4',
-                    'CNC': '#f97316',
-                    'Unknown': '#fb7185'
+                    'Finished': '#10b981',
+                    'Closed': '#14b8a6'
                 };
                 
-                const departments = ['Finished', 'Draft', 'QC', 'MGM', 'Produksi', 'ME', 'CAM', 'CNC', 'Unknown'];
+                const departments = ['NPC', 'Production', 'Quality', 'MGM', 'Finished', 'Closed'];
                 
                 const datasetsProg = departments.map(dept => {
                     const data = chunk.map(po => {
-                        if (dept === 'Finished') return po.finishedItems || 0;
                         return po.deptCounts[dept] || 0;
                     });
                     
@@ -714,7 +825,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         categoryPercentage: 0.7,
                         barPercentage: 0.8,
                     };
-                }).filter(ds => ds.data.some(val => val > 0)); // Only include departments with data
+                });
 
                 new Chart(ctxProg, {
                     type: 'bar',

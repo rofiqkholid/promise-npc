@@ -101,7 +101,8 @@ class DashboardController extends Controller
         // --- DASHBOARD V2 CHARTS DATA ---
         
         // Chart 1: Plan vs Actual
-        $poChunks = $this->buildCustomerChartChunks($applyEventFilters);
+        $isFiltered = !empty($filterCustomer) || !empty($filterPo) || !empty($filterModel) || $filterYear != date('Y') || !empty($filterMonth);
+        $poChunks = $this->buildCustomerChartChunks($applyEventFilters, $isFiltered);
 
         // Chart 1b: PO Progress
         $progressYear = $request->input('progress_year', date('Y'));
@@ -354,30 +355,29 @@ class DashboardController extends Controller
             
             foreach($group['parts'] as $part) {
                 if (in_array($part->status, ['FINISHED', 'CLOSED', 'OUTSTANDING'])) {
-                    $finishedItems++;
-                } else {
-                    $unfinishedItems++;
-                    $currentDept = 'Unknown';
-                    if ($part->status === 'PO_REGISTERED') {
-                        $currentDept = 'Draft';
-                    } elseif ($part->status === 'WAITING_DEPT_CONFIRM') {
-                        $activeProc = $part->processes->firstWhere('actual_completion_date', null);
-                        if ($activeProc && $activeProc->department) {
-                            $currentDept = $activeProc->department->name;
-                        } else {
-                            $currentDept = 'Produksi';
-                        }
-                    } elseif ($part->status === 'WAITING_QE_CHECK' || $part->status === 'WAITING_APPROVAL') {
-                        $currentDept = 'QC';
-                    } elseif ($part->status === 'WAITING_MGM_CHECK') {
-                        $currentDept = 'MGM';
-                    } elseif ($part->status === 'WAITING_ME_CHECK') {
-                        $currentDept = 'ME';
-                    }
-                    
-                    if(!isset($deptCounts[$currentDept])) $deptCounts[$currentDept] = 0;
-                    $deptCounts[$currentDept]++;
+                    $finishedItems++; // Keep this for overall logic if needed
                 }
+                
+                $unfinishedItems++; // Just increment for all or let it be
+                
+                $currentDept = 'NPC'; // default
+                
+                if ($part->status === 'PO_REGISTERED') {
+                    $currentDept = 'NPC';
+                } elseif ($part->status === 'WAITING_DEPT_CONFIRM' || $part->status === 'WAITING_ME_CHECK') {
+                    $currentDept = 'Production';
+                } elseif ($part->status === 'WAITING_QE_CHECK' || $part->status === 'WAITING_APPROVAL') {
+                    $currentDept = 'Quality';
+                } elseif ($part->status === 'WAITING_MGM_CHECK') {
+                    $currentDept = 'MGM';
+                } elseif ($part->status === 'FINISHED') {
+                    $currentDept = 'Finished';
+                } elseif ($part->status === 'CLOSED' || $part->status === 'OUTSTANDING') {
+                    $currentDept = 'Closed';
+                }
+                
+                if(!isset($deptCounts[$currentDept])) $deptCounts[$currentDept] = 0;
+                $deptCounts[$currentDept]++;
             }
             
             $inProgressItems = $totalItems - $finishedItems;
@@ -411,7 +411,7 @@ class DashboardController extends Controller
         return $chunks;
     }
 
-    private function buildCustomerChartChunks($applyFilterCallback)
+    private function buildCustomerChartChunks($applyFilterCallback, $isFiltered = false)
     {
         $queryEvents = NpcEvent::with(['customerCategory', 'deliveryGroup', 'vehicleModel', 'parts' => function($q) {
             $q->select('id', 'npc_event_id', 'status', 'product_id')->with(['product.customer', 'product.vehicleModel', 'processes', 'processes.department']);
@@ -428,54 +428,123 @@ class DashboardController extends Controller
         $chunks = [];
         $currentChunk = [];
         
-        // Group the events first by Customer
-        $groupedCustomers = [];
+        // Group the events
+        $groupedData = [];
         foreach ($recentEvents as $ev) {
             foreach ($ev->parts as $part) {
                 if ($part->product && $part->product->customer) {
                     $custCode = $part->product->customer->code;
                     $custName = $part->product->customer->name;
+                    $poNo = $ev->po_no ?? 'EV-'.$ev->id;
+                    $catName = $ev->customerCategory ? $ev->customerCategory->name : 'Unknown';
+                    $internalCatId = $ev->customerCategory ? $ev->customerCategory->internal_category_id : 999;
                     
-                    if (!isset($groupedCustomers[$custCode])) {
-                        $groupedCustomers[$custCode] = [
-                            'code' => $custCode,
-                            'name' => $custName,
+                    if ($isFiltered) {
+                        $groupKey = $custCode . '-' . $poNo . '-' . $catName; // Group by PO AND Category
+                        $chartLabel = $poNo; // The label on X-axis is PO No
+                        $tooltipTitle = $poNo . ' (' . $custName . ') - ' . $catName;
+                        $sortOrder = $internalCatId; // Sort by internal category ID
+                    } else {
+                        $groupKey = $custCode; // Group by customer
+                        $chartLabel = $custCode; // The label on X-axis is Customer Code
+                        $tooltipTitle = $custName . ' (' . $custCode . ')';
+                        $sortOrder = 0; // Don't sort customers by category
+                    }
+                    
+                    if (!isset($groupedData[$groupKey])) {
+                        $groupedData[$groupKey] = [
+                            'key' => $groupKey,
+                            'chartLabel' => $chartLabel,
+                            'tooltipTitle' => $tooltipTitle,
+                            'sortOrder' => $sortOrder,
                             'totalItems' => 0,
-                            'finishedItems' => 0,
+                            'categories' => [],
+                            'deliveryGroups' => []
                         ];
                     }
                     
-                    $groupedCustomers[$custCode]['totalItems']++;
+                    if ($ev->deliveryGroup && !in_array($ev->deliveryGroup->name, $groupedData[$groupKey]['deliveryGroups'])) {
+                        $groupedData[$groupKey]['deliveryGroups'][] = $ev->deliveryGroup->name;
+                    }
+                    
+                    if (!isset($groupedData[$groupKey]['categories'][$catName])) {
+                        $groupedData[$groupKey]['categories'][$catName] = [
+                            'planItems' => 0,
+                            'actualItems' => 0,
+                            'groups' => []
+                        ];
+                    }
+                    
+                    $groupName = $ev->deliveryGroup ? $ev->deliveryGroup->name : 'No Group';
+                    if (!isset($groupedData[$groupKey]['categories'][$catName]['groups'][$groupName])) {
+                        $groupedData[$groupKey]['categories'][$catName]['groups'][$groupName] = [
+                            'planItems' => 0,
+                            'actualItems' => 0
+                        ];
+                    }
+                    
+                    $groupedData[$groupKey]['totalItems']++;
+                    $groupedData[$groupKey]['categories'][$catName]['planItems']++;
+                    $groupedData[$groupKey]['categories'][$catName]['groups'][$groupName]['planItems']++;
                     
                     if (in_array($part->status, ['FINISHED', 'CLOSED', 'OUTSTANDING'])) {
-                        $groupedCustomers[$custCode]['finishedItems']++;
+                        $groupedData[$groupKey]['categories'][$catName]['actualItems']++;
+                        $groupedData[$groupKey]['categories'][$catName]['groups'][$groupName]['actualItems']++;
                     }
                 }
             }
         }
         
-        foreach ($groupedCustomers as $custCode => $group) {
+        $groupedDataValues = array_values($groupedData);
+        if ($isFiltered) {
+            usort($groupedDataValues, function($a, $b) {
+                return $a['sortOrder'] <=> $b['sortOrder'];
+            });
+        }
+        
+        foreach ($groupedDataValues as $group) {
             $totalItems = $group['totalItems'];
-            $finishedItems = $group['finishedItems'];
             
-            $planPercentage = 100;
-            $actualPercentage = $totalItems > 0 ? round(($finishedItems / $totalItems) * 100) : 0;
+            $catData = [];
+            foreach ($group['categories'] as $catName => $cat) {
+                $planPct = $totalItems > 0 ? round(($cat['planItems'] / $totalItems) * 100, 1) : 0;
+                $actPct = $totalItems > 0 ? round(($cat['actualItems'] / $totalItems) * 100, 1) : 0;
+                
+                $groupsDetail = [];
+                foreach ($cat['groups'] as $gName => $gData) {
+                    $gPlanPct = $totalItems > 0 ? round(($gData['planItems'] / $totalItems) * 100, 1) : 0;
+                    $gActPct = $totalItems > 0 ? round(($gData['actualItems'] / $totalItems) * 100, 1) : 0;
+                    $groupsDetail[$gName] = [
+                        'planPct' => $gPlanPct,
+                        'actualPct' => $gActPct,
+                        'planItems' => $gData['planItems'],
+                        'actualItems' => $gData['actualItems']
+                    ];
+                }
+
+                $catData[$catName] = [
+                    'planPct' => $planPct,
+                    'actualPct' => $actPct,
+                    'planItems' => $cat['planItems'],
+                    'actualItems' => $cat['actualItems'],
+                    'groups' => $groupsDetail
+                ];
+            }
+            
+            $tooltipTitle = $group['tooltipTitle'];
             
             $chartTooltip = [
-                $group['name'] . ' (' . $custCode . ')',
-                'Plan: ' . $totalItems . ' items',
-                'Actual: ' . $finishedItems . ' items (' . $actualPercentage . '%)'
+                $tooltipTitle,
+                'Total: ' . $totalItems . ' items'
             ];
             
             $custData = [
-                'id' => $custCode,
-                'po_no' => $custCode,
-                'chartLabel' => $custCode,
+                'id' => $group['key'],
+                'po_no' => $group['chartLabel'],
+                'chartLabel' => $group['chartLabel'],
                 'chartTooltip' => $chartTooltip,
                 'totalItems' => $totalItems,
-                'finishedItems' => $finishedItems,
-                'planPercentage' => $planPercentage,
-                'actualPercentage' => $actualPercentage
+                'categories' => $catData
             ];
             
             $currentChunk[] = $custData;
