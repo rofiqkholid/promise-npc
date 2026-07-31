@@ -25,7 +25,7 @@ class NpcChecksheetController extends Controller
         $part->load('product.mappedCheckpoints.masterCheckpoint', 'product.productDetail');
         
         $masterStatus = optional($part->product->productDetail)->master_checksheet_status ?? 'DRAFT';
-        if ($masterStatus !== 'APPROVED') {
+        if ($masterStatus !== 'APPROVED' && $part->status !== 'WAITING_QE_CHECK') {
             return redirect()->back()->with('error', 'Cannot process: Master Checksheet for this part has not been approved by QC. Please contact QC team to approve the master checksheet first.');
         }
 

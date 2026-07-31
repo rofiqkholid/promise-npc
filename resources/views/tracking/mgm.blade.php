@@ -109,7 +109,15 @@
                                         <i class="fa-solid fa-lock text-[8px]"></i> Not Yet Registered in MGM
                                     </div>
                                 @elseif($part->status === 'WAITING_MGM_CHECK')
-                                    <a href="{{ route('checksheets.create', $part->hashed_id) }}" class="inline-flex px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]" style="background-color: #a855f7;">
+                                    @php
+                                        $masterStatus = optional($part->product->productDetail)->master_checksheet_status ?? 'DRAFT';
+                                    @endphp
+                                    @if($masterStatus !== 'APPROVED')
+                                        <div class="px-3 py-2 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800/50 text-[10px] text-yellow-700 dark:text-yellow-400 font-bold flex flex-col items-center justify-center gap-1.5 w-full max-w-[150px] text-center cursor-not-allowed mb-2">
+                                            <div><i class="fa-solid fa-clock"></i> Master Not Approved</div>
+                                        </div>
+                                    @endif
+                                    <a href="{{ $masterStatus === 'APPROVED' ? route('checksheets.create', $part->hashed_id) : '#' }}" class="inline-flex px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px] {{ $masterStatus !== 'APPROVED' ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}" style="background-color: #a855f7;">
                                         <i class="fa-solid fa-user-check"></i> MGM Checksheet Form
                                     </a>
                                     @if($part->checksheet)
