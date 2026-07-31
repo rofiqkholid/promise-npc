@@ -673,6 +673,33 @@ document.addEventListener('DOMContentLoaded', function() {
                                     if (value > 0) {
                                         const dsLabel = context.dataset.label;
                                         const cat = dsLabel.split(' - ')[1];
+                                        const tIndex = context.dataIndex;
+                                        const isPlan = dsLabel.startsWith('Plan');
+                                        
+                                        const catData = chunk[tIndex].categories[cat];
+                                        if (catData && catData.groups && Object.keys(catData.groups).length > 0) {
+                                            let displayedGroups = [];
+                                            for (const [gName, gData] of Object.entries(catData.groups)) {
+                                                const gPct = isPlan ? gData.planPct : gData.actualPct;
+                                                const gItems = isPlan ? gData.planItems : gData.actualItems;
+                                                if (gItems > 0) {
+                                                    displayedGroups.push(`${gName} ${gPct}%`);
+                                                }
+                                            }
+                                            if (displayedGroups.length > 0) {
+                                                if (value < 10) return `${cat} ` + displayedGroups.join(' | ');
+                                                
+                                                let lines = [cat];
+                                                for (let i = 0; i < displayedGroups.length; i++) {
+                                                    lines.push(displayedGroups[i]);
+                                                    if (i < displayedGroups.length - 1) {
+                                                        lines.push('--------');
+                                                    }
+                                                }
+                                                return lines;
+                                            }
+                                        }
+                                        
                                         if (value < 10) {
                                             return cat + ' ' + value + '%';
                                         }

@@ -20,6 +20,32 @@ class NpcPartController extends Controller
                 ->order(function ($q) {
                     $q->orderBy('created_at', 'desc');
                 })
+                ->filterColumn('po_no', function($query, $keyword) {
+                    $query->whereHas('event', function($q) use ($keyword) {
+                        $q->where('po_no', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('part_no', function($query, $keyword) {
+                    $query->whereHas('product', function($q) use ($keyword) {
+                        $q->where('part_no', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('model', function($query, $keyword) {
+                    $query->whereHas('product.vehicleModel', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('part_name', function($query, $keyword) {
+                    $query->whereHas('product', function($q) use ($keyword) {
+                        $q->where('part_name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('delv_date', function($query, $keyword) {
+                    $query->where('delivery_date', 'like', "%{$keyword}%");
+                })
+                ->filterColumn('status_label', function($query, $keyword) {
+                    $query->where('status', 'like', "%{$keyword}%");
+                })
                 ->addIndexColumn()
                 ->addColumn('po_no', function ($part) {
                     return '<span class="text-slate-800 dark:text-slate-200 font-medium text-sm">' . optional($part->event)->po_no . '</span>';
