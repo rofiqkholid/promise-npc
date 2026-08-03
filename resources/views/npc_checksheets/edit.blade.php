@@ -159,7 +159,7 @@
                     </div>
                     @if($checksheet->attachment_path)
                     <div class="flex items-center">
-                        <a href="{{ Storage::url($checksheet->attachment_path) }}" target="_blank" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-sm text-[13px] font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        <a href="{{ url('file/storage/' . ltrim(str_replace('public/', '', $checksheet->attachment_path), '/')) }}" target="_blank" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-sm text-[13px] font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                             <i class="fa-solid fa-file-pdf text-red-500"></i> View Attachment QC
                         </a>
                     </div>
