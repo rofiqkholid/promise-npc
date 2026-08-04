@@ -75,55 +75,38 @@ class ProductionTrackingController extends Controller
                 ->order(function ($query) {
                     $query->orderBy('created_at', 'desc');
                 })
-                ->addIndexColumn()
-                ->addColumn('checkbox', function($part) {
-                    // Only show checkbox if checksheet exists
-                    if ($part->checksheet) {
-                        return '<input type="checkbox" class="part-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" value="'.$part->hashed_id.'" @click.stop="togglePart(\''.$part->hashed_id.'\')" :checked="selectedParts.includes(\''.$part->hashed_id.'\')">';
-                    }
-                    return '';
-                })
-                ->addColumn('part_info', function ($part) {
-                    return view('tracking.columns.part_info', compact('part'))->render();
-                });
+                ->addIndexColumn();
                 
-            // Specific columns based on statusParam / viewFile
             if ($viewFile === 'tracking.qc') {
-                $dt->addColumn('status_po', function ($part) {
-                    return view('tracking.columns.status_po', compact('part'))->render();
+                $dt->addColumn('create_checksheet_url', function ($part) {
+                    return route('checksheets.create', $part->hashed_id);
                 })
-                ->addColumn('qc_progress', function ($part) {
-                    return view('tracking.columns.qc_progress', compact('part'))->render();
+                ->addColumn('print_label_url', function ($part) {
+                    return route('checksheets.print-label', $part->hashed_id);
                 })
-                ->addColumn('action_qc', function ($part) {
-                    return view('tracking.columns.action_qc', compact('part'))->render();
+                ->addColumn('rollback_qc_url', function ($part) {
+                    return route('tracking.qc.rollback', $part->hashed_id);
+                })
+                ->addColumn('has_checksheet', function ($part) {
+                    return (bool) $part->checksheet;
+                })
+                ->addColumn('can_rollback', function ($part) {
+                    return $part->status === 'WAITING_MGM_CHECK' && (!$part->checksheet || !$part->checksheet->mgm_checked_by);
                 });
-                $dt->rawColumns(['checkbox', 'part_info', 'status_po', 'qc_progress', 'action_qc']);
             } elseif ($viewFile === 'tracking.production') {
-                $dt->addColumn('status_po', function ($part) {
-                    return view('tracking.columns.status_production', compact('part'))->render();
+                $dt->addColumn('complete_process_url', function ($part) {
+                    return route('tracking.process.complete', $part->hashed_id);
                 })
-                ->addColumn('routing_execution', function ($part) {
-                    return view('tracking.columns.production_routing', compact('part'))->render();
-                })
-                ->addColumn('action_production', function ($part) {
-                    return view('tracking.columns.action_production', compact('part'))->render();
+                ->addColumn('rollback_process_url', function ($part) {
+                    return route('tracking.process.rollback', $part->hashed_id);
                 });
-                $dt->rawColumns(['part_info', 'status_po', 'routing_execution', 'action_production']);
             } elseif ($viewFile === 'tracking.stock') {
-                $dt->addColumn('delivery_target', function ($part) {
-                    return view('tracking.columns.stock_delivery_target', compact('part'))->render();
+                $dt->addColumn('deliver_url', function ($part) {
+                    return route('tracking.deliver', $part->hashed_id);
                 })
-                ->addColumn('qty_target', function ($part) {
-                    return view('tracking.columns.stock_qty_target', compact('part'))->render();
-                })
-                ->addColumn('approval_info', function ($part) {
-                    return view('tracking.columns.stock_approval_info', compact('part'))->render();
-                })
-                ->addColumn('action_stock', function ($part) {
-                    return view('tracking.columns.stock_action', compact('part'))->render();
+                ->addColumn('print_label_url', function ($part) {
+                    return route('checksheets.print-label', $part->hashed_id);
                 });
-                $dt->rawColumns(['part_info', 'delivery_target', 'qty_target', 'approval_info', 'action_stock']);
             }
             
             // Add other pages when ready
@@ -132,7 +115,7 @@ class ProductionTrackingController extends Controller
         }
 
         // For DataTables views, we don't need the actual parts data on initial load.
-        if (in_array($viewFile, ['tracking.qc', 'tracking.production'])) {
+        if (in_array($viewFile, ['tracking.qc', 'tracking.production', 'tracking.stock'])) {
             $parts = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
         } else {
             // For other views that still use normal Laravel pagination
@@ -171,20 +154,17 @@ class ProductionTrackingController extends Controller
                     $q->orderBy('created_at', 'desc');
                 })
                 ->addIndexColumn()
-                ->addColumn('po_info', function ($po) {
-                    return view('tracking.columns.global_po_info', compact('po'))->render();
+                ->addColumn('earliest_delivery', function ($po) {
+                    return $po->parts->min('delivery_date');
                 })
-                ->addColumn('part_count', function ($po) {
-                    return view('tracking.columns.global_part_count', compact('po'))->render();
+                ->addColumn('total_parts', function ($po) {
+                    return $po->parts->count();
                 })
-                ->addColumn('nearest', function ($po) {
-                    return view('tracking.columns.global_nearest', compact('po'))->render();
+                ->addColumn('closed_parts', function ($po) {
+                    return $po->parts->where('status', 'CLOSED')->count();
                 })
-                ->addColumn('overall_progress', function ($po) {
-                    return view('tracking.columns.global_progress', compact('po'))->render();
-                })
-                ->addColumn('system_duration', function ($po) {
-                    return view('tracking.columns.global_system_duration', compact('po'))->render();
+                ->addColumn('created_date_formatted', function ($po) {
+                    return $po->created_at ? $po->created_at->format('d M y') : '-';
                 })
                 ->filter(function ($query) use ($request) {
                     if ($request->has('search') && !empty($request->search['value'])) {
@@ -202,7 +182,6 @@ class ProductionTrackingController extends Controller
                         });
                     }
                 })
-                ->rawColumns(['po_info', 'part_count', 'nearest', 'overall_progress', 'system_duration'])
                 ->make(true);
         }
 

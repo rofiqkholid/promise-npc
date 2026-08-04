@@ -88,12 +88,12 @@ class NpcPartController extends Controller
                 ->make(true);
         }
 
-        return view('npc_parts.index', compact('event'));
+        return view('master.parts.index', compact('event'));
     }
 
     public function create(NpcEvent $event)
     {
-        return view('npc_parts.create', compact('event'));
+        return view('master.parts.create', compact('event'));
     }
 
     public function store(Request $request, \App\Models\NpcEvent $event)
@@ -186,7 +186,7 @@ class NpcPartController extends Controller
 
     public function edit(NpcEvent $event, NpcPart $part)
     {
-        return view('npc_parts.edit', compact('event', 'part'));
+        return view('master.parts.edit', compact('event', 'part'));
     }
 
     public function update(Request $request, \App\Models\NpcEvent $event, \App\Models\NpcPart $part)

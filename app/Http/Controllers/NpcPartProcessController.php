@@ -67,7 +67,7 @@ class NpcPartProcessController extends Controller
         
         $departments = NpcDepartment::where('is_active', true)->orderBy('name')->get();
 
-        return view('npc_parts.routing', compact('part', 'masterProcesses', 'departments'));
+        return view('master.parts.routing', compact('part', 'masterProcesses', 'departments'));
     }
 
     /**

@@ -108,7 +108,7 @@ class NpcChecksheetController extends Controller
             $previousUrl = route('tracking.index');
         }
 
-        return view('npc_checksheets.edit', compact('checksheet', 'part', 'previousUrl'));
+        return view('tracking.checksheets.edit', compact('checksheet', 'part', 'previousUrl'));
     }
 
     /**
@@ -276,7 +276,7 @@ class NpcChecksheetController extends Controller
         $part = $checksheet->npcPart;
         $product = $part->product;
 
-        return view('npc_checksheets.preview', compact('checksheet', 'part', 'product'));
+        return view('tracking.checksheets.preview', compact('checksheet', 'part', 'product'));
     }
 
     /**
@@ -866,7 +866,7 @@ class NpcChecksheetController extends Controller
             return redirect()->back()->with('error', 'QC data not found. Please complete QC first.');
         }
 
-        return view('npc_checksheets.label_print', compact('part'));
+        return view('tracking.checksheets.label_print', compact('part'));
     }
 
     /**
@@ -899,6 +899,6 @@ class NpcChecksheetController extends Controller
             return redirect()->back()->with('error', 'No valid parts with QC data found for printing.');
         }
 
-        return view('npc_checksheets.label_print', compact('parts'));
+        return view('tracking.checksheets.label_print', compact('parts'));
     }
 }

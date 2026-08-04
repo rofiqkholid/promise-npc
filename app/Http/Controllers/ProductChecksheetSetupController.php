@@ -314,7 +314,7 @@ class ProductChecksheetSetupController extends Controller
         $part = null;
         $checksheet = $fakeChecksheet;
 
-        return view('npc_checksheets.preview', compact('checksheet', 'part', 'product'));
+        return view('tracking.checksheets.preview', compact('checksheet', 'part', 'product'));
     }
 
     public function importForm()

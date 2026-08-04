@@ -143,7 +143,7 @@ function openCompleteModal(partId, processId, processName, departmentName, targe
     
     const qtyInput = document.querySelector('#modal-complete input[name="actual_qty"]');
     qtyInput.min = partQty;
-    document.getElementById('modal-qty-helper').innerHTML = 'Minimum matches Planning PO: <b>' + partQty + ' PCS</b>.';
+    document.getElementById('modal-qty-helper').innerHTML = 'Minimum matches Planning PO: <b>' + Number(partQty || 0).toLocaleString('id-ID') + ' PCS</b>.';
     
     document.getElementById('modal-complete').classList.remove('hidden');
     // Set today as default
@@ -194,7 +194,6 @@ $(document).ready(function() {
             }
         },
         initComplete: function(settings, json) {
-            // Trigger visual update for select2 after table init
             setTimeout(function() {
                 if ($('#customerFilter').val()) {
                     let customerId = $('#customerFilter').val();
@@ -214,7 +213,7 @@ $(document).ready(function() {
         },
         pageLength: 15,
         lengthMenu: [[10, 15, 25, 50, 100], [10, 15, 25, 50, 100]],
-        stripeClasses: ['bg-white dark:bg-gray-800', 'bg-gray-50 dark:bg-gray-750'], // Native zebra striping
+        stripeClasses: ['bg-white dark:bg-gray-800', 'bg-gray-50 dark:bg-gray-750'],
         dom: '<"flex flex-col md:flex-row justify-between items-center mb-4 gap-4"<"w-full md:w-auto"l><"w-full md:w-80"f>>rt<"flex flex-col md:flex-row justify-between items-center mt-6 gap-4"ip>',
         language: {
             search: "",
@@ -227,13 +226,187 @@ $(document).ready(function() {
         },
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-4 py-2 text-center text-slate-800 dark:text-slate-200 text-[13px] font-medium' },
-            { data: 'part_info', name: 'product.part_no', className: 'px-4 py-2 align-top', orderable: false, searchable: false },
-            { data: 'status_po', name: 'status', className: 'px-4 py-2 text-center align-middle', orderable: false, searchable: false },
-            { data: 'routing_execution', name: 'routing_execution', className: 'px-4 py-2', orderable: false, searchable: false },
-            { data: 'action_production', name: 'action', className: 'px-4 py-2 text-right align-middle pointer-events-auto', orderable: false, searchable: false }
+            { 
+                data: 'product.part_no', 
+                name: 'product.part_no', 
+                className: 'px-4 py-2 align-top', 
+                orderable: false, 
+                searchable: false,
+                render: function(data, type, row) {
+                    const partNo = row.product?.part_no || '-';
+                    const partName = row.product?.part_name || '-';
+                    const modelName = row.product?.vehicle_model?.name || 'Unknown Model';
+                    const qtyFormatted = Number(row.qty || 0).toLocaleString('id-ID');
+                    
+                    return `<div class="text-gray-800 dark:text-gray-200 font-bold text-sm">${partNo}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5">${partName}</div>
+                            <div class="text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-700 px-2 py-0.5 inline-block border border-gray-200 dark:border-gray-600">${modelName}</div>
+                            <div class="text-gray-800 dark:text-gray-300 font-black flex items-center gap-1.5 mt-2"><i class="fa-solid fa-boxes-stacked text-gray-400"></i> Initial Target: ${qtyFormatted} <span class="text-xs font-semibold text-gray-500">PCS</span></div>`;
+                }
+            },
+            { 
+                data: 'status', 
+                name: 'status', 
+                className: 'px-4 py-2 text-center align-middle', 
+                orderable: false, 
+                searchable: false,
+                render: function(data, type, row) {
+                    if (row.status === 'PO_REGISTERED') {
+                        return `<div class="inline-flex flex-col items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-[10px] text-slate-500 italic">
+                            <i class="fa-solid fa-lock text-sm"></i> Planned
+                        </div>`;
+                    } else if (row.status === 'WAITING_DEPT_CONFIRM') {
+                        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-100 border border-yellow-200 text-yellow-800 text-[10px] font-bold tracking-wide"><i class="fa-solid fa-gears fa-spin"></i> IN PROCESS</span>`;
+                    } else {
+                        return `<div class="text-[10px] text-gray-400 italic font-medium"><i class="fa-solid fa-check text-green-500"></i> Submitted to QC</div>`;
+                    }
+                }
+            },
+            { 
+                data: 'processes', 
+                name: 'processes', 
+                className: 'px-4 py-2', 
+                orderable: false, 
+                searchable: false,
+                render: function(data, type, row) {
+                    const processes = (row.processes || []).slice().sort((a, b) => (a.sequence_order || 0) - (b.sequence_order || 0));
+                    if (processes.length === 0) {
+                        return `<span class="text-xs text-orange-500 italic flex items-center gap-1">
+                            <i class="fa-solid fa-triangle-exclamation"></i> No Routing Yet
+                        </span>`;
+                    }
+                    
+                    const activeProcess = processes.find(p => p.status === 'WAITING');
+                    
+                    let html = `<div class="flex flex-col gap-2 relative before:absolute before:inset-0 before:ml-[9px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">`;
+                    
+                    processes.forEach(p => {
+                        const isFinished = p.status === 'FINISHED';
+                        const isActive = activeProcess && activeProcess.id === p.id;
+                        
+                        let circleColor = 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400';
+                        let icon = p.sequence_order || '';
+                        let textColor = 'text-gray-400';
+                        
+                        if (isFinished) {
+                            circleColor = 'bg-green-500 text-white ring-4 ring-white dark:ring-gray-800';
+                            icon = '<i class="fa-solid fa-check text-[8px]"></i>';
+                            textColor = 'text-gray-400 line-through';
+                        } else if (isActive) {
+                            circleColor = 'bg-amber-500 text-white ring-4 ring-amber-100 dark:ring-amber-900 shadow-lg';
+                            icon = '<i class="fa-solid fa-gear fa-spin text-[8px]"></i>';
+                            textColor = 'text-gray-900 dark:text-white font-black';
+                        }
+                        
+                        const procName = p.process?.process_name || 'Unknown Process';
+                        const deptName = p.department?.name || 'Unknown Department';
+                        let targetStr = '-';
+                        if (p.target_completion_date) {
+                            const d = new Date(p.target_completion_date.split('T')[0] + 'T00:00:00');
+                            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            targetStr = `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]}`;
+                        }
+                        
+                        html += `<div class="relative flex items-center gap-3">
+                            <div class="relative z-10 w-5 h-5 flex items-center justify-center font-bold text-[9px] ${circleColor} transition-colors">
+                                ${icon}
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[11px] font-bold ${textColor} transition-colors">${procName}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[9px] text-gray-500 ${isFinished ? 'opacity-50' : ''}"><i class="fa-solid fa-building-user text-[8px] mr-0.5"></i> ${deptName}</span>
+                                    <span class="text-[9px] text-gray-500 ${isFinished ? 'opacity-50' : ''}"><i class="fa-regular fa-calendar-check text-[8px] mr-0.5"></i> Target: ${targetStr}</span>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                    
+                    html += `</div>`;
+                    return html;
+                }
+            },
+            { 
+                data: 'id', 
+                name: 'id', 
+                className: 'px-4 py-2 text-right align-middle pointer-events-auto', 
+                orderable: false, 
+                searchable: false,
+                render: function(data, type, row) {
+                    if (row.status === 'PO_REGISTERED') {
+                        return `<div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed">
+                            <i class="fa-solid fa-lock text-[8px]"></i> Not yet send to production
+                        </div>`;
+                    }
+                    
+                    const processes = (row.processes || []).slice().sort((a, b) => (a.sequence_order || 0) - (b.sequence_order || 0));
+                    const waitingProcesses = processes.filter(p => p.status === 'WAITING');
+                    const finishedProcesses = processes.filter(p => p.status === 'FINISHED');
+                    const activeProcess = waitingProcesses[0];
+                    
+                    if (row.status === 'WAITING_DEPT_CONFIRM') {
+                        if (!activeProcess) return '';
+                        
+                        const isLast = waitingProcesses.length === 1;
+                        const hasFinishedProcess = finishedProcesses.length > 0;
+                        const procName = (activeProcess.process?.process_name || 'Process').replace(/'/g, "\\'");
+                        const deptName = (activeProcess.department?.name || '').replace(/'/g, "\\'");
+                        let targetFormatted = '-';
+                        if (activeProcess.target_completion_date) {
+                            const d = new Date(activeProcess.target_completion_date.split('T')[0] + 'T00:00:00');
+                            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            targetFormatted = `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+                        }
+                        const completeUrl = row.complete_process_url || '';
+                        
+                        let rollbackBtn = '';
+                        if (hasFinishedProcess) {
+                            const csrf = $('meta[name="csrf-token"]').attr('content') || '';
+                            rollbackBtn = `<form action="${row.rollback_process_url}" method="POST">
+                                <input type="hidden" name="_token" value="${csrf}">
+                                <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 flex items-center justify-end w-full gap-1 font-semibold transition mb-2" onclick="confirmAction(event, 'Are you sure you want to rollback the previous process?')">
+                                    <i class="fa-solid fa-rotate-left"></i> Rollback Previous Process
+                                </button>
+                            </form>`;
+                        }
+                        
+                        return `<button type="button"
+                            onclick="openCompleteModal('${row.hashed_id}', '${activeProcess.hashed_id || activeProcess.id}', '${procName}', '${deptName}', '${targetFormatted}', '${completeUrl}', ${row.qty})"
+                            class="inline-flex px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white shadow-sm font-bold transition items-center gap-2 text-[11px] mb-2 w-full justify-center" style="background-color: #f59e0b;">
+                            Complete ${procName} <i class="fa-solid fa-forward-step"></i>
+                        </button>
+                        ${rollbackBtn}
+                        <p class="text-[9px] text-gray-400 italic text-right max-w-[150px] mx-auto float-right text-balance mt-1">
+                            ${isLast ? 'Click if completed to submit to QC.' : 'Click to move to the next department.'}
+                        </p>`;
+                    }
+                    
+                    if (row.status === 'WAITING_QE_CHECK') {
+                        const canRollback = !row.checksheet || !row.checksheet.qe_checked_by;
+                        let rollbackBtn = '';
+                        if (canRollback) {
+                            const csrf = $('meta[name="csrf-token"]').attr('content') || '';
+                            rollbackBtn = `<form action="${row.rollback_process_url}" method="POST">
+                                <input type="hidden" name="_token" value="${csrf}">
+                                <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold transition mt-1" onclick="confirmAction(event, 'Are you sure you want to rollback this part from QC to Production stage?')">
+                                    <i class="fa-solid fa-rotate-left"></i> Rollback Production
+                                </button>
+                            </form>`;
+                        }
+                        return `<div class="flex flex-col items-end gap-2">
+                            <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full">
+                                <i class="fa-solid fa-check-double text-[8px] text-green-500"></i> Submitted to QC
+                            </div>
+                            ${rollbackBtn}
+                        </div>`;
+                    }
+                    
+                    return `<div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed">
+                        <i class="fa-solid fa-check-double text-[8px] text-green-500"></i> Completed
+                    </div>`;
+                }
+            }
         ],
         drawCallback: function() {
-            // Style pagination buttons exactly like Activity Logs
             $('.dataTables_paginate').addClass('inline-flex -space-x-px rounded-md shadow-sm');
             $('.dataTables_paginate .paginate_button')
                 .removeClass('paginate_button current disabled')
@@ -245,12 +418,10 @@ $(document).ready(function() {
                 .removeClass('hover:bg-gray-50 cursor-pointer text-gray-700')
                 .addClass('opacity-50 cursor-not-allowed text-gray-400');
                 
-            // Fix classes applied by DataTables dynamically
             $('#productionTable_paginate a').each(function() {
                 $(this).removeClass('paginate_button');
             });
             
-            // Style DataTables Input Search
             $('.dataTables_filter input')
                 .addClass('!pl-3 !pr-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-md')
                 .css('margin-left', '0');
@@ -280,7 +451,6 @@ $(document).ready(function() {
 
         $('#modelFilter').select2({ width: '100%' });
         
-        // If the currently selected model is now disabled, reset it
         if ($('#modelFilter option:selected').prop('disabled')) {
             $('#modelFilter').val('all').trigger('change.select2');
         }

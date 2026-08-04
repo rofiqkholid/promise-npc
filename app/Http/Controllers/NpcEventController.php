@@ -95,7 +95,7 @@ class NpcEventController extends Controller
         $customers = \App\Models\Customer::orderBy('name')->get();
         $models = \App\Models\VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
 
-        return view('npc_events.index', compact('customers', 'models'));
+        return view('master.events.index', compact('customers', 'models'));
     }
 
     public function create()
@@ -109,7 +109,7 @@ class NpcEventController extends Controller
         // Ambil data Delivery Group
         $delivery_groups = NpcDeliveryGroup::orderBy('name')->get();
 
-        return view('npc_events.create', compact('customers', 'delivery_targets', 'delivery_groups'));
+        return view('master.events.create', compact('customers', 'delivery_targets', 'delivery_groups'));
     }
 
     public function store(Request $request)
@@ -235,7 +235,7 @@ class NpcEventController extends Controller
 
         $delivery_targets = \App\Models\NpcDeliveryTarget::where('is_active', true)->orderBy('target_name')->get();
 
-        return view('npc_events.edit', compact('event', 'customers', 'models', 'customer_categories', 'delivery_groups', 'delivery_targets', 'masterCustomerId', 'masterModelId'));
+        return view('master.events.edit', compact('event', 'customers', 'models', 'customer_categories', 'delivery_groups', 'delivery_targets', 'masterCustomerId', 'masterModelId'));
     }
 
     public function update(Request $request, \App\Models\NpcEvent $event)
@@ -360,7 +360,7 @@ class NpcEventController extends Controller
         $customers = \App\Models\Customer::orderBy('name')->get();
         $delivery_targets = \App\Models\NpcDeliveryTarget::where('is_active', true)->orderBy('target_name')->get();
         $delivery_groups = NpcDeliveryGroup::orderBy('name')->get();
-        return view('npc_events.import', compact('customers', 'delivery_targets', 'delivery_groups'));
+        return view('master.events.import', compact('customers', 'delivery_targets', 'delivery_groups'));
     }
 
     public function importData(Request $request)

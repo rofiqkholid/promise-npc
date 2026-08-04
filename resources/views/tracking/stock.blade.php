@@ -177,11 +177,200 @@
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-4 py-2 text-slate-800 dark:text-slate-200 text-[13px]' },
-                { data: 'delivery_target', name: 'delivery_target', className: 'px-4 py-2', orderable: false },
-                { data: 'part_info', name: 'part_info', className: 'px-4 py-2', orderable: false },
-                { data: 'qty_target', name: 'qty_target', className: 'px-4 py-2', orderable: false },
-                { data: 'approval_info', name: 'approval_info', className: 'px-4 py-2 align-top', orderable: false, searchable: false },
-                { data: 'action_stock', name: 'action_stock', orderable: false, searchable: false, className: 'px-4 py-2 text-right pointer-events-auto' }
+                { 
+                    data: 'delivery_date', 
+                    name: 'delivery_date', 
+                    className: 'px-4 py-2', 
+                    orderable: false,
+                    render: function(data, type, row) {
+                        const customerCode = row.product?.vehicle_model?.customer?.code || row.event?.customer_category?.name || 'Unknown Customer';
+                        const modelName = row.product?.vehicle_model?.name || '-';
+                        const categoryName = row.event?.customer_category?.name || '-';
+                        const grName = row.event?.delivery_group?.name || '-';
+                        
+                        let timeBadge = '';
+                        if (row.delivery_date) {
+                            const targetDate = new Date(row.delivery_date.split('T')[0] + 'T00:00:00');
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            
+                            if (['CLOSED', 'OUTSTANDING'].includes(row.status) && row.actual_delivery) {
+                                const actualDate = new Date(row.actual_delivery.split('T')[0] + 'T00:00:00');
+                                const diffDeliv = Math.round((targetDate - actualDate) / (1000 * 60 * 60 * 24));
+                                if (diffDeliv < 0) {
+                                    timeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border bg-red-100 text-red-700 border-red-200">
+                                        <i class="fa-solid fa-circle-xmark"></i> Delivered Late ${Math.abs(diffDeliv)} Days
+                                    </span>`;
+                                } else if (diffDeliv === 0) {
+                                    timeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border bg-blue-100 text-blue-700 border-blue-200">
+                                        <i class="fa-solid fa-bolt"></i> Delivered On Time
+                                    </span>`;
+                                } else {
+                                    timeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border bg-blue-100 text-blue-700 border-blue-200">
+                                        <i class="fa-solid fa-bolt"></i> Delivered Early ${diffDeliv} Days
+                                    </span>`;
+                                }
+                            } else {
+                                const diffDays = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
+                                if (diffDays < 0) {
+                                    timeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border bg-red-100 text-red-700 border-red-200">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Overdue ${Math.abs(diffDays)} Days
+                                    </span>`;
+                                } else if (diffDays === 0) {
+                                    timeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border bg-orange-100 text-orange-700 border-orange-200">
+                                        <i class="fa-solid fa-clock"></i> Deliver Today
+                                    </span>`;
+                                } else if (diffDays <= 3) {
+                                    timeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border bg-orange-100 text-orange-700 border-orange-200">
+                                        <i class="fa-solid fa-clock"></i> Remaining ${diffDays} Days
+                                    </span>`;
+                                } else {
+                                    timeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border bg-green-100 text-green-700 border-green-200">
+                                        <i class="fa-solid fa-clock"></i> Remaining ${diffDays} Days
+                                    </span>`;
+                                }
+                            }
+                        }
+                        
+                        return `<div class="font-bold text-gray-800 dark:text-gray-100 mb-1 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-building text-gray-400"></i> ${customerCode}
+                                </div>
+                                <div class="text-xs text-gray-500 font-medium mb-2 pl-4">
+                                    <div class="mb-1">Model: <span class="text-blue-600 dark:text-blue-400">${modelName}</span></div>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 text-[9px] font-bold tracking-wider" title="Category Customer">${categoryName}</span>
+                                        <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 text-[9px] font-bold tracking-wider" title="Delivery Group (GR)">${grName}</span>
+                                    </div>
+                                </div>
+                                ${timeBadge}`;
+                    }
+                },
+                { 
+                    data: 'product.part_no', 
+                    name: 'product.part_no', 
+                    className: 'px-4 py-2', 
+                    orderable: false,
+                    render: function(data, type, row) {
+                        const partNo = row.product?.part_no || '-';
+                        const partName = row.product?.part_name || '-';
+                        const modelName = row.product?.vehicle_model?.name || 'Unknown Model';
+                        const qtyFormatted = Number(row.qty || 0).toLocaleString('id-ID');
+                        
+                        return `<div class="text-gray-800 dark:text-gray-200 font-bold text-sm">${partNo}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5">${partName}</div>
+                                <div class="text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-700 px-2 py-0.5 inline-block border border-gray-200 dark:border-gray-600">${modelName}</div>
+                                <div class="text-gray-800 dark:text-gray-300 font-black flex items-center gap-1.5 mt-2"><i class="fa-solid fa-boxes-stacked text-gray-400"></i> Initial Target: ${qtyFormatted} <span class="text-xs font-semibold text-gray-500">PCS</span></div>`;
+                    }
+                },
+                { 
+                    data: 'qty', 
+                    name: 'qty', 
+                    className: 'px-4 py-2', 
+                    orderable: false,
+                    render: function(data, type, row) {
+                        const qty = Number(row.qty || 0).toLocaleString('id-ID');
+                        const deliveredQty = Number(row.delivered_qty || 0);
+                        const deliveredHtml = deliveredQty > 0 ? `
+                            <div class="text-[11px] font-bold text-blue-600 dark:text-blue-400 mb-1">
+                                <i class="fa-solid fa-truck-ramp-box"></i> Delivered: ${deliveredQty.toLocaleString('id-ID')} / ${qty}
+                            </div>` : '';
+                        
+                        let targetDateStr = '-';
+                        if (row.delivery_date) {
+                            const d = new Date(row.delivery_date.split('T')[0] + 'T00:00:00');
+                            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            targetDateStr = `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+                        }
+                        
+                        return `<div class="text-gray-800 dark:text-gray-300 font-black text-lg mb-0.5">${qty} <span class="text-xs font-semibold text-gray-500">PCS</span></div>
+                                ${deliveredHtml}
+                                <div class="text-[11px] font-medium text-gray-500">
+                                    Target: ${targetDateStr}
+                                </div>`;
+                    }
+                },
+                { 
+                    data: 'status', 
+                    name: 'status', 
+                    className: 'px-4 py-2 align-top', 
+                    orderable: false, 
+                    searchable: false,
+                    render: function(data, type, row) {
+                        if (['FINISHED', 'OUTSTANDING', 'CLOSED'].includes(row.status)) {
+                            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            let qcHtml = '';
+                            if (row.qc_target_date) {
+                                const d = new Date(row.qc_target_date.split('T')[0] + 'T00:00:00');
+                                const dateStr = `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${String(d.getFullYear()).slice(-2)}`;
+                                qcHtml = `<span class="text-[11px] font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-check-double text-emerald-500"></i> QC Passed: ${dateStr}
+                                </span>`;
+                            }
+                            let mgmHtml = '';
+                            if (row.mgm_target_date) {
+                                const d = new Date(row.mgm_target_date.split('T')[0] + 'T00:00:00');
+                                const dateStr = `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${String(d.getFullYear()).slice(-2)}`;
+                                mgmHtml = `<span class="text-[11px] font-medium text-purple-700 dark:text-purple-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-check-double text-purple-500"></i> MGM Check: ${dateStr}
+                                </span>`;
+                            }
+                            
+                            return `<div class="flex flex-col gap-1.5 mt-1">
+                                        <span class="text-[11px] font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1.5 line-through decoration-slate-300 opacity-60">
+                                            <i class="fa-solid fa-check text-green-500"></i> Production Done
+                                        </span>
+                                        ${qcHtml}
+                                        ${mgmHtml}
+                                    </div>`;
+                        }
+                        
+                        const statusText = (row.status || '').replace(/_/g, ' ');
+                        return `<div class="mt-2 text-slate-400 text-[10px] font-medium italic">
+                                    Not yet finished (${statusText})
+                                </div>`;
+                    }
+                },
+                { 
+                    data: 'id', 
+                    name: 'id', 
+                    orderable: false, 
+                    searchable: false, 
+                    className: 'px-4 py-2 text-right pointer-events-auto',
+                    render: function(data, type, row) {
+                        if (row.status === 'CLOSED') {
+                            return `<div class="flex flex-col items-end gap-2 text-sm">
+                                        <div class="px-3 py-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-[10px] text-blue-600 dark:text-blue-400 italic flex items-center gap-1.5 cursor-not-allowed font-bold">
+                                            <i class="fa-solid fa-check-double text-[10px]"></i> Already Delivered (Closed)
+                                        </div>
+                                    </div>`;
+                        }
+                        if (!['FINISHED', 'OUTSTANDING'].includes(row.status)) {
+                            return `<div class="flex flex-col items-end gap-2 text-sm">
+                                        <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center gap-1.5 cursor-not-allowed">
+                                            <i class="fa-solid fa-lock text-[8px]"></i> Waiting for Process to Complete
+                                        </div>
+                                    </div>`;
+                        }
+                        
+                        const remainingQty = (row.qty || 0) - (row.delivered_qty || 0);
+                        const remainingFormatted = Number(remainingQty).toLocaleString('id-ID');
+                        const partNo = (row.product?.part_no || '').replace(/'/g, "\\'");
+                        const deliverUrl = row.deliver_url || '';
+                        const printUrl = row.print_label_url || '';
+                        const checksheetBtn = row.checksheet ? `
+                            <a href="${printUrl}" target="_blank" class="px-4 py-2 bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 shadow-sm font-medium transition text-xs flex items-center justify-center gap-2 w-full">
+                                <i class="fa-solid fa-print"></i> Print QC Label
+                            </a>` : '';
+                            
+                        return `<div class="flex flex-col items-end gap-2 text-sm">
+                                    <button type="button" onclick="openDeliverModal('${row.hashed_id}', '${remainingQty}', '${deliverUrl}', '${partNo}')" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-sm font-medium transition text-xs flex items-center justify-center gap-2 w-full">
+                                        <i class="fa-solid fa-truck-fast"></i> Deliver Parts
+                                    </button>
+                                    ${checksheetBtn}
+                                    <p class="text-[9px] text-gray-400 italic text-right w-full">Remaining: ${remainingFormatted} PCS</p>
+                                </div>`;
+                    }
+                }
             ]
         });
 

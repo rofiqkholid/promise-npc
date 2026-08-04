@@ -133,7 +133,7 @@ class NpcChecksheetApprovalController extends Controller
         $customers = \App\Models\Customer::orderBy('name')->get();
         $models = \App\Models\VehicleModel::orderBy('name')->get();
 
-        return view('npc_checksheets.approval_index', compact('customers', 'models'));
+        return view('tracking.checksheets.approval_index', compact('customers', 'models'));
     }
 
     public function show(NpcChecksheet $checksheet)
@@ -141,7 +141,7 @@ class NpcChecksheetApprovalController extends Controller
         $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.event.customerCategory', 'npcPart.event.deliveryGroup', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail');
         $part = $checksheet->npcPart;
         
-        return view('npc_checksheets.approval_show', compact('checksheet', 'part'));
+        return view('tracking.checksheets.approval_show', compact('checksheet', 'part'));
     }
 
     public function store(Request $request, NpcChecksheet $checksheet)
