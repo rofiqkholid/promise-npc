@@ -672,7 +672,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 formatter: function(value, context) { 
                                     if (value > 0) {
                                         const dsLabel = context.dataset.label;
-                                        const cat = dsLabel.split(' - ')[1];
+                                        const cat = dsLabel.replace(/^(Plan|Actual) - /, '');
                                         const tIndex = context.dataIndex;
                                         const isPlan = dsLabel.startsWith('Plan');
                                         
@@ -687,9 +687,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 }
                                             }
                                             if (displayedGroups.length > 0) {
-                                                if (value < 10) return `${cat} ` + displayedGroups.join(' | ');
+                                                if (value < 10) return displayedGroups.join(' | ');
                                                 
-                                                let lines = [cat];
+                                                let lines = [];
                                                 for (let i = 0; i < displayedGroups.length; i++) {
                                                     lines.push(displayedGroups[i]);
                                                     if (i < displayedGroups.length - 1) {
@@ -700,10 +700,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             }
                                         }
                                         
-                                        if (value < 10) {
-                                            return cat + ' ' + value + '%';
-                                        }
-                                        return cat + '\n' + value + '%';
+                                        return value + '%';
                                     }
                                     return ''; 
                                 },
@@ -772,7 +769,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         if (val === 0) return null;
                                         
                                         const tIndex = context.dataIndex;
-                                        const catName = dsLabel.split(' - ')[1];
+                                        const catName = dsLabel.replace(/^(Plan|Actual) - /, '');
                                         const isPlan = dsLabel.startsWith('Plan');
                                         
                                         const catData = chunk[tIndex].categories[catName];
@@ -832,8 +829,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Production': '#3b82f6',
                     'Quality': '#eab308',
                     'MGM': '#a855f7',
-                    'Finished': '#10b981',
-                    'Closed': '#14b8a6'
+                    'Finished': '#28e826',
+                    'Closed': '#15803d'
                 };
                 
                 const departments = ['NPC', 'Production', 'Quality', 'MGM', 'Finished', 'Closed'];
@@ -866,7 +863,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         maintainAspectRatio: false,
                         plugins: {
                             datalabels: {
-                                color: '#000000',
+                                color: function(context) {
+                                    return context.dataset.label === 'Closed' ? '#ffffff' : '#000000';
+                                },
                                 font: { weight: 'bold', size: 9 },
                                 formatter: function(value) { return value > 0 ? value : ''; },
                                 anchor: 'center',

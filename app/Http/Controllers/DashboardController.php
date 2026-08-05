@@ -441,14 +441,16 @@ class DashboardController extends Controller
                     
                     if ($isFiltered) {
                         $groupKey = $custCode . '-' . $poNo . '-' . $catName; // Group by PO AND Category
-                        $chartLabel = $poNo; // The label on X-axis is PO No
-                        $tooltipTitle = $poNo . ' (' . $custName . ') - ' . $catName;
+                        $chartLabel = $catName; // The label on X-axis is Event (Category)
+                        $tooltipTitle = $catName . ' (' . $custCode . ') - ' . $poNo;
                         $sortOrder = $internalCatId; // Sort by internal category ID
+                        $stackKey = $poNo; // The sub-item inside the bar/tooltip is PO No
                     } else {
                         $groupKey = $custCode; // Group by customer
                         $chartLabel = $custCode; // The label on X-axis is Customer Code
-                        $tooltipTitle = $custName . ' (' . $custCode . ')';
+                        $tooltipTitle = $custCode;
                         $sortOrder = 0; // Don't sort customers by category
+                        $stackKey = $catName; // The sub-item inside the bar/tooltip is Category
                     }
                     
                     if (!isset($groupedData[$groupKey])) {
@@ -467,8 +469,8 @@ class DashboardController extends Controller
                         $groupedData[$groupKey]['deliveryGroups'][] = $ev->deliveryGroup->name;
                     }
                     
-                    if (!isset($groupedData[$groupKey]['categories'][$catName])) {
-                        $groupedData[$groupKey]['categories'][$catName] = [
+                    if (!isset($groupedData[$groupKey]['categories'][$stackKey])) {
+                        $groupedData[$groupKey]['categories'][$stackKey] = [
                             'planItems' => 0,
                             'actualItems' => 0,
                             'groups' => []
@@ -476,20 +478,20 @@ class DashboardController extends Controller
                     }
                     
                     $groupName = $ev->deliveryGroup ? $ev->deliveryGroup->name : 'No Group';
-                    if (!isset($groupedData[$groupKey]['categories'][$catName]['groups'][$groupName])) {
-                        $groupedData[$groupKey]['categories'][$catName]['groups'][$groupName] = [
+                    if (!isset($groupedData[$groupKey]['categories'][$stackKey]['groups'][$groupName])) {
+                        $groupedData[$groupKey]['categories'][$stackKey]['groups'][$groupName] = [
                             'planItems' => 0,
                             'actualItems' => 0
                         ];
                     }
                     
                     $groupedData[$groupKey]['totalItems']++;
-                    $groupedData[$groupKey]['categories'][$catName]['planItems']++;
-                    $groupedData[$groupKey]['categories'][$catName]['groups'][$groupName]['planItems']++;
+                    $groupedData[$groupKey]['categories'][$stackKey]['planItems']++;
+                    $groupedData[$groupKey]['categories'][$stackKey]['groups'][$groupName]['planItems']++;
                     
                     if (in_array($part->status, ['FINISHED', 'CLOSED', 'OUTSTANDING'])) {
-                        $groupedData[$groupKey]['categories'][$catName]['actualItems']++;
-                        $groupedData[$groupKey]['categories'][$catName]['groups'][$groupName]['actualItems']++;
+                        $groupedData[$groupKey]['categories'][$stackKey]['actualItems']++;
+                        $groupedData[$groupKey]['categories'][$stackKey]['groups'][$groupName]['actualItems']++;
                     }
                 }
             }
