@@ -20,47 +20,63 @@
         selectAll: false,
         toggleAll(event) {
             const isChecked = event.target.checked;
-            const checkboxes = document.querySelectorAll('.part-checkbox');
+            const checkboxes = document.querySelectorAll('#qcTable .part-checkbox');
+            let ids = [];
+            let idsToRemove = [];
+            checkboxes.forEach(cb => {
+                cb.checked = isChecked;
+                if (isChecked) {
+                    ids.push(cb.value);
+                } else {
+                    idsToRemove.push(cb.value);
+                }
+            });
+
             if (isChecked) {
-                let ids = [];
-                checkboxes.forEach(cb => ids.push(cb.value));
                 this.selectedParts = [...new Set([...this.selectedParts, ...ids])];
             } else {
-                let idsToRemove = [];
-                checkboxes.forEach(cb => idsToRemove.push(cb.value));
                 this.selectedParts = this.selectedParts.filter(id => !idsToRemove.includes(id));
             }
+            this.updateSelectAllState();
         },
-        togglePart(id) {
-            if (this.selectedParts.includes(id)) {
-                this.selectedParts = this.selectedParts.filter(i => i !== id);
-                this.selectAll = false;
-                let selectAllCb = document.getElementById('selectAllParts');
-                if (selectAllCb) selectAllCb.checked = false;
-            } else {
-                this.selectedParts.push(id);
-            }
+        syncCheckboxes() {
+            const checkboxes = document.querySelectorAll('#qcTable .part-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = this.selectedParts.includes(cb.value);
+            });
+            this.updateSelectAllState();
+        },
+        updateSelectAllState() {
+            this.$nextTick(() => {
+                const checkboxes = document.querySelectorAll('#qcTable .part-checkbox');
+                const selectAllCb = document.getElementById('selectAllParts');
+                if (checkboxes.length > 0) {
+                    const allChecked = Array.from(checkboxes).every(cb => this.selectedParts.includes(cb.value));
+                    this.selectAll = allChecked;
+                    if (selectAllCb) selectAllCb.checked = allChecked;
+                } else {
+                    this.selectAll = false;
+                    if (selectAllCb) selectAllCb.checked = false;
+                }
+            });
         },
         init() {
-            window.togglePart = (id) => this.togglePart(id);
-            
-            $('#qcTable').on('draw.dt', () => {
-                this.selectAll = false;
-                let selectAllCb = document.getElementById('selectAllParts');
-                if (selectAllCb) selectAllCb.checked = false;
-                
-                this.$nextTick(() => {
-                    const checkboxes = document.querySelectorAll('.part-checkbox');
-                    if (checkboxes.length > 0) {
-                        let allChecked = true;
-                        checkboxes.forEach(cb => {
-                            if (!this.selectedParts.includes(cb.value)) allChecked = false;
-                        });
-                        if (allChecked) {
-                            this.selectAll = true;
-                            if (selectAllCb) selectAllCb.checked = true;
-                        }
+            $(document).on('change', '#qcTable .part-checkbox', (e) => {
+                const val = e.target.value;
+                const isChecked = e.target.checked;
+                if (isChecked) {
+                    if (!this.selectedParts.includes(val)) {
+                        this.selectedParts.push(val);
                     }
+                } else {
+                    this.selectedParts = this.selectedParts.filter(i => i !== val);
+                }
+                this.updateSelectAllState();
+            });
+
+            $('#qcTable').on('draw.dt', () => {
+                this.$nextTick(() => {
+                    this.syncCheckboxes();
                 });
             });
         }
@@ -348,9 +364,9 @@ style="display: none;">
                     className: 'px-4 py-2 text-center align-middle',
                     render: function(data, type, row) {
                         if (row.checksheet) {
-                            return `<input type="checkbox" class="part-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" value="${row.hashed_id}" @click.stop="togglePart('${row.hashed_id}')" :checked="selectedParts.includes('${row.hashed_id}')">`;
+                            return `<input type="checkbox" class="part-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" value="${row.hashed_id}">`;
                         }
-                        return '';
+                        return `<input type="checkbox" disabled class="rounded border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-gray-300 w-4 h-4 cursor-not-allowed opacity-30" title="QC Label belum tersedia (Part belum selesai QC)">`;
                     }
                 },
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-4 py-2 text-center text-slate-800 dark:text-slate-200 text-[13px] font-medium' },

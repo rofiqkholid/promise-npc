@@ -29,6 +29,8 @@ class NpcPart extends Model
 
     protected $table = 'npc_parts';
 
+    protected $appends = ['hashed_id'];
+
     protected static function boot()
     {
         parent::boot();

@@ -75,7 +75,10 @@ class ProductionTrackingController extends Controller
                 ->order(function ($query) {
                     $query->orderBy('created_at', 'desc');
                 })
-                ->addIndexColumn();
+                ->addIndexColumn()
+                ->addColumn('hashed_id', function ($part) {
+                    return $part->hashed_id;
+                });
                 
             if ($viewFile === 'tracking.qc') {
                 $dt->addColumn('create_checksheet_url', function ($part) {
