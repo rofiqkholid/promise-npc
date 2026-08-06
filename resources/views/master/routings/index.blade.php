@@ -55,11 +55,9 @@
                     </select>
                 </div>
 
-                @if(request('search') || request('customer_id') || request('model_id'))
-                    <a href="{{ route('master.routings.index') }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 transition text-[13px] flex items-center gap-2 shadow-sm rounded-none" title="Clear Filters">
-                        <i class="fa-solid fa-xmark"></i> Clear
-                    </a>
-                @endif
+                <button type="button" id="resetFiltersBtn" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 transition text-[13px] flex items-center gap-2 shadow-sm rounded-none" title="Reset Filters">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
             </div>
         </form>
 
@@ -160,15 +158,19 @@
             modelSelect.find('option').each(function() {
                 let custId = $(this).data('customer-id');
                 if (!custId || !selectedCustomer || custId == selectedCustomer) {
-                    $(this).show();
+                    $(this).prop('disabled', false).show();
                     if ($(this).val() == currentModel) modelValid = true;
                 } else {
-                    $(this).hide();
+                    $(this).prop('disabled', true).hide();
                 }
             });
             
             if (!modelValid && currentModel != '') {
                 modelSelect.val('');
+            }
+
+            if (modelSelect.hasClass('select2-hidden-accessible')) {
+                modelSelect.trigger('change.select2');
             }
         }
         
@@ -179,6 +181,18 @@
         
         $('#filter_model').on('change', function() {
             $('#routingsTable').DataTable().ajax.reload();
+        });
+
+        // Reset Filters
+        $('#resetFiltersBtn').on('click', function() {
+            $('#filter_customer').val('').trigger('change.select2');
+            $('#filter_model').val('').trigger('change.select2');
+            updateModelFilter();
+
+            let table = $('#routingsTable').DataTable();
+            table.search('');
+            $('.dataTables_filter input').val('');
+            table.ajax.reload();
         });
         
         updateModelFilter();

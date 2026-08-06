@@ -176,13 +176,26 @@
                     if ($(this).hasClass('select2-hidden-accessible') || $(this).closest('.dataTables_length').length) return;
 
                     const $this = $(this);
+                    let placeholder = $this.data('placeholder');
+                    const emptyOption = $this.find('option[value=""]');
+
+                    if (!placeholder && emptyOption.length) {
+                        const emptyText = emptyOption.text().trim();
+                        if (emptyText === '' || /^select\b|^choose\b|^pilih\b/i.test(emptyText)) {
+                            placeholder = emptyText || 'Select an option';
+                        }
+                    }
+
                     const options = {
                         width: '100%',
                         dropdownAutoWidth: true,
                         selectionCssClass: $this.hasClass('select2-sm') ? 'select2-sm' : '',
-                        placeholder: $this.data('placeholder') || $this.find('option[value=""]').text() || 'Select an option',
                         allowClear: $this.data('allow-clear') === true || $this.data('allow-clear') === 'true',
                     };
+
+                    if (placeholder) {
+                        options.placeholder = placeholder;
+                    }
 
                     const $modal = $this.closest('.fixed, .absolute, [role="dialog"], .modal-container');
                     if ($modal.length) {
