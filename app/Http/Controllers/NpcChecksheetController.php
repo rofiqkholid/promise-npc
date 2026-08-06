@@ -409,8 +409,12 @@ class NpcChecksheetController extends Controller
         $sheet->setCellValue('E7', $ecnNo);
         
         $sheet->mergeCells('A8:B8');
-        $sheet->setCellValue('A8', 'Process');
-        $processNames = $part->processes ? $part->processes->map(function($p) { return optional($p->process)->process_name; })->filter()->implode(', ') : '-';
+        $processNames = '-';
+        if ($part->processes && $part->processes->isNotEmpty()) {
+            $processNames = $part->processes->map(function($p) { return optional($p->process)->process_name; })->filter()->implode(', ');
+        } elseif (optional($product)->masterRoutings && $product->masterRoutings->isNotEmpty()) {
+            $processNames = $product->masterRoutings->map(function($r) { return optional($r->process)->process_name; })->filter()->implode(', ');
+        }
         if (empty($processNames)) $processNames = '-';
         $sheet->setCellValue('C8', $processNames);
         
