@@ -288,7 +288,7 @@ class ProductChecksheetSetupController extends Controller
 
     public function preview(Product $product)
     {
-        $product->load('mappedCheckpoints.masterCheckpoint', 'productDetail', 'specChildParts.stdPart', 'docPackage.currentRevision', 'siblings.docPackage.currentRevision', 'vehicleModel.customer');
+        $product->load('mappedCheckpoints.masterCheckpoint', 'productDetail', 'specChildParts.stdPart', 'docPackage.currentRevision', 'siblings.docPackage.currentRevision', 'vehicleModel.customer', 'masterRoutings.process');
 
         if ($product->mappedCheckpoints->isEmpty()) {
             return back()->with('error', 'Part checksheet has not been mapped yet. Cannot preview.');

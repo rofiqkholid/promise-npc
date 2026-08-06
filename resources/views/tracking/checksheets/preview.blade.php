@@ -189,7 +189,12 @@
             <tr>
                 <td colspan="2" class="font-bold">Process</td>
                 @php
-                    $processNames = optional($part)->processes ? optional($part)->processes->map(function($p) { return optional($p->process)->process_name; })->filter()->implode(', ') : '-';
+                    $processNames = '-';
+                    if (optional($part)->processes && $part->processes->isNotEmpty()) {
+                        $processNames = $part->processes->map(function($p) { return optional($p->process)->process_name; })->filter()->implode(', ');
+                    } elseif (optional($product)->masterRoutings && $product->masterRoutings->isNotEmpty()) {
+                        $processNames = $product->masterRoutings->map(function($r) { return optional($r->process)->process_name; })->filter()->implode(', ');
+                    }
                     if (empty($processNames)) $processNames = '-';
                     $processType = optional(optional($product)->productDetail)->process_type;
                 @endphp

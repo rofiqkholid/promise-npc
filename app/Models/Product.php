@@ -99,6 +99,11 @@ class Product extends Model
         return $this->hasOne(NpcProductDetail::class, 'product_id');
     }
 
+    public function masterRoutings()
+    {
+        return $this->hasMany(NpcMasterRouting::class, 'part_id')->orderBy('sequence_order');
+    }
+
     public function getEffectiveProductDetail()
     {
         if ($this->productDetail && $this->productDetail->label_image_path) {
