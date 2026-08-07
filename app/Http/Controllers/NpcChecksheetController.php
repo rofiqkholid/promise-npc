@@ -157,13 +157,25 @@ class NpcChecksheetController extends Controller
         } elseif ($request->role === 'MGM') {
             $request->validate([
                 'final_result' => 'nullable|string|max:1000',
-                'details' => 'array'
+                'details' => 'nullable|array',
+                'details_json' => 'nullable|string'
             ]);
+
+            // Support both JSON payload and legacy array payload
+            $detailsInput = [];
+            if ($request->filled('details_json')) {
+                $decoded = json_decode($request->details_json, true);
+                if (is_array($decoded)) {
+                    $detailsInput = $decoded;
+                }
+            } elseif ($request->has('details') && is_array($request->details)) {
+                $detailsInput = $request->details;
+            }
 
             $hasNg = false;
             $hasEmpty = false;
             $ngDescriptions = [];
-            foreach ($request->input('details', []) as $id => $data) {
+            foreach ($detailsInput as $id => $data) {
                 $detail = NpcChecksheetDetail::find($id);
                 if ($detail && $detail->npc_checksheet_id == $checksheet->id) {
                     $rowResult = $data['row_result'] ?? null;

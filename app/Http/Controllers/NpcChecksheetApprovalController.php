@@ -160,9 +160,19 @@ class NpcChecksheetApprovalController extends Controller
         }
 
         // Save details and remark if provided
-        if ($request->has('details') && is_array($request->input('details'))) {
+        $detailsInput = [];
+        if ($request->filled('details_json')) {
+            $decoded = json_decode($request->details_json, true);
+            if (is_array($decoded)) {
+                $detailsInput = $decoded;
+            }
+        } elseif ($request->has('details') && is_array($request->input('details'))) {
+            $detailsInput = $request->input('details');
+        }
+
+        if (!empty($detailsInput)) {
             $hasNg = false;
-            foreach ($request->input('details') as $id => $data) {
+            foreach ($detailsInput as $id => $data) {
                 $detail = \App\Models\NpcChecksheetDetail::find($id);
                 if ($detail && $detail->npc_checksheet_id == $checksheet->id) {
                     $rowResult = $data['row_result'] ?? null;

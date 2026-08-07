@@ -86,6 +86,7 @@
         @method('PUT')
         <input type="hidden" name="role" value="{{ $role }}">
         <input type="hidden" name="previous_url" value="{{ $previousUrl ?? route('tracking.index') }}">
+        <input type="hidden" name="details_json" id="details_json">
 
         @if ($errors->any())
             <div class="px-4 py-2 mx-6 mt-4 bg-red-50 border border-red-200 text-red-600 text-[13px]">
@@ -244,7 +245,7 @@
                                     $sampleValue = $detail->samples[$i] ?? '';
                                 @endphp
                                 <td class="px-2 py-2 border-r dark:border-gray-700 text-center cursor-pointer sample-cell select-none" data-detail-id="{{ $detail->id }}" data-sample-index="{{ $i }}">
-                                    <input type="hidden" name="details[{{ $detail->id }}][samples][{{ $i }}]" value="{{ $sampleValue }}" class="sample-input-{{ $detail->id }}">
+                                    <input type="hidden" data-detail-id="{{ $detail->id }}" data-sample-index="{{ $i }}" value="{{ $sampleValue }}" class="sample-input-{{ $detail->id }}">
                                     <div class="flex items-center justify-center h-8 w-8 mx-auto transition hover:bg-gray-200 dark:hover:bg-gray-600 icon-container">
                                         @if($sampleValue === 'OK')
                                             <i class="fa-solid fa-circle text-green-500 text-lg"></i>
@@ -257,7 +258,7 @@
                                 </td>
                                 @endfor
                                 <td class="px-4 py-2 text-center">
-                                    <input type="hidden" name="details[{{ $detail->id }}][row_result]" id="row-result-{{ $detail->id }}" value="{{ $detail->row_result }}" {{ $readonly ? 'disabled' : '' }}>
+                                    <input type="hidden" data-detail-id="{{ $detail->id }}" id="row-result-{{ $detail->id }}" value="{{ $detail->row_result }}" {{ $readonly ? 'disabled' : '' }}>
                                     <div id="row-result-display-{{ $detail->id }}" class="w-full text-xs py-1.5 px-2 font-bold border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-800 dark:text-white @if($detail->row_result == 'OK') text-green-600 bg-green-50 dark:bg-green-900/20 @elseif($detail->row_result == 'NG') text-red-600 bg-red-50 dark:bg-red-900/20 @else text-gray-400 @endif">
                                         {{ $detail->row_result ?: '- Auto -' }}
                                     </div>
@@ -345,7 +346,7 @@
         // Sample Check Toggle Logic
         document.querySelectorAll('.sample-cell').forEach(cell => {
             cell.addEventListener('click', function() {
-                const resultElement = this.closest('tr').querySelector('input[name$="[row_result]"]');
+                const resultElement = this.closest('tr').querySelector('input[id^="row-result-"]');
                 if (!resultElement || resultElement.disabled) return; // Prevent if readonly
                 
                 const detailId = this.dataset.detailId;
@@ -410,7 +411,7 @@
             const submitBtn = document.getElementById('submit-btn');
             if (!submitBtn || submitBtn.dataset.role !== 'MGM') return;
 
-            const allSelects = document.querySelectorAll('input[name$="[row_result]"]');
+            const allSelects = document.querySelectorAll('input[id^="row-result-"]');
             let hasNg = false;
             let hasEmpty = false;
             allSelects.forEach(select => {
@@ -448,6 +449,42 @@
             } else {
                 element.classList.add('text-gray-400');
             }
+        }
+
+        // Form Submission - Serialize details to JSON
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const details = {};
+                
+                document.querySelectorAll('.sample-cell').forEach(cell => {
+                    const detailId = cell.dataset.detailId;
+                    const sampleIndex = cell.dataset.sampleIndex;
+                    const input = cell.querySelector('input[type="hidden"]');
+                    
+                    if (!details[detailId]) {
+                        details[detailId] = { samples: {}, row_result: null };
+                    }
+                    if (input && input.value) {
+                        details[detailId].samples[sampleIndex] = input.value;
+                    }
+                });
+
+                document.querySelectorAll('input[id^="row-result-"]').forEach(resultInput => {
+                    const detailId = resultInput.dataset.detailId;
+                    if (detailId) {
+                        if (!details[detailId]) {
+                            details[detailId] = { samples: {}, row_result: null };
+                        }
+                        details[detailId].row_result = resultInput.value || null;
+                    }
+                });
+
+                const jsonInput = document.getElementById('details_json');
+                if (jsonInput) {
+                    jsonInput.value = JSON.stringify(details);
+                }
+            });
         }
 
         // Initialize button state on page load
