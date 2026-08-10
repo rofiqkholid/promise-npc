@@ -454,13 +454,8 @@
         function submitViaFetch(details) {
             const actionUrl = '{{ route("checksheets.update", $checksheet->hashed_id) }}';
             const previousUrl = '{{ base64_encode($previousUrl ?? route("tracking.index")) }}';
-            
-            const payload = {
-                _token: '{{ csrf_token() }}',
-                role: '{{ $role }}',
-                previous_url: previousUrl,
-                details_json: JSON.stringify(details)
-            };
+            const form = document.getElementById('checksheet-form');
+            const role = '{{ $role }}';
             
             const btn = document.getElementById('submit-btn');
             if (btn) {
@@ -468,23 +463,66 @@
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Submitting...';
             }
 
-            fetch(actionUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
+            let fetchOptions = {};
+            
+            if (role === 'QC') {
+                // QC has file uploads, MUST use FormData (multipart/form-data)
+                const formData = new FormData(form);
+                formData.set('previous_url', previousUrl);
+                formData.set('details_json', JSON.stringify(details));
+                // Remove chunk inputs if any exist
+                formData.delete('details_json_chunks[]');
+                
+                fetchOptions = {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                };
+            } else {
+                // MGM has no files and large text, MUST use application/json to bypass WAF text limits
+                const payload = {
+                    _token: '{{ csrf_token() }}',
+                    role: role,
+                    previous_url: previousUrl,
+                    details_json: JSON.stringify(details),
+                    final_result: form.querySelector('[name="final_result"]') ? form.querySelector('[name="final_result"]').value : ''
+                };
+                
+                fetchOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                };
+            }
+
+            fetch(actionUrl, fetchOptions)
             .then(async response => {
                 if (response.redirected) {
                     window.location.href = response.url;
                 } else if (response.ok) {
-                    window.location.href = atob(previousUrl);
+                    const data = await response.json();
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        window.location.href = atob(previousUrl);
+                    }
                 } else {
                     const text = await response.text();
-                    alert('Submission failed. Server responded with status: ' + response.status);
+                    let errMsg = 'Submission failed. Server responded with status: ' + response.status;
+                    if (response.status === 422) {
+                        try {
+                            const errors = JSON.parse(text).errors;
+                            errMsg = Object.values(errors).flat().join('\n');
+                        } catch(e) {}
+                    }
+                    alert(errMsg);
                     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save mr-1"></i> Save QC Data'; }
                     console.error("Server Error:", text);
                 }

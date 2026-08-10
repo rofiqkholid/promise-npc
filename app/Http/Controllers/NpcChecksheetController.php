@@ -155,7 +155,12 @@ class NpcChecksheetController extends Controller
             if ($redirectUrl === false || !filter_var($redirectUrl, FILTER_VALIDATE_URL)) {
                 $redirectUrl = route('tracking.index');
             }
-            return redirect($redirectUrl)->with('success', "QC Data (Accuracy: {$request->accuracy_percentage}%) successfully saved.");
+            $message = "QC Data (Accuracy: {$request->accuracy_percentage}%) successfully saved.";
+            if ($request->expectsJson()) {
+                $request->session()->flash('success', $message);
+                return response()->json(['redirect' => $redirectUrl]);
+            }
+            return redirect($redirectUrl)->with('success', $message);
 
         } elseif ($request->role === 'MGM') {
             $request->validate([
@@ -270,9 +275,19 @@ class NpcChecksheetController extends Controller
                 }
 
                 if ($hasNg) {
-                    return redirect()->back()->with('warning', 'Data saved as Draft. NG history has been automatically recorded. Cannot submit to Approval Phase until all results are OK.');
+                    $msg = 'Data saved as Draft. NG history has been automatically recorded. Cannot submit to Approval Phase until all results are OK.';
+                    if ($request->expectsJson()) {
+                        $request->session()->flash('warning', $msg);
+                        return response()->json(['redirect' => route('checksheets.edit', $checksheet->hashed_id)]);
+                    }
+                    return redirect()->back()->with('warning', $msg);
                 } else {
-                    return redirect()->back()->with('warning', 'Data saved as Draft. Cannot submit to Approval Phase until all checkpoints are fully filled.');
+                    $msg = 'Data saved as Draft. Cannot submit to Approval Phase until all checkpoints are fully filled.';
+                    if ($request->expectsJson()) {
+                        $request->session()->flash('warning', $msg);
+                        return response()->json(['redirect' => route('checksheets.edit', $checksheet->hashed_id)]);
+                    }
+                    return redirect()->back()->with('warning', $msg);
                 }
             }
 
@@ -297,7 +312,12 @@ class NpcChecksheetController extends Controller
             if ($redirectUrl === false || !filter_var($redirectUrl, FILTER_VALIDATE_URL)) {
                 $redirectUrl = route('tracking.index');
             }
-            return redirect($redirectUrl)->with('success', 'MGM Checksheet successfully submitted to Approval Phase.');
+            $message = 'MGM Checksheet successfully submitted to Approval Phase.';
+            if ($request->expectsJson()) {
+                $request->session()->flash('success', $message);
+                return response()->json(['redirect' => $redirectUrl]);
+            }
+            return redirect($redirectUrl)->with('success', $message);
         }
 
         abort(403, 'Unauthorized action.');

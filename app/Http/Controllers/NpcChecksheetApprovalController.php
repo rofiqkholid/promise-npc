@@ -211,16 +211,31 @@ class NpcChecksheetApprovalController extends Controller
             }
 
             if ($hasNg && $action === 'approve') {
-                return redirect()->back()->with('error', 'Cannot approve because there is an NG result. Please fix the part and change to OK, or use Save Changes to hold.');
+                $msg = 'Cannot approve because there is an NG result. Please fix the part and change to OK, or use Save Changes to hold.';
+                if ($request->expectsJson()) {
+                    $request->session()->flash('error', $msg);
+                    return response()->json(['redirect' => route('checksheet-approvals.show', $checksheet->hashed_id)]);
+                }
+                return redirect()->back()->with('error', $msg);
             }
             
             if ($hasNg && $action === 'save' && empty(trim($request->input('final_result')))) {
-                return redirect()->back()->with('error', 'Remark is required when there is an NG result.');
+                $msg = 'Remark is required when there is an NG result.';
+                if ($request->expectsJson()) {
+                    $request->session()->flash('error', $msg);
+                    return response()->json(['redirect' => route('checksheet-approvals.show', $checksheet->hashed_id)]);
+                }
+                return redirect()->back()->with('error', $msg);
             }
         }
         
         if ($action === 'save') {
-            return redirect()->route('checksheet-approvals.show', $checksheet->hashed_id)->with('success', 'Changes have been saved successfully.');
+            $msg = 'Changes have been saved successfully.';
+            if ($request->expectsJson()) {
+                $request->session()->flash('success', $msg);
+                return response()->json(['redirect' => route('checksheet-approvals.show', $checksheet->hashed_id)]);
+            }
+            return redirect()->route('checksheet-approvals.show', $checksheet->hashed_id)->with('success', $msg);
         }
         
 
@@ -307,11 +322,19 @@ class NpcChecksheetApprovalController extends Controller
                 $part->update(['status' => 'FINISHED']);
             }
         } else {
+            if ($request->expectsJson()) {
+                $request->session()->flash('error', 'Invalid approval status.');
+                return response()->json(['redirect' => route('checksheet-approvals.show', $checksheet->hashed_id)]);
+            }
             return redirect()->back()->with('error', 'Invalid approval status.');
         }
 
         $checksheet->update($updateData);
 
+        if ($request->expectsJson()) {
+            $request->session()->flash('success', 'Checksheet successfully approved.');
+            return response()->json(['redirect' => $redirectUrl]);
+        }
         return redirect($redirectUrl)->with('success', 'Checksheet successfully approved.');
     }
 }
