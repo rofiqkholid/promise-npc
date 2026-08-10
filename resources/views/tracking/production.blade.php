@@ -237,10 +237,14 @@ $(document).ready(function() {
                     const partNo = row.product?.part_no || '-';
                     const partName = row.product?.part_name || '-';
                     const modelName = row.product?.vehicle_model?.name || 'Unknown Model';
+                    const poNo = row.event?.po_no || 'Unknown PO';
                     const qtyFormatted = Number(row.qty || 0).toLocaleString('id-ID');
                     
-                    return `<div class="text-gray-800 dark:text-gray-200 font-bold text-sm">${partNo}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5">${partName}</div>
+                    return `<div class="text-gray-800 dark:text-gray-200 font-bold text-sm flex items-center flex-wrap gap-1">
+                                ${partNo} 
+                                <span class="text-[10px] font-bold text-blue-700 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-700 uppercase">PO: ${poNo}</span>
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5 mt-0.5">${partName}</div>
                             <div class="text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-700 px-2 py-0.5 inline-block border border-gray-200 dark:border-gray-600">${modelName}</div>
                             <div class="text-gray-800 dark:text-gray-300 font-black flex items-center gap-1.5 mt-2"><i class="fa-solid fa-boxes-stacked text-gray-400"></i> Initial Target: ${qtyFormatted} <span class="text-xs font-semibold text-gray-500">PCS</span></div>`;
                 }
