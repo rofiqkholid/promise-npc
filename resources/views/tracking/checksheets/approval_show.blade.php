@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <form action="{{ route('checksheet-approvals.store', $checksheet->hashed_id) }}" method="POST">
+    <form id="approval-form" action="{{ route('checksheet-approvals.store', $checksheet->hashed_id) }}" method="POST">
         @csrf
         <input type="hidden" name="details_json" id="details_json">
         @php
@@ -482,38 +482,42 @@
         }
         
         // Form Submission - Serialize details to JSON
-        const form = document.querySelector('form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                const details = {};
+        function serializeApprovalDetails() {
+            const details = {};
+            
+            document.querySelectorAll('.sample-cell').forEach(cell => {
+                const detailId = cell.dataset.detailId;
+                const sampleIndex = cell.dataset.sampleIndex;
+                const input = cell.querySelector('input[type="hidden"]');
                 
-                document.querySelectorAll('.sample-cell').forEach(cell => {
-                    const detailId = cell.dataset.detailId;
-                    const sampleIndex = cell.dataset.sampleIndex;
-                    const input = cell.querySelector('input[type="hidden"]');
-                    
+                if (!details[detailId]) {
+                    details[detailId] = { samples: {}, row_result: null };
+                }
+                if (input && input.value) {
+                    details[detailId].samples[sampleIndex] = input.value;
+                }
+            });
+
+            document.querySelectorAll('select[id^="row-result-"]').forEach(resultSelect => {
+                const detailId = resultSelect.dataset.detailId;
+                if (detailId) {
                     if (!details[detailId]) {
                         details[detailId] = { samples: {}, row_result: null };
                     }
-                    if (input && input.value) {
-                        details[detailId].samples[sampleIndex] = input.value;
-                    }
-                });
-
-                document.querySelectorAll('select[id^="row-result-"]').forEach(resultSelect => {
-                    const detailId = resultSelect.dataset.detailId;
-                    if (detailId) {
-                        if (!details[detailId]) {
-                            details[detailId] = { samples: {}, row_result: null };
-                        }
-                        details[detailId].row_result = resultSelect.value || null;
-                    }
-                });
-
-                const jsonInput = document.getElementById('details_json');
-                if (jsonInput) {
-                    jsonInput.value = JSON.stringify(details);
+                    details[detailId].row_result = resultSelect.value || null;
                 }
+            });
+
+            const jsonInput = document.getElementById('details_json');
+            if (jsonInput) {
+                jsonInput.value = JSON.stringify(details);
+            }
+        }
+
+        const approvalForm = document.getElementById('approval-form');
+        if (approvalForm) {
+            approvalForm.addEventListener('submit', function(e) {
+                serializeApprovalDetails();
             });
         }
 

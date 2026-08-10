@@ -81,7 +81,7 @@
     </div>
     @endif
 
-    <form action="{{ route('checksheets.update', $checksheet->hashed_id) }}" method="POST" enctype="multipart/form-data">
+    <form id="checksheet-form" action="{{ route('checksheets.update', $checksheet->hashed_id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         <input type="hidden" name="role" value="{{ $role }}">
@@ -452,38 +452,49 @@
         }
 
         // Form Submission - Serialize details to JSON
-        const form = document.querySelector('form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                const details = {};
+        function serializeChecksheetDetails() {
+            const details = {};
+            
+            document.querySelectorAll('.sample-cell').forEach(cell => {
+                const detailId = cell.dataset.detailId;
+                const sampleIndex = cell.dataset.sampleIndex;
+                const input = cell.querySelector('input[type="hidden"]');
                 
-                document.querySelectorAll('.sample-cell').forEach(cell => {
-                    const detailId = cell.dataset.detailId;
-                    const sampleIndex = cell.dataset.sampleIndex;
-                    const input = cell.querySelector('input[type="hidden"]');
-                    
+                if (!details[detailId]) {
+                    details[detailId] = { samples: {}, row_result: null };
+                }
+                if (input && input.value) {
+                    details[detailId].samples[sampleIndex] = input.value;
+                }
+            });
+
+            document.querySelectorAll('input[id^="row-result-"]').forEach(resultInput => {
+                const detailId = resultInput.dataset.detailId;
+                if (detailId) {
                     if (!details[detailId]) {
                         details[detailId] = { samples: {}, row_result: null };
                     }
-                    if (input && input.value) {
-                        details[detailId].samples[sampleIndex] = input.value;
-                    }
-                });
-
-                document.querySelectorAll('input[id^="row-result-"]').forEach(resultInput => {
-                    const detailId = resultInput.dataset.detailId;
-                    if (detailId) {
-                        if (!details[detailId]) {
-                            details[detailId] = { samples: {}, row_result: null };
-                        }
-                        details[detailId].row_result = resultInput.value || null;
-                    }
-                });
-
-                const jsonInput = document.getElementById('details_json');
-                if (jsonInput) {
-                    jsonInput.value = JSON.stringify(details);
+                    details[detailId].row_result = resultInput.value || null;
                 }
+            });
+
+            const jsonInput = document.getElementById('details_json');
+            if (jsonInput) {
+                jsonInput.value = JSON.stringify(details);
+            }
+        }
+
+        const checksheetForm = document.getElementById('checksheet-form');
+        if (checksheetForm) {
+            checksheetForm.addEventListener('submit', function(e) {
+                serializeChecksheetDetails();
+            });
+        }
+
+        const submitBtn = document.getElementById('submit-btn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function(e) {
+                serializeChecksheetDetails();
             });
         }
 

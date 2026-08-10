@@ -173,7 +173,7 @@ class NpcChecksheetController extends Controller
             }
 
             $hasNg = false;
-            $hasEmpty = false;
+            $hasEmpty = empty($detailsInput) && $checksheet->details()->count() > 0;
             $ngDescriptions = [];
             foreach ($detailsInput as $id => $data) {
                 $detail = NpcChecksheetDetail::find($id);
