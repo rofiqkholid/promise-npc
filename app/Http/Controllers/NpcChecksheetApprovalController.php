@@ -146,6 +146,12 @@ class NpcChecksheetApprovalController extends Controller
 
     public function store(Request $request, NpcChecksheet $checksheet)
     {
+        // Setup redirect
+        $redirectUrl = $request->input('previous_url') ? base64_decode($request->input('previous_url')) : route('checksheet-approvals.index');
+        if ($redirectUrl === false || !filter_var($redirectUrl, FILTER_VALIDATE_URL)) {
+            $redirectUrl = route('checksheet-approvals.index');
+        }
+
         $action = $request->input('action', 'approve');
         $status = $checksheet->approval_status;
         $userId = auth()->check() ? auth()->user()->getAttribute('id') : 1;
@@ -247,7 +253,7 @@ class NpcChecksheetApprovalController extends Controller
 
             $checksheet->update($updateData);
 
-            return redirect()->route('checksheet-approvals.index')->with('success', 'Checksheet successfully rejected and returned to the previous step.');
+            return redirect($redirectUrl)->with('success', 'Checksheet successfully rejected and returned to the previous step.');
         }
 
         if ($status === 'WAITING_QE_STAFF') {
@@ -292,6 +298,6 @@ class NpcChecksheetApprovalController extends Controller
 
         $checksheet->update($updateData);
 
-        return redirect()->route('checksheet-approvals.index')->with('success', 'Checksheet successfully approved.');
+        return redirect($redirectUrl)->with('success', 'Checksheet successfully approved.');
     }
 }

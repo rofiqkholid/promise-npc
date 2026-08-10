@@ -73,6 +73,8 @@
 
     <form id="approval-form" action="{{ route('checksheet-approvals.store', $checksheet->hashed_id) }}" method="POST">
         @csrf
+        <input type="hidden" name="role" value="{{ $role }}">
+        <input type="hidden" name="previous_url" value="{{ base64_encode($previousUrl ?? route('checksheet-approvals.index')) }}">
         <input type="hidden" name="details_json" id="details_json">
         @php
             $levelMap = [

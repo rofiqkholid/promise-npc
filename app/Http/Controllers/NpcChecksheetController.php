@@ -151,7 +151,10 @@ class NpcChecksheetController extends Controller
                 $part->update(['status' => 'WAITING_MGM_CHECK']);
             }
 
-            $redirectUrl = $request->input('previous_url', route('tracking.index'));
+            $redirectUrl = $request->input('previous_url') ? base64_decode($request->input('previous_url')) : route('tracking.index');
+            if ($redirectUrl === false || !filter_var($redirectUrl, FILTER_VALIDATE_URL)) {
+                $redirectUrl = route('tracking.index');
+            }
             return redirect($redirectUrl)->with('success', "QC Data (Accuracy: {$request->accuracy_percentage}%) successfully saved.");
 
         } elseif ($request->role === 'MGM') {
@@ -282,12 +285,14 @@ class NpcChecksheetController extends Controller
                 $part->update(['rollback_reason' => null]);
             }
 
-            $redirectUrl = $request->input('previous_url', route('tracking.index'));
+            $redirectUrl = $request->input('previous_url') ? base64_decode($request->input('previous_url')) : route('tracking.index');
+            if ($redirectUrl === false || !filter_var($redirectUrl, FILTER_VALIDATE_URL)) {
+                $redirectUrl = route('tracking.index');
+            }
             return redirect($redirectUrl)->with('success', 'MGM Checksheet successfully submitted to Approval Phase.');
         }
 
-        $redirectUrl = $request->input('previous_url', route('tracking.index'));
-        return redirect($redirectUrl);
+        abort(403, 'Unauthorized action.');
     }
 
     /**
