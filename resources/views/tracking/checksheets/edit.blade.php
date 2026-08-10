@@ -471,42 +471,82 @@
                 const detailId = resultInput.dataset.detailId;
                 if (detailId) {
                     if (!details[detailId]) {
-                        details[detailId] = { samples: {}, row_result: null };
-                    }
-                    details[detailId].row_result = resultInput.value || null;
-                }
-            });
-
-            const jsonInput = document.getElementById('details_json');
-            if (jsonInput) {
-                // We remove the name attribute so this single large field doesn't get sent, bypassing WAF limits
-                jsonInput.removeAttribute('name');
-                const base64String = btoa(JSON.stringify(details));
-                const chunkSize = 400; // Max 400 chars to avoid WAF parameter length limits
-                
-                // Remove old chunks if any
-                document.querySelectorAll('.chunk_input').forEach(el => el.remove());
-                
-                // Append chunks to form
-                const form = document.getElementById('checksheet-form');
-                if (form) {
-                    for (let i = 0; i < base64String.length; i += chunkSize) {
-                        const chunk = base64String.substring(i, i + chunkSize);
-                        const chunkInput = document.createElement('input');
-                        chunkInput.type = 'hidden';
-                        chunkInput.name = 'details_json_chunks[]';
-                        chunkInput.className = 'chunk_input';
-                        chunkInput.value = chunk;
-                        form.appendChild(chunkInput);
-                    }
-                }
+        function submitViaFetch(details) {
+            const actionUrl = '{{ route("checksheets.update", $checksheet->hashed_id) }}';
+            const previousUrl = '{{ base64_encode($previousUrl ?? route("tracking.index")) }}';
+            
+            const payload = {
+                _token: '{{ csrf_token() }}',
+                role: '{{ $role }}',
+                previous_url: previousUrl,
+                details_json: JSON.stringify(details)
+            };
+            
+            const btn = document.getElementById('submit-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Submitting...';
             }
+
+            fetch(actionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(async response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    window.location.href = atob(previousUrl);
+                } else {
+                    const text = await response.text();
+                    alert('Submission failed. Server responded with status: ' + response.status);
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save mr-1"></i> Save QC Data'; }
+                    console.error("Server Error:", text);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch Error:', error);
+                alert('Connection error occurred while submitting.');
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save mr-1"></i> Save QC Data'; }
+            });
         }
 
         const checksheetForm = document.getElementById('checksheet-form');
         if (checksheetForm) {
             checksheetForm.addEventListener('submit', function(e) {
-                serializeChecksheetDetails();
+                e.preventDefault();
+                
+                const details = {};
+                
+                document.querySelectorAll('.sample-cell').forEach(cell => {
+                    const detailId = cell.dataset.detailId;
+                    const sampleIndex = cell.dataset.sampleIndex;
+                    const input = cell.querySelector('input[type="hidden"]');
+                    
+                    if (!details[detailId]) {
+                        details[detailId] = { samples: {}, row_result: null };
+                    }
+                    if (input && input.value) {
+                        details[detailId].samples[sampleIndex] = input.value;
+                    }
+                });
+
+                document.querySelectorAll('input[id^="row-result-"]').forEach(resultInput => {
+                    const detailId = resultInput.dataset.detailId;
+                    if (detailId) {
+                        if (!details[detailId]) {
+                            details[detailId] = { samples: {}, row_result: null };
+                        }
+                        details[detailId].row_result = resultInput.value || null;
+                    }
+                });
+                
+                submitViaFetch(details);
             });
         }
 
