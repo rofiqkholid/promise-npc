@@ -275,10 +275,13 @@ class ProductionTrackingController extends Controller
             'actual_qty.min' => 'Total Qty Completed cannot be less than Planning PO (' . $part->qty . ' PCS).'
         ]);
 
-        // Decode hashed process_id
-        $hashids    = new \Hashids\Hashids(env('APP_KEY'), 10);
-        $decodedIds = $hashids->decode($request->process_id);
-        $processId  = $decodedIds[0] ?? null;
+        // Decode process_id (handles both numeric ID and hashed ID)
+        $processId = $request->process_id;
+        if (!is_numeric($processId)) {
+            $hashids = new \Hashids\Hashids(env('APP_KEY'), 10);
+            $decodedIds = $hashids->decode($processId);
+            $processId = $decodedIds[0] ?? null;
+        }
 
         $process = \App\Models\NpcPartProcess::where('id', $processId)
             ->where('npc_part_id', $part->id)
@@ -309,6 +312,7 @@ class ProductionTrackingController extends Controller
                 'actual_completion_date' => $request->actual_completion_date,
                 'production_notes' => $request->production_notes,
             ]);
+            
             return back()->with('success', 'Production sequence complete. Goods successfully submitted to QC!');
         }
 

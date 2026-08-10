@@ -158,6 +158,7 @@ document.getElementById('modal-complete').addEventListener('click', function(e) 
     if (e.target === this) closeCompleteModal();
 });
 
+
 $(document).ready(function() {
     let table = $('#productionTable').DataTable({
         processing: true,

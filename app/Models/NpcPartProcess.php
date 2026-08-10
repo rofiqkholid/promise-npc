@@ -29,6 +29,8 @@ class NpcPartProcess extends Model
 
     protected $table = 'npc_part_processes';
 
+    protected $appends = ['hashed_id'];
+
     protected $fillable = [
         'npc_part_id',
         'process_id',
