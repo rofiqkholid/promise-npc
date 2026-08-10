@@ -167,10 +167,24 @@ class NpcChecksheetApprovalController extends Controller
 
         // Save details and remark if provided
         $detailsInput = [];
-        if ($request->filled('details_json')) {
-            $decoded = json_decode($request->details_json, true);
-            if (is_array($decoded)) {
-                $detailsInput = $decoded;
+        $base64String = '';
+        
+        if ($request->has('details_json_chunks')) {
+            $base64String = implode('', $request->input('details_json_chunks'));
+        } elseif ($request->filled('details_json')) {
+            $base64String = $request->details_json;
+        }
+
+        if (!empty($base64String)) {
+            // Check if it's base64 encoded
+            $decodedString = base64_decode($base64String, true);
+            if ($decodedString !== false && json_decode($decodedString, true) !== null) {
+                $detailsInput = json_decode($decodedString, true);
+            } else {
+                $decoded = json_decode($base64String, true);
+                if (is_array($decoded)) {
+                    $detailsInput = $decoded;
+                }
             }
         } elseif ($request->has('details') && is_array($request->input('details'))) {
             $detailsInput = $request->input('details');

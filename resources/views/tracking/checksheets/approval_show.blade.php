@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <form id="approval-form" action="{{ route('checksheet-approvals.store', $checksheet->hashed_id) }}" method="POST">
+    <form id="approval-form" action="{{ route('checksheet-approvals.store', $checksheet->hashed_id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         <input type="hidden" name="role" value="{{ $role }}">
         <input type="hidden" name="previous_url" value="{{ base64_encode($previousUrl ?? route('checksheet-approvals.index')) }}">
@@ -512,8 +512,27 @@
 
             const jsonInput = document.getElementById('details_json');
             if (jsonInput) {
-                // Encode the JSON string to Base64 to bypass strict WAF/ModSecurity rules
-                jsonInput.value = btoa(JSON.stringify(details));
+                // We remove the name attribute so this single large field doesn't get sent, bypassing WAF limits
+                jsonInput.removeAttribute('name');
+                const base64String = btoa(JSON.stringify(details));
+                const chunkSize = 400; // Max 400 chars to avoid WAF parameter length limits
+                
+                // Remove old chunks if any
+                document.querySelectorAll('.chunk_input').forEach(el => el.remove());
+                
+                // Append chunks to form
+                const form = document.getElementById('approval-form');
+                if (form) {
+                    for (let i = 0; i < base64String.length; i += chunkSize) {
+                        const chunk = base64String.substring(i, i + chunkSize);
+                        const chunkInput = document.createElement('input');
+                        chunkInput.type = 'hidden';
+                        chunkInput.name = 'details_json_chunks[]';
+                        chunkInput.className = 'chunk_input';
+                        chunkInput.value = chunk;
+                        form.appendChild(chunkInput);
+                    }
+                }
             }
         }
 

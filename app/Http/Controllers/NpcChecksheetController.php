@@ -164,11 +164,19 @@ class NpcChecksheetController extends Controller
                 'details_json' => 'nullable|string'
             ]);
 
-            // Support both JSON payload and legacy array payload
+            // Support both JSON chunks (WAF bypass) and legacy array payload
             $detailsInput = [];
-            if ($request->filled('details_json')) {
+            $base64String = '';
+            
+            if ($request->has('details_json_chunks')) {
+                $base64String = implode('', $request->input('details_json_chunks'));
+            } elseif ($request->filled('details_json')) {
+                $base64String = $request->details_json;
+            }
+
+            if (!empty($base64String)) {
                 // Decode the base64 string first (to bypass WAF rules)
-                $decodedString = base64_decode($request->details_json, true);
+                $decodedString = base64_decode($base64String, true);
                 $decoded = null;
                 if ($decodedString !== false) {
                     $decoded = json_decode($decodedString, true);
