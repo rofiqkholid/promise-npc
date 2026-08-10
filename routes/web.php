@@ -217,7 +217,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checksheets/{checksheet}/export', [NpcChecksheetController::class, 'export'])->name('checksheets.export');
     Route::get('/checksheets/{checksheet}/edit', [NpcChecksheetController::class, 'edit'])->name('checksheets.edit');
     Route::post('/checksheets/{checksheet}/sync', [NpcChecksheetController::class, 'sync'])->name('checksheets.sync');
-    Route::put('/checksheets/{checksheet}', [NpcChecksheetController::class, 'update'])->name('checksheets.update');
+    Route::post('/checksheets/{checksheet}', [NpcChecksheetController::class, 'update'])->name('checksheets.update');
 
     // Checksheet Approval Routes
     Route::get('/checksheet-approvals', [\App\Http\Controllers\NpcChecksheetApprovalController::class, 'index'])->name('checksheet-approvals.index');

@@ -83,7 +83,6 @@
 
     <form id="checksheet-form" action="{{ route('checksheets.update', $checksheet->hashed_id) }}" method="POST" {!! !$isMGM ? 'enctype="multipart/form-data"' : '' !!}>
         @csrf
-        @method('PUT')
         <input type="hidden" name="role" value="{{ $role }}">
         <input type="hidden" name="previous_url" value="{{ base64_encode($previousUrl ?? route('tracking.index')) }}">
         <input type="hidden" name="details_json" id="details_json">
