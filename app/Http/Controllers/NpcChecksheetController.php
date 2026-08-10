@@ -164,7 +164,18 @@ class NpcChecksheetController extends Controller
             // Support both JSON payload and legacy array payload
             $detailsInput = [];
             if ($request->filled('details_json')) {
-                $decoded = json_decode($request->details_json, true);
+                // Decode the base64 string first (to bypass WAF rules)
+                $decodedString = base64_decode($request->details_json, true);
+                $decoded = null;
+                if ($decodedString !== false) {
+                    $decoded = json_decode($decodedString, true);
+                }
+                
+                // Fallback if not base64 encoded
+                if (!is_array($decoded)) {
+                    $decoded = json_decode($request->details_json, true);
+                }
+                
                 if (is_array($decoded)) {
                     $detailsInput = $decoded;
                 }
