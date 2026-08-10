@@ -450,27 +450,7 @@
             }
         }
 
-        // Form Submission - Serialize details to JSON
-        function serializeChecksheetDetails() {
-            const details = {};
-            
-            document.querySelectorAll('.sample-cell').forEach(cell => {
-                const detailId = cell.dataset.detailId;
-                const sampleIndex = cell.dataset.sampleIndex;
-                const input = cell.querySelector('input[type="hidden"]');
-                
-                if (!details[detailId]) {
-                    details[detailId] = { samples: {}, row_result: null };
-                }
-                if (input && input.value) {
-                    details[detailId].samples[sampleIndex] = input.value;
-                }
-            });
-
-            document.querySelectorAll('input[id^="row-result-"]').forEach(resultInput => {
-                const detailId = resultInput.dataset.detailId;
-                if (detailId) {
-                    if (!details[detailId]) {
+        // Form Submission - Fetch API
         function submitViaFetch(details) {
             const actionUrl = '{{ route("checksheets.update", $checksheet->hashed_id) }}';
             const previousUrl = '{{ base64_encode($previousUrl ?? route("tracking.index")) }}';
