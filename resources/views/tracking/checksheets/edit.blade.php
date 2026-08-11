@@ -123,7 +123,7 @@
 
                 <div class="space-y-2">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Upload IR Evidence (Max 10MB) <span class="text-gray-400 font-normal">(Optional)</span>
+                        Upload IR Evidence (Max 50MB) <span class="text-gray-400 font-normal">(Optional)</span>
                     </label>
                     <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
                         <div class="space-y-1 text-center">
@@ -134,7 +134,7 @@
                                     <input id="file-upload" name="attachment_file" type="file" class="sr-only" accept=".pdf,.jpg,.jpeg,.png">
                                 </label>
                             </div>
-                            <p class="text-xs text-gray-500" id="file-name-display">PDF, PNG, JPG up to 10MB</p>
+                            <p class="text-xs text-gray-500" id="file-name-display">PDF, PNG, JPG up to 50MB</p>
                         </div>
                     </div>
                     @if($checksheet->attachment_path)
@@ -311,7 +311,7 @@
                     fileNameDisplay.textContent = e.target.files[0].name;
                     fileNameDisplay.classList.add('text-blue-600', 'font-medium');
                 } else {
-                    fileNameDisplay.textContent = 'PDF, PNG, JPG up to 10MB';
+                    fileNameDisplay.textContent = 'PDF, PNG, JPG up to 50MB';
                     fileNameDisplay.classList.remove('text-blue-600', 'font-medium');
                 }
             });

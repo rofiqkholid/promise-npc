@@ -130,7 +130,7 @@ class NpcChecksheetController extends Controller
             // Validation if using traditional file upload fallback
             if ($request->hasFile('attachment_file')) {
                 $request->validate([
-                    'attachment_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240'
+                    'attachment_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:51200'
                 ]);
             }
 
