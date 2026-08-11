@@ -125,8 +125,14 @@ class NpcChecksheetController extends Controller
         if ($request->role === 'QC') {
             $request->validate([
                 'accuracy_percentage' => 'required|numeric|min:0|max:100',
-                'attachment_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240'
             ]);
+
+            // Validation if using traditional file upload fallback
+            if ($request->hasFile('attachment_file')) {
+                $request->validate([
+                    'attachment_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240'
+                ]);
+            }
 
             $userId = auth()->check() ? auth()->user()->getAttribute('id') : 1;
             $updateData = [
@@ -143,6 +149,25 @@ class NpcChecksheetController extends Controller
                 }
                 $path = $request->file('attachment_file')->store('npc_checksheets', 'public');
                 $updateData['attachment_path'] = $path;
+            } elseif ($request->filled('attachment_file_base64')) {
+                if ($checksheet->attachment_path) {
+                    Storage::disk('public')->delete($checksheet->attachment_path);
+                }
+                
+                $base64 = $request->attachment_file_base64;
+                $decoded = base64_decode($base64);
+                
+                $ext = 'pdf'; // Default fallback
+                $fileName = $request->input('attachment_file_name', 'file.pdf');
+                $pathInfo = pathinfo($fileName);
+                if (isset($pathInfo['extension'])) {
+                    $ext = strtolower($pathInfo['extension']);
+                }
+                
+                $newFileName = 'npc_checksheets/' . \Illuminate\Support\Str::random(40) . '.' . $ext;
+                Storage::disk('public')->put($newFileName, $decoded);
+                
+                $updateData['attachment_path'] = $newFileName;
             }
 
             $checksheet->update($updateData);

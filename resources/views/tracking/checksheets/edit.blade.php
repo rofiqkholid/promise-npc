@@ -451,7 +451,7 @@
         }
 
         // Form Submission - Fetch API
-        function submitViaFetch(details) {
+        async function submitViaFetch(details) {
             const actionUrl = '{{ route("checksheets.update", $checksheet->hashed_id) }}';
             const previousUrl = '{{ base64_encode($previousUrl ?? route("tracking.index")) }}';
             const form = document.getElementById('checksheet-form');
@@ -466,20 +466,34 @@
             let fetchOptions = {};
             
             if (role === 'QC') {
-                // QC has file uploads, MUST use FormData (multipart/form-data)
-                const formData = new FormData(form);
-                formData.set('previous_url', previousUrl);
-                formData.set('details_json', JSON.stringify(details));
-                // Remove chunk inputs if any exist
-                formData.delete('details_json_chunks[]');
+                // QC has file uploads, using application/json + base64 to bypass WAF limit
+                let payload = {
+                    _token: '{{ csrf_token() }}',
+                    role: role,
+                    previous_url: previousUrl,
+                    accuracy_percentage: form.querySelector('[name="accuracy_percentage"]') ? form.querySelector('[name="accuracy_percentage"]').value : ''
+                };
+
+                const fileInput = form.querySelector('input[name="attachment_file"]');
+                if (fileInput && fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    payload.attachment_file_name = file.name;
+                    payload.attachment_file_base64 = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(file);
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = error => reject(error);
+                    });
+                }
                 
                 fetchOptions = {
                     method: 'POST',
                     headers: {
+                        'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                         'Accept': 'application/json'
                     },
-                    body: formData
+                    body: JSON.stringify(payload)
                 };
             } else {
                 // MGM has no files and large text, MUST use application/json to bypass WAF text limits

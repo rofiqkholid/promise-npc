@@ -42,8 +42,15 @@ class AppServiceProvider extends ServiceProvider
             $ecnQuery = \App\Models\NpcPart::with(['event.customerCategory', 'product.docPackage.currentRevision', 'drawingRevision'])
                 ->whereNotIn('status', ['FINISHED', 'CLOSED'])
                 ->whereNotNull('part_revision_id')
-                ->whereHas('product.docPackage', function ($query) {
-                    $query->whereColumn('doc_packages.current_revision_id', '!=', 'npc_parts.part_revision_id');
+                ->where('part_revision_id', '!=', function ($query) {
+                    $query->select('current_revision_id')
+                        ->from('doc_packages')
+                        ->whereColumn('doc_packages.product_id', 'npc_parts.product_id')
+                        ->where('is_active', true)
+                        ->where('is_delete', 0)
+                        ->whereNotNull('current_revision_id')
+                        ->orderByDesc('id')
+                        ->limit(1);
                 });
 
             $allEcnParts = $ecnQuery->latest()->get();
