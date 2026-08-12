@@ -264,11 +264,17 @@ class DashboardController extends Controller
 
         $applyFilterCallback($queryEvents);
 
-        $recentEvents = $queryEvents->orderBy('created_at', 'desc')
+        $queryEvents->addSelect(['nearest_delivery_date' => NpcPart::select('delivery_date')
+            ->whereColumn('npc_event_id', 'npc_events.id')
+            ->whereNotNull('delivery_date')
+            ->orderBy('delivery_date', 'asc')
+            ->limit(1)
+        ]);
+
+        $recentEvents = $queryEvents->orderBy('nearest_delivery_date', 'asc')
         ->whereHas('parts') // Include all POs (active and closed)
         ->take(20)
-        ->get()
-        ->reverse(); // reverse to show oldest of the recent on the left
+        ->get();
 
         $chunks = [];
         $currentChunk = [];
@@ -417,7 +423,14 @@ class DashboardController extends Controller
 
         $applyFilterCallback($queryEvents);
 
-        $recentEvents = $queryEvents->orderBy('created_at', 'desc')
+        $queryEvents->addSelect(['nearest_delivery_date' => NpcPart::select('delivery_date')
+            ->whereColumn('npc_event_id', 'npc_events.id')
+            ->whereNotNull('delivery_date')
+            ->orderBy('delivery_date', 'asc')
+            ->limit(1)
+        ]);
+
+        $recentEvents = $queryEvents->orderBy('nearest_delivery_date', 'asc')
         ->whereHas('parts') // Include all POs (active and closed)
         ->get();
 
@@ -494,11 +507,6 @@ class DashboardController extends Controller
         }
         
         $groupedDataValues = array_values($groupedData);
-        if ($isFiltered) {
-            usort($groupedDataValues, function($a, $b) {
-                return $a['sortOrder'] <=> $b['sortOrder'];
-            });
-        }
         
         foreach ($groupedDataValues as $group) {
             $totalItems = $group['totalItems'];
