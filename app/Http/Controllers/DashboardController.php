@@ -33,9 +33,7 @@ class DashboardController extends Controller
                 $q->where('po_no', 'like', "%{$filterPo}%");
             }
             if ($filterModel) {
-                $q->whereHas('parts.product', function($q2) use ($filterModel) {
-                    $q2->where('model_id', $filterModel);
-                });
+                $q->where('model_id', $filterModel);
             }
         };
 
@@ -102,7 +100,15 @@ class DashboardController extends Controller
         
         // Chart 1: Plan vs Actual
         $isFiltered = !empty($filterCustomer) || !empty($filterPo) || !empty($filterModel) || $filterYear != date('Y') || !empty($filterMonth);
-        $poChunks = $this->buildCustomerChartChunks($applyEventFilters, $isFiltered);
+        $applyPartFilters = function($q) use ($filterCustomer) {
+            if ($filterCustomer) {
+                $q->whereHas('product', function($q2) use ($filterCustomer) {
+                    $q2->where('customer_id', $filterCustomer);
+                });
+            }
+        };
+
+        $poChunks = $this->buildCustomerChartChunks($applyEventFilters, $isFiltered, $applyPartFilters);
 
         // Chart 1b: PO Progress
         $progressYear = $request->input('progress_year', date('Y'));
@@ -127,13 +133,19 @@ class DashboardController extends Controller
                 $q->where('po_no', 'like', "%{$progressPo}%");
             }
             if ($progressModel) {
-                $q->whereHas('parts.product', function($q2) use ($progressModel) {
-                    $q2->where('model_id', $progressModel);
+                $q->where('model_id', $progressModel);
+            }
+        };
+
+        $applyProgressPartFilters = function($q) use ($progressCustomer) {
+            if ($progressCustomer) {
+                $q->whereHas('product', function($q2) use ($progressCustomer) {
+                    $q2->where('customer_id', $progressCustomer);
                 });
             }
         };
 
-        $progressChunks = $this->buildChartChunks($applyProgressFilters);
+        $progressChunks = $this->buildChartChunks($applyProgressFilters, $applyProgressPartFilters);
 
         // We still need to provide $trendChart in a format that works, or pass chunks directly to view.
         // Let's pass $poChunks directly.
@@ -256,10 +268,13 @@ class DashboardController extends Controller
         ));
     }
 
-    private function buildChartChunks($applyFilterCallback)
+    private function buildChartChunks($applyFilterCallback, $partFilterCallback = null)
     {
-        $queryEvents = NpcEvent::with(['customerCategory', 'deliveryGroup', 'vehicleModel', 'parts' => function($q) {
+        $queryEvents = NpcEvent::with(['customerCategory', 'deliveryGroup', 'vehicleModel', 'parts' => function($q) use ($partFilterCallback) {
             $q->select('id', 'npc_event_id', 'status', 'product_id')->with(['product.customer', 'product.vehicleModel', 'processes', 'processes.department']);
+            if ($partFilterCallback) {
+                $partFilterCallback($q);
+            }
         }]);
 
         $applyFilterCallback($queryEvents);
@@ -415,10 +430,13 @@ class DashboardController extends Controller
         return $chunks;
     }
 
-    private function buildCustomerChartChunks($applyFilterCallback, $isFiltered = false)
+    private function buildCustomerChartChunks($applyFilterCallback, $isFiltered = false, $partFilterCallback = null)
     {
-        $queryEvents = NpcEvent::with(['customerCategory', 'deliveryGroup', 'vehicleModel', 'parts' => function($q) {
+        $queryEvents = NpcEvent::with(['customerCategory', 'deliveryGroup', 'vehicleModel', 'parts' => function($q) use ($partFilterCallback) {
             $q->select('id', 'npc_event_id', 'status', 'product_id')->with(['product.customer', 'product.vehicleModel', 'processes', 'processes.department']);
+            if ($partFilterCallback) {
+                $partFilterCallback($q);
+            }
         }]);
 
         $applyFilterCallback($queryEvents);

@@ -574,9 +574,9 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const isDark = document.documentElement.classList.contains('dark');
-    const textColor = isDark ? '#9ca3af' : '#64748b';
-    const gridColor = isDark ? '#334155' : '#f1f5f9';
+    let isDark = document.documentElement.classList.contains('dark');
+    let textColor = isDark ? '#9ca3af' : '#64748b';
+    let gridColor = isDark ? '#334155' : '#f1f5f9';
 
     // Set defaults for Chart.js
     Chart.defaults.color = textColor;
@@ -733,13 +733,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 text: 'Plan',
                                                 fillStyle: '#3b82f6',
                                                 strokeStyle: '#3b82f6',
-                                                lineWidth: 1
+                                                lineWidth: 1,
+                                                fontColor: textColor
                                             },
                                             {
                                                 text: 'Actual',
                                                 fillStyle: '#10b981',
                                                 strokeStyle: '#10b981',
-                                                lineWidth: 1
+                                                lineWidth: 1,
+                                                fontColor: textColor
                                             }
                                         ];
                                     }
@@ -995,6 +997,60 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Dynamic dark mode listener
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.attributeName === 'class') {
+                isDark = document.documentElement.classList.contains('dark');
+                textColor = isDark ? '#9ca3af' : '#64748b';
+                gridColor = isDark ? '#334155' : '#f1f5f9';
+                const borderColor = isDark ? '#1e293b' : '#ffffff';
+
+                Chart.defaults.color = textColor;
+
+                for (let id in Chart.instances) {
+                    let chart = Chart.instances[id];
+                    
+                    // Update scales
+                    if (chart.options.scales) {
+                        if (chart.options.scales.x && chart.options.scales.x.grid) {
+                            chart.options.scales.x.grid.color = gridColor;
+                            chart.options.scales.x.ticks.color = textColor;
+                        }
+                        if (chart.options.scales.y && chart.options.scales.y.grid) {
+                            chart.options.scales.y.grid.color = gridColor;
+                            chart.options.scales.y.ticks.color = textColor;
+                        }
+                    }
+
+                    // Update datasets border color (if stacked bar chart)
+                    if (chart.config.type === 'bar') {
+                        chart.data.datasets.forEach(function(ds) {
+                            ds.borderColor = borderColor;
+                        });
+                    }
+
+                    // Update tooltips
+                    if (chart.options.plugins && chart.options.plugins.tooltip) {
+                        chart.options.plugins.tooltip.backgroundColor = isDark ? '#1e293b' : '#ffffff';
+                        chart.options.plugins.tooltip.titleColor = isDark ? '#f8fafc' : '#0f172a';
+                        chart.options.plugins.tooltip.bodyColor = isDark ? '#cbd5e1' : '#475569';
+                        chart.options.plugins.tooltip.borderColor = isDark ? '#334155' : '#e2e8f0';
+                    }
+
+                    // Update datalabels
+                    if (chart.options.plugins && chart.options.plugins.datalabels) {
+                        chart.options.plugins.datalabels.color = isDark ? '#ffffff' : '#000000';
+                    }
+
+                    chart.update();
+                }
+            }
+        });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
 });
 </script>
 @endpush
