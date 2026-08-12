@@ -617,40 +617,42 @@ document.addEventListener('DOMContentLoaded', function() {
                     Object.keys(po.categories).forEach(cat => allCategories.add(cat));
                 });
                 
-                const uniqueCategories = Array.from(allCategories);
-                let datasets = [];
-                let colorIndex = 0;
+                const dataPlan = chunk.map(po => {
+                    let totalPlan = 0;
+                    Object.values(po.categories).forEach(cat => totalPlan += cat.planPct);
+                    return totalPlan;
+                });
                 
-                uniqueCategories.forEach(cat => {
-                    const dataPlan = chunk.map(po => po.categories[cat] ? po.categories[cat].planPct : 0);
-                    const dataActual = chunk.map(po => po.categories[cat] ? po.categories[cat].actualPct : 0);
-                    
-                    const borderColor = isDark ? '#1e293b' : '#ffffff';
-                    
-                    datasets.push({
-                        label: `Plan - ${cat}`,
+                const dataActual = chunk.map(po => {
+                    let totalActual = 0;
+                    Object.values(po.categories).forEach(cat => totalActual += cat.actualPct);
+                    return totalActual;
+                });
+
+                let datasets = [
+                    {
+                        label: 'Plan',
                         data: dataPlan,
                         backgroundColor: '#3b82f6',
-                        borderColor: borderColor,
-                        borderWidth: 1,
+                        borderColor: '#3b82f6',
+                        borderWidth: 0,
                         stack: 'Plan',
                         maxBarThickness: 35,
                         categoryPercentage: 0.8,
                         barPercentage: 0.8,
-                    });
-                    
-                    datasets.push({
-                        label: `Actual - ${cat}`,
+                    },
+                    {
+                        label: 'Actual',
                         data: dataActual,
                         backgroundColor: 'rgba(16, 185, 129, 1)',
-                        borderColor: borderColor,
-                        borderWidth: 1,
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 0,
                         stack: 'Actual',
                         maxBarThickness: 35,
                         categoryPercentage: 0.8,
                         barPercentage: 0.8,
-                    });
-                });
+                    }
+                ];
                 
                 new Chart(ctx, {
                     type: 'bar',
@@ -664,61 +666,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         maintainAspectRatio: false,
                         plugins: {
                             datalabels: {
-                                color: isDark ? '#ffffff' : '#000000',
-                                font: function(context) {
-                                    const val = context.dataset.data[context.dataIndex];
-                                    return { weight: 'bold', size: val < 10 ? 8 : 9 };
-                                },
-                                formatter: function(value, context) { 
-                                    if (value > 0) {
-                                        const dsLabel = context.dataset.label;
-                                        const cat = dsLabel.replace(/^(Plan|Actual) - /, '');
-                                        const tIndex = context.dataIndex;
-                                        const isPlan = dsLabel.startsWith('Plan');
-                                        
-                                        const catData = chunk[tIndex].categories[cat];
-                                        if (catData && catData.groups && Object.keys(catData.groups).length > 0) {
-                                            let displayedGroups = [];
-                                            for (const [gName, gData] of Object.entries(catData.groups)) {
-                                                const gPct = isPlan ? gData.planPct : gData.actualPct;
-                                                const gItems = isPlan ? gData.planItems : gData.actualItems;
-                                                if (gItems > 0) {
-                                                    displayedGroups.push(`${gName} ${gPct}%`);
-                                                }
-                                            }
-                                            if (displayedGroups.length > 0) {
-                                                if (value < 10) return displayedGroups.join(' | ');
-                                                
-                                                let lines = [];
-                                                for (let i = 0; i < displayedGroups.length; i++) {
-                                                    lines.push(displayedGroups[i]);
-                                                    if (i < displayedGroups.length - 1) {
-                                                        lines.push('--------');
-                                                    }
-                                                }
-                                                return lines;
-                                            }
-                                        }
-                                        
-                                        return value + '%';
-                                    }
-                                    return ''; 
-                                },
-                                anchor: 'center',
-                                align: function(context) {
-                                    const val = context.dataset.data[context.dataIndex];
-                                    if (val < 10) {
-                                        const dsLabel = context.dataset.label;
-                                        return dsLabel.startsWith('Plan') ? 'left' : 'right';
-                                    }
-                                    return 'center';
-                                },
-                                offset: function(context) {
-                                    const val = context.dataset.data[context.dataIndex];
-                                    return val < 10 ? 15 : 0;
-                                },
-                                textAlign: 'center',
-                                display: true
+                                display: false
                             },
                             legend: {
                                 position: 'top',
@@ -771,29 +719,32 @@ document.addEventListener('DOMContentLoaded', function() {
                                         if (val === 0) return null;
                                         
                                         const tIndex = context.dataIndex;
-                                        const catName = dsLabel.replace(/^(Plan|Actual) - /, '');
-                                        const isPlan = dsLabel.startsWith('Plan');
+                                        const isPlan = dsLabel === 'Plan';
                                         
-                                        const catData = chunk[tIndex].categories[catName];
-                                        if (!catData) return `${dsLabel}: ${val}%`;
+                                        let lines = [`${dsLabel}: ${val}%`];
                                         
-                                        let lines = [];
-                                        if (catData.groups && Object.keys(catData.groups).length > 0) {
-                                            for (const [gName, gData] of Object.entries(catData.groups)) {
-                                                const gItems = isPlan ? gData.planItems : gData.actualItems;
-                                                const gPct = isPlan ? gData.planPct : gData.actualPct;
-                                                if (gItems > 0) {
-                                                    lines.push(`${dsLabel} - ${gName}: ${gPct}% (${gItems} items)`);
+                                        if (chunk[tIndex] && chunk[tIndex].categories) {
+                                            Object.keys(chunk[tIndex].categories).forEach(catName => {
+                                                const catData = chunk[tIndex].categories[catName];
+                                                if (catData.groups && Object.keys(catData.groups).length > 0) {
+                                                    for (const [gName, gData] of Object.entries(catData.groups)) {
+                                                        const gItems = isPlan ? gData.planItems : gData.actualItems;
+                                                        const gPct = isPlan ? gData.planPct : gData.actualPct;
+                                                        if (gItems > 0) {
+                                                            lines.push(`  - ${catName} - ${gName}: ${gPct}% (${gItems} items)`);
+                                                        }
+                                                    }
+                                                } else {
+                                                    const items = isPlan ? catData.planItems : catData.actualItems;
+                                                    const catPct = isPlan ? catData.planPct : catData.actualPct;
+                                                    if (items > 0) {
+                                                        lines.push(`  - ${catName}: ${catPct}% (${items} items)`);
+                                                    }
                                                 }
-                                            }
+                                            });
                                         }
                                         
-                                        if (lines.length > 0) {
-                                            return lines;
-                                        }
-                                        
-                                        const items = isPlan ? catData.planItems : catData.actualItems;
-                                        return `${dsLabel}: ${val}% (${items} items)`;
+                                        return lines.length > 1 ? lines : lines[0];
                                     }
                                 }
                             }
@@ -1024,12 +975,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
 
-                    // Update datasets border color (if stacked bar chart)
-                    if (chart.config.type === 'bar') {
-                        chart.data.datasets.forEach(function(ds) {
-                            ds.borderColor = borderColor;
-                        });
-                    }
 
                     // Update tooltips
                     if (chart.options.plugins && chart.options.plugins.tooltip) {
