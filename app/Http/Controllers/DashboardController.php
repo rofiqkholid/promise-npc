@@ -265,9 +265,7 @@ class DashboardController extends Controller
         $applyFilterCallback($queryEvents);
 
         $recentEvents = $queryEvents->orderBy('created_at', 'desc')
-        ->whereHas('parts', function($q) {
-            $q->whereNotIn('status', ['FINISHED', 'CLOSED']); // Only active POs
-        })
+        ->whereHas('parts') // Include all POs (active and closed)
         ->take(20)
         ->get()
         ->reverse(); // reverse to show oldest of the recent on the left
@@ -420,9 +418,7 @@ class DashboardController extends Controller
         $applyFilterCallback($queryEvents);
 
         $recentEvents = $queryEvents->orderBy('created_at', 'desc')
-        ->whereHas('parts', function($q) {
-            $q->whereNotIn('status', ['FINISHED', 'CLOSED']); // Only active POs
-        })
+        ->whereHas('parts') // Include all POs (active and closed)
         ->get();
 
         $chunks = [];
