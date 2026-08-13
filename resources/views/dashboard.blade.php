@@ -620,13 +620,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 const dataPlan = chunk.map(po => {
                     let totalPlan = 0;
                     Object.values(po.categories).forEach(cat => totalPlan += cat.planPct);
-                    return totalPlan;
+                    return Math.round(totalPlan);
                 });
                 
                 const dataActual = chunk.map(po => {
                     let totalActual = 0;
                     Object.values(po.categories).forEach(cat => totalActual += cat.actualPct);
-                    return totalActual;
+                    return Math.round(totalActual);
                 });
 
                 let datasets = [
@@ -741,14 +741,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                                         const gItems = isPlan ? gData.planItems : gData.actualItems;
                                                         const gPct = isPlan ? gData.planPct : gData.actualPct;
                                                         if (gItems > 0) {
-                                                            lines.push(`  - ${catName} - ${gName}: ${gPct}% (${gItems} items)`);
+                                                            lines.push(`  - ${catName} - ${gName}: ${Math.round(gPct)}% (${gItems} items)`);
                                                         }
                                                     }
                                                 } else {
                                                     const items = isPlan ? catData.planItems : catData.actualItems;
                                                     const catPct = isPlan ? catData.planPct : catData.actualPct;
                                                     if (items > 0) {
-                                                        lines.push(`  - ${catName}: ${catPct}% (${items} items)`);
+                                                        lines.push(`  - ${catName}: ${Math.round(catPct)}% (${items} items)`);
                                                     }
                                                 }
                                             });
