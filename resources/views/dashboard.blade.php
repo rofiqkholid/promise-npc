@@ -666,7 +666,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         maintainAspectRatio: false,
                         plugins: {
                             datalabels: {
-                                display: false
+                                color: isDark ? '#ffffff' : '#000000',
+                                font: function(context) {
+                                    const val = context.dataset.data[context.dataIndex];
+                                    return { weight: 'bold', size: val < 10 ? 8 : 9 };
+                                },
+                                formatter: function(value) { 
+                                    return value > 0 ? value + '%' : ''; 
+                                },
+                                anchor: 'center',
+                                align: 'center',
+                                display: true
                             },
                             legend: {
                                 position: 'top',
