@@ -463,6 +463,17 @@
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Submitting...';
             }
 
+            // Extract new history problems from the DOM
+            const historyInputs = form.querySelectorAll('input[name="new_history_problems[]"]');
+            let newHistoryProblems = [];
+            if (historyInputs.length > 0) {
+                historyInputs.forEach(input => {
+                    if (input.value.trim() !== '') {
+                        newHistoryProblems.push(input.value.trim());
+                    }
+                });
+            }
+
             let fetchOptions = {};
             
             if (role === 'QC') {
@@ -471,7 +482,8 @@
                     _token: '{{ csrf_token() }}',
                     role: role,
                     previous_url: previousUrl,
-                    accuracy_percentage: form.querySelector('[name="accuracy_percentage"]') ? form.querySelector('[name="accuracy_percentage"]').value : ''
+                    accuracy_percentage: form.querySelector('[name="accuracy_percentage"]') ? form.querySelector('[name="accuracy_percentage"]').value : '',
+                    new_history_problems: newHistoryProblems
                 };
 
                 const fileInput = form.querySelector('input[name="attachment_file"]');
@@ -502,7 +514,8 @@
                     role: role,
                     previous_url: previousUrl,
                     details_json: JSON.stringify(details),
-                    final_result: form.querySelector('[name="final_result"]') ? form.querySelector('[name="final_result"]').value : ''
+                    final_result: form.querySelector('[name="final_result"]') ? form.querySelector('[name="final_result"]').value : '',
+                    new_history_problems: newHistoryProblems
                 };
                 
                 fetchOptions = {
