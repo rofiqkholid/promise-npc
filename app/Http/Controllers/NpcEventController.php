@@ -491,11 +491,11 @@ class NpcEventController extends Controller
                 }
 
                 // Validasi Delivery Date (harus sama dengan item yang sudah ada di PO tersebut)
-                $firstPart = \App\Models\NpcPart::where('npc_event_id', $event->id)->first();
-                if ($firstPart && $firstPart->delivery_date != $deliveryDate) {
-                    $rowErrors[] = "Row {$actualRowNumber}: PO '{$poNo}' exists but has a different Delivery Date ({$firstPart->delivery_date}). Rejected.";
-                    continue;
-                }
+                // $firstPart = \App\Models\NpcPart::where('npc_event_id', $event->id)->first();
+                // if ($firstPart && $firstPart->delivery_date != $deliveryDate) {
+                //     $rowErrors[] = "Row {$actualRowNumber}: PO '{$poNo}' exists but has a different Delivery Date ({$firstPart->delivery_date}). Rejected.";
+                //     continue;
+                // }
 
                 // Validasi Item Berbeda (tidak boleh ada part yang sama di dalam satu PO)
                 $partExists = \App\Models\NpcPart::where('npc_event_id', $event->id)
