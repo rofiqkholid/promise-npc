@@ -50,6 +50,10 @@
                         <div class="w-6 h-6 bg-blue-100 dark:bg-blue-800 flex items-center justify-center shrink-0 font-bold text-xs text-blue-600 dark:text-blue-300">3</div>
                         <p class="text-xs leading-relaxed"><strong>Mandatory Fields</strong>: <code>PO NO</code>, <code>PART NO</code>, <code>QTY</code>, <code>DELV DATE</code>, <code>CUSTOMER CODE</code>, <code>EVENT CATEGORY</code>, and <code>DELIVERY GROUP</code> are required for each row.</p>
                     </div>
+                    <div class="flex gap-3">
+                        <div class="w-6 h-6 bg-blue-100 dark:bg-blue-800 flex items-center justify-center shrink-0 font-bold text-xs text-blue-600 dark:text-blue-300">4</div>
+                        <p class="text-xs leading-relaxed"><strong>Main Model</strong>: If a PO has multiple models, you can put <code>Y</code> in the 11th column (Column K) to specify which Model should be the Main Model for that PO Event.</p>
+                    </div>
                 </div>
             </div>
 

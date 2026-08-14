@@ -385,7 +385,7 @@ class NpcEventController extends Controller
 
             foreach ($rows as $index => $row) {
                 // Mapping Kolom (sesuai template baru):
-                // 0: PO NO, 1: CUSTOMER CODE, 2: MODEL NAME, 3: EVENT CATEGORY, 4: DELIVERY GROUP, 5: DELIVERY TO, 6: DELV DATE, 7: PART NO, 8: PART NAME, 9: QTY
+                // 0: PO NO, 1: CUSTOMER CODE, 2: MODEL NAME, 3: EVENT CATEGORY, 4: DELIVERY GROUP, 5: DELIVERY TO, 6: DELV DATE, 7: PART NO, 8: PART NAME, 9: QTY, 10: MAIN MODEL (Y)
                 
                 $actualRowNumber = $index + 2;
 
@@ -402,6 +402,7 @@ class NpcEventController extends Controller
                 $deliveryDateRaw = $row[6] ?? null;
                 $partName = trim($row[8] ?? '');
                 $qty = (int) ($row[9] ?? 1);
+                $isMainModel = strtoupper(trim($row[10] ?? '')) === 'Y';
 
                 if (empty($custCode) || empty($catName) || empty($groupName)) {
                     $rowErrors[] = "Row {$actualRowNumber}: CUSTOMER CODE, EVENT CATEGORY, and DELIVERY GROUP are required.";
@@ -462,12 +463,18 @@ class NpcEventController extends Controller
                     }
                 }
 
-                // 2. Find/Create Event (Batching by PO)
+                // 2. Find/Create Event (Batching by PO, Category, Group, and Delivery To)
                 $poNo = $poNo ?: 'PO-'.time();
-                $eventKey = $poNo;
+                $modelId = $product->model_id;
+                $eventKey = $poNo . '_' . $category->id . '_' . $delivGroup->id . '_' . $deliveryTo;
                 
                 if (!isset($eventsCreated[$eventKey])) {
-                    $existingEvent = \App\Models\NpcEvent::where('po_no', $poNo)->first();
+                    $existingEvent = \App\Models\NpcEvent::where('po_no', $poNo)
+                        ->where('customer_category_id', $category->id)
+                        ->where('delivery_group_id', $delivGroup->id)
+                        ->where('delivery_to', $deliveryTo ?: null)
+                        ->first();
+                        
                     if ($existingEvent) {
                         $eventsCreated[$eventKey] = $existingEvent;
                     } else {
@@ -476,19 +483,25 @@ class NpcEventController extends Controller
                             'customer_category_id' => $category->id,
                             'delivery_group_id' => $delivGroup->id,
                             'delivery_to' => $deliveryTo ?: null,
+                            'model_id' => null,
                         ]);
                     }
                 }
                 
                 $event = $eventsCreated[$eventKey];
+                
+                if ($isMainModel && $event->model_id != $modelId) {
+                    $event->model_id = $modelId;
+                    $event->save();
+                }
 
                 // Validasi kesamaan kunci (karena append ke PO yang sudah ada / di cache)
-                if ($event->delivery_group_id != $delivGroup->id || 
-                    $event->customer_category_id != $category->id || 
-                    $event->delivery_to != $deliveryTo) {
-                    $rowErrors[] = "Row {$actualRowNumber}: PO '{$poNo}' exists but with different Group, Category, or Delivery To. Rejected.";
-                    continue;
-                }
+                // if ($event->delivery_group_id != $delivGroup->id || 
+                //     $event->customer_category_id != $category->id || 
+                //     $event->delivery_to != $deliveryTo) {
+                //     $rowErrors[] = "Row {$actualRowNumber}: PO '{$poNo}' exists but with different Group, Category, or Delivery To. Rejected.";
+                //     continue;
+                // }
 
                 // Validasi Delivery Date (harus sama dengan item yang sudah ada di PO tersebut)
                 // $firstPart = \App\Models\NpcPart::where('npc_event_id', $event->id)->first();
@@ -559,7 +572,7 @@ class NpcEventController extends Controller
             // Set Headers
             $headers = [
                 'PO NO', 'CUSTOMER CODE', 'MODEL NAME', 'EVENT CATEGORY', 'DELIVERY GROUP', 'DELIVERY TO',
-                'DELV DATE (YYYY-MM-DD)', 'PART NO', 'PART NAME', 'QTY'
+                'DELV DATE (YYYY-MM-DD)', 'PART NO', 'PART NAME', 'QTY', 'MAIN MODEL (Y)'
             ];
             foreach ($headers as $index => $header) {
                 $column = chr(65 + $index);
@@ -582,7 +595,7 @@ class NpcEventController extends Controller
             }
             
             // Auto size columns
-            foreach (range('A', 'J') as $columnID) {
+            foreach (range('A', 'K') as $columnID) {
                 $sheet->getColumnDimension($columnID)->setAutoSize(true);
             }
             
