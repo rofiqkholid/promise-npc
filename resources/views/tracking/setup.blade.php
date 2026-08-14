@@ -36,7 +36,7 @@
                 <select id="poFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
                     <option value="all">All POs</option>
                     @foreach($poList ?? [] as $po)
-                        <option value="{{ $po->id }}" {{ request('po_filter') == $po->id ? 'selected' : '' }}>{{ $po->po_no }}</option>
+                        <option value="{{ $po->po_no }}" {{ request('po_filter') == $po->po_no ? 'selected' : '' }}>{{ $po->po_no }}</option>
                     @endforeach
                 </select>
             </div>

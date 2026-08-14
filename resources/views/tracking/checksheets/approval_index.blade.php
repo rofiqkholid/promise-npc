@@ -32,6 +32,14 @@
                     </select>
                 </div>
                 <div class="w-full md:w-48">
+                    <select id="filterPo" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
+                        <option value="">All POs</option>
+                        @foreach($poList ?? [] as $po)
+                            <option value="{{ $po->po_no }}">{{ $po->po_no }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="w-full md:w-48">
                     <select id="filterStage" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
                         <option value="">All Stages</option>
                         <option value="WAITING_QE_STAFF">Waiting QE Staff</option>
@@ -85,13 +93,15 @@
                     d.stage = $('#filterStage').val();
                     d.customer = $('#filterCustomer').val();
                     d.model = $('#filterModel').val();
+                    d.po = $('#filterPo').val();
                 }
             },
             stateSaveParams: function (settings, data) {
                 data.customFilters = {
                     stage: $('#filterStage').val(),
                     customer: $('#filterCustomer').val(),
-                    model: $('#filterModel').val()
+                    model: $('#filterModel').val(),
+                    po: $('#filterPo').val()
                 };
             },
             stateLoadParams: function (settings, data) {
@@ -104,6 +114,9 @@
                     }
                     if (data.customFilters.model !== undefined) {
                         $('#filterModel').val(data.customFilters.model);
+                    }
+                    if (data.customFilters.po !== undefined) {
+                        $('#filterPo').val(data.customFilters.po);
                     }
                 }
             },
@@ -127,6 +140,12 @@
                     if ($('#filterModel').hasClass('select2-hidden-accessible')) {
                         $('#filterModel').trigger('change.select2');
                     }
+                    if ($('#filterPo').val()) {
+                        $('#filterPo').trigger('change');
+                    }
+                    if ($('#filterPo').hasClass('select2-hidden-accessible')) {
+                        $('#filterPo').trigger('change.select2');
+                    }
                 }, 100);
             },
             columns: [
@@ -142,7 +161,7 @@
 
         let isResetting = false;
 
-        $('#filterStage, #filterCustomer, #filterModel').on('change', function() {
+        $('#filterStage, #filterCustomer, #filterModel, #filterPo').on('change', function() {
             if (!isResetting) {
                 $('#checksheetApprovalTable').DataTable().ajax.reload();
             }
@@ -153,6 +172,7 @@
             $('#filterStage').val('').trigger('change');
             $('#filterCustomer').val('').trigger('change');
             $('#filterModel').val('').trigger('change');
+            $('#filterPo').val('').trigger('change');
             isResetting = false;
             
             $('#checksheetApprovalTable').DataTable().ajax.reload();

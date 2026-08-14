@@ -117,6 +117,14 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="w-full md:w-64">
+                        <select id="poFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
+                            <option value="">All POs</option>
+                            @foreach($poList ?? [] as $po)
+                                <option value="{{ $po->po_no }}" {{ request('po_filter') == $po->po_no ? 'selected' : '' }}>{{ $po->po_no }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="flex items-end">
                         <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center">
                             <i class="fa-solid fa-rotate-left"></i> Reset
@@ -303,6 +311,7 @@ style="display: none;">
                 data: function (d) {
                     d.customer_filter = $('#customerFilter').val();
                     d.model_filter = $('#modelFilter').val();
+                    d.po_filter = $('#poFilter').val();
                 }
             },
             responsive: true,
@@ -310,7 +319,8 @@ style="display: none;">
             stateSaveParams: function (settings, data) {
                 data.customFilters = {
                     customer: $('#customerFilter').val(),
-                    model: $('#modelFilter').val()
+                    model: $('#modelFilter').val(),
+                    po: $('#poFilter').val()
                 };
             },
             stateLoadParams: function (settings, data) {
@@ -320,6 +330,9 @@ style="display: none;">
                     }
                     if (data.customFilters.model !== undefined) {
                         $('#modelFilter').val(data.customFilters.model);
+                    }
+                    if (data.customFilters.po !== undefined) {
+                        $('#poFilter').val(data.customFilters.po);
                     }
                 }
             },
@@ -338,6 +351,9 @@ style="display: none;">
                     }
                     if ($('#modelFilter').hasClass('select2-hidden-accessible')) {
                         $('#modelFilter').trigger('change.select2');
+                    }
+                    if ($('#poFilter').hasClass('select2-hidden-accessible')) {
+                        $('#poFilter').trigger('change.select2');
                     }
                 }, 100);
             },
@@ -552,9 +568,14 @@ style="display: none;">
             performSearch();
         });
 
+        $('#poFilter').on('change', function(e) {
+            performSearch();
+        });
+
         $('#clearFiltersBtn').on('click', function(e) {
             e.preventDefault();
             $('#modelFilter').val('');
+            $('#poFilter').val('');
             $('#customerFilter').val('').trigger('change');
         });
         
