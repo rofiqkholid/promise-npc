@@ -75,7 +75,7 @@
                         <th scope="col" class="px-4 py-2 font-semibold text-right w-32">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="">
                     <!-- DataTables will fill this -->
                 </tbody>
             </table>
