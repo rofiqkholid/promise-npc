@@ -31,6 +31,10 @@ class NpcEventController extends Controller
                 $query->where('model_id', $request->model_id);
             }
 
+            if ($request->has('po_no') && $request->po_no != '') {
+                $query->where('po_no', $request->po_no);
+            }
+
             return \Yajra\DataTables\Facades\DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('event_name', function ($event) {
@@ -94,8 +98,9 @@ class NpcEventController extends Controller
         
         $customers = \App\Models\Customer::orderBy('name')->get();
         $models = \App\Models\VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
+        $poList = \App\Models\NpcEvent::select('po_no')->whereNotNull('po_no')->distinct()->orderBy('po_no')->get();
 
-        return view('master.events.index', compact('customers', 'models'));
+        return view('master.events.index', compact('customers', 'models', 'poList'));
     }
 
     public function create()

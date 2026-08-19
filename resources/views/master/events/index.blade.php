@@ -43,6 +43,17 @@
                         @endforeach
                     </select>
                 </div>
+                
+                <div class="w-full sm:w-48">
+                    <select name="po_no" id="filter_po" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none">
+                        <option value="">All POs</option>
+                        @foreach($poList as $po)
+                            <option value="{{ $po->po_no }}" {{ request('po_no') == $po->po_no ? 'selected' : '' }}>
+                                {{ $po->po_no }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <button type="button" id="resetFiltersBtn" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 transition text-[13px] flex items-center gap-2 shadow-sm rounded-none" title="Reset Filters">
                     <i class="fa-solid fa-rotate-left"></i> Reset
@@ -82,12 +93,14 @@
                 data: function (d) {
                     d.customer_id = $('#filter_customer').val();
                     d.model_id = $('#filter_model').val();
+                    d.po_no = $('#filter_po').val();
                 }
             },
             stateSaveParams: function (settings, data) {
                 data.customFilters = {
                     customer_id: $('#filter_customer').val(),
-                    model_id: $('#filter_model').val()
+                    model_id: $('#filter_model').val(),
+                    po_no: $('#filter_po').val()
                 };
             },
             stateLoadParams: function (settings, data) {
@@ -97,6 +110,9 @@
                     }
                     if (data.customFilters.model_id !== undefined) {
                         $('#filter_model').val(data.customFilters.model_id);
+                    }
+                    if (data.customFilters.po_no !== undefined) {
+                        $('#filter_po').val(data.customFilters.po_no);
                     }
                 }
             },
@@ -115,6 +131,12 @@
                     }
                     if ($('#filter_model').hasClass('select2-hidden-accessible')) {
                         $('#filter_model').trigger('change.select2');
+                    }
+                    if ($('#filter_po').val()) {
+                        $('#filter_po').trigger('change');
+                    }
+                    if ($('#filter_po').hasClass('select2-hidden-accessible')) {
+                        $('#filter_po').trigger('change.select2');
                     }
                 }, 100);
             },
@@ -165,10 +187,15 @@
             $('#eventsTable').DataTable().ajax.reload();
         });
 
+        $('#filter_po').on('change', function() {
+            $('#eventsTable').DataTable().ajax.reload();
+        });
+
         // Reset Filters
         $('#resetFiltersBtn').on('click', function() {
             $('#filter_customer').val('').trigger('change.select2');
             $('#filter_model').val('').trigger('change.select2');
+            $('#filter_po').val('').trigger('change.select2');
             updateModelFilter();
 
             let table = $('#eventsTable').DataTable();
