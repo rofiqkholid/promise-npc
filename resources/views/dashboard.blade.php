@@ -15,7 +15,41 @@
 <div class="flex flex-col gap-4 h-[calc(100vh-10rem)] overflow-hidden">
 
     <!-- KPI Cards (Row 1) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 flex-none">
+    <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4 flex-none">
+        <!-- Total Active Projects -->
+        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+            <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
+                <div>
+                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Total Active Projects</p>
+                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['active_models'] }}</h3>
+                </div>
+                <div class="w-10 h-10 bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-teal-600 dark:text-teal-400 text-lg">
+                    <i class="fa-solid fa-car"></i>
+                </div>
+            </div>
+            <!-- Popover -->
+            <div x-show="open" x-transition.opacity class="absolute top-full left-0 mt-1 w-full max-h-56 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg z-50 px-2 pb-2 custom-scrollbar" style="display: none;">
+                @if(count($metrics['active_models_list'] ?? []) > 0)
+                    <div class="w-full text-left text-xs">
+                        <div class="sticky top-0 bg-white dark:bg-slate-800 z-20 flex text-slate-500 font-bold border-b border-slate-200 dark:border-slate-700 pt-2 pb-1 px-1">
+                            <div class="w-8">No</div>
+                            <div class="flex-1">Model</div>
+                        </div>
+                        <div class="flex flex-col">
+                            @foreach($metrics['active_models_list'] ?? [] as $idx => $item)
+                            <div class="flex items-center border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 py-1.5 px-1">
+                                <div class="w-8 text-slate-500">{{ $idx + 1 }}</div>
+                                <div class="flex-1 font-medium text-slate-800 dark:text-slate-200">{{ $item->name ?? '-' }}</div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @else
+                    <p class="text-xs text-center text-slate-500 py-2">No data</p>
+                @endif
+            </div>
+        </div>
+
         <!-- Total PO -->
         <div class="relative" x-data="{ open: false }" @click.outside="open = false">
             <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
@@ -54,7 +88,7 @@
         <div class="relative" x-data="{ open: false }" @click.outside="open = false">
             <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
                 <div>
-                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Total Active Projects</p>
+                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">PO Active</p>
                     <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['po_on_hand'] }}</h3>
                 </div>
                 <div class="w-10 h-10 bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 text-lg">
@@ -67,13 +101,13 @@
                     <div class="w-full text-left text-xs">
                         <div class="sticky top-0 bg-white dark:bg-slate-800 z-20 flex text-slate-500 font-bold border-b border-slate-200 dark:border-slate-700 pt-2 pb-1 px-1">
                             <div class="w-8">No</div>
-                            <div class="flex-1">Model</div>
+                            <div class="flex-1">PO No.</div>
                         </div>
                         <div class="flex flex-col">
                             @foreach($metrics['po_on_hand_list'] ?? [] as $idx => $item)
                             <div class="flex items-center border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 py-1.5 px-1">
                                 <div class="w-8 text-slate-500">{{ $idx + 1 }}</div>
-                                <div class="flex-1 font-medium text-slate-800 dark:text-slate-200">{{ optional(optional(optional($item->parts->first())->product)->vehicleModel)->name ?? '-' }}</div>
+                                <div class="flex-1 font-medium text-slate-800 dark:text-slate-200">{{ $item->po_no ?? '-' }}</div>
                             </div>
                             @endforeach
                         </div>
@@ -405,22 +439,22 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
                                 @foreach($nearestEvents as $evt)
-                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors" onclick="window.location.href='{{ route('tracking.index', ['search' => $evt->event->po_no, 'open_event' => $evt->npc_event_id, 'from_dashboard' => 1]) }}'">
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors" onclick="window.location.href='{{ route('tracking.index', ['search' => $evt->po_no, 'open_event' => $evt->id, 'from_dashboard' => 1]) }}'">
                                         <td class="py-1.5 px-1 pl-2 overflow-hidden">
-                                            <p class="text-[9px] font-semibold text-slate-800 dark:text-white truncate" title="{{ $evt->product->customer->code ?? '-' }}">{{ $evt->product->customer->code ?? '-' }}</p>
+                                            <p class="text-[9px] font-semibold text-slate-800 dark:text-white truncate" title="{{ $evt->vehicleModel->customer->code ?? '-' }}">{{ $evt->vehicleModel->customer->code ?? '-' }}</p>
                                         </td>
                                         <td class="py-1.5 px-1 overflow-hidden">
-                                            <p class="text-[9px] text-slate-600 dark:text-slate-400 truncate" title="{{ $evt->product->vehicleModel->name ?? '-' }}">{{ $evt->product->vehicleModel->name ?? '-' }}</p>
+                                            <p class="text-[9px] text-slate-600 dark:text-slate-400 truncate" title="{{ $evt->vehicleModel->name ?? '-' }}">{{ $evt->vehicleModel->name ?? '-' }}</p>
                                         </td>
                                         <td class="py-1.5 px-1">
-                                            <p class="text-[9px] text-slate-600 dark:text-slate-400" title="{{ $evt->event->customerCategory->name ?? '-' }}">{{ $evt->event->customerCategory->name ?? '-' }}</p>
+                                            <p class="text-[9px] text-slate-600 dark:text-slate-400" title="{{ $evt->customerCategory->name ?? '-' }}">{{ $evt->customerCategory->name ?? '-' }}</p>
                                         </td>
                                         <td class="py-1.5 px-1">
-                                            <span class="text-[8px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-1 py-0.5 rounded whitespace-nowrap" title="{{ $evt->event->deliveryGroup->name ?? '-' }}">{{ $evt->event->deliveryGroup->name ?? '-' }}</span>
+                                            <span class="text-[8px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-1 py-0.5 rounded whitespace-nowrap" title="{{ $evt->deliveryGroup->name ?? '-' }}">{{ $evt->deliveryGroup->name ?? '-' }}</span>
                                         </td>
                                         <td class="py-1.5 px-1 pr-2 text-right">
-                                            <span class="text-[9px] font-bold whitespace-nowrap {{ \Carbon\Carbon::parse($evt->delivery_date)->isPast() ? 'text-rose-500' : 'text-slate-700 dark:text-slate-300' }}">
-                                                {{ \Carbon\Carbon::parse($evt->delivery_date)->format('d M y') }}
+                                            <span class="text-[9px] font-bold whitespace-nowrap {{ \Carbon\Carbon::parse($evt->nearest_delivery_date)->isPast() ? 'text-rose-500' : 'text-slate-700 dark:text-slate-300' }}">
+                                                {{ \Carbon\Carbon::parse($evt->nearest_delivery_date)->format('d M y') }}
                                             </span>
                                         </td>
                                     </tr>

@@ -102,7 +102,9 @@ Route::middleware(['auth'])->group(function () {
     // Dummy API Routes for Dashboard Filters
     Route::prefix('api')->name('api.')->group(function () {
         Route::post('/data/models', function (\Illuminate\Http\Request $request) {
-            $models = \App\Models\VehicleModel::where('customer_id', $request->customer_id)->get(['id', 'name as text']);
+            $models = \App\Models\VehicleModel::where('customer_id', $request->customer_id)
+                ->where('status_id', 3) // Only Project status
+                ->get(['id', 'name as text']);
             return response()->json(['results' => $models]);
         })->name('data.models');
 

@@ -76,24 +76,39 @@ class DashboardController extends Controller
         })->values();
         $stock = $stockList->count();
 
+        // Active Models (Total Active Projects)
+        $activeModelsList = NpcEvent::with('vehicleModel')->where($noFilters)->where(function($q) {
+            $q->whereDoesntHave('parts')
+              ->orWhereHas('parts', function($q2) {
+                  $q2->whereNotIn('status', ['CLOSED', 'OUTSTANDING']);
+              });
+        })->get()->pluck('vehicleModel')->filter()->unique('name')->sortBy('name')->values();
+        $activeModelsCount = $activeModelsList->count();
+
         $metrics = [
             'total_po' => $totalPO,
             'po_on_hand' => $poOnHand,
             'po_complete' => $poComplete,
             'stock' => $stock,
+            'active_models' => $activeModelsCount,
             'total_po_list' => $totalPOList,
             'po_on_hand_list' => $poOnHandList,
             'po_complete_list' => $poCompleteList,
             'stock_list' => $stockList,
+            'active_models_list' => $activeModelsList,
         ];
 
-        // 2. Nearest Events
-        $nearestEvents = NpcPart::with(['product.vehicleModel', 'product.customer', 'event.customerCategory', 'event.deliveryGroup'])
-            ->whereHas('event', $noFilters)
-            ->whereNotIn('status', ['CLOSED'])
-            ->whereNotNull('delivery_date')
-            ->orderBy('delivery_date', 'asc')
-            ->take(5)
+        // 2. Nearest Events (Draft POs)
+        $nearestEvents = NpcEvent::with(['vehicleModel.customer', 'customerCategory', 'deliveryGroup'])
+            ->where($noFilters)
+            ->whereHas('parts', function($q) {
+                $q->whereNotNull('delivery_date');
+            })
+            ->whereDoesntHave('parts', function($q) {
+                $q->where('status', '!=', 'PO_REGISTERED');
+            })
+            ->withMin('parts as nearest_delivery_date', 'delivery_date')
+            ->orderBy('nearest_delivery_date', 'asc')
             ->get();
 
         // --- DASHBOARD V2 CHARTS DATA ---
