@@ -485,14 +485,23 @@ class ProductionTrackingController extends Controller
         ]);
 
         if ($part->checksheet) {
-            // Delete checkheet details (the snapshot points)
-            $part->checksheet->details()->delete();
-            
-            // Delete any NG history recorded from this checksheet
+            // Delete any NG history recorded from this checksheet during MGM submission
             \App\Models\ProductHistoryProblem::where('npc_part_id_finder', $part->id)->delete();
             
-            // Delete the main checksheet record
-            $part->checksheet->delete();
+            // Reset MGM and Approval fields but PRESERVE the checksheet and QC inputs
+            $part->checksheet->update([
+                'mgm_checked_by' => null,
+                'mgm_check_date' => null,
+                'approval_status' => 'WAITING_QE_STAFF',
+                'mgm_staff_id' => null, 'mgm_staff_date' => null,
+                'mgm_spv_id' => null, 'mgm_spv_date' => null,
+                'mgm_assman_id' => null, 'mgm_assman_date' => null,
+                'mgm_mgr_id' => null, 'mgm_mgr_date' => null,
+                'qe_staff_id' => null, 'qe_staff_date' => null,
+                'qe_spv_id' => null, 'qe_spv_date' => null,
+                'qe_assman_id' => null, 'qe_assman_date' => null,
+                'qe_mgr_id' => null, 'qe_mgr_date' => null,
+            ]);
         }
 
         $latestActivity = $part->activities()->latest()->first();
