@@ -37,6 +37,14 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="w-full md:w-64">
+                    <select id="filter_po" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
+                        <option value="">All POs</option>
+                        @foreach($poList ?? [] as $po)
+                            <option value="{{ $po->po_no }}" {{ request('po_filter') == $po->po_no ? 'selected' : '' }}>{{ $po->po_no }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="flex items-end">
                     <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center">
                         <i class="fa-solid fa-rotate-left"></i> Reset
@@ -128,6 +136,7 @@
                 data: function (d) {
                     d.customer_filter = $('#filter_customer').val();
                     d.model_filter = $('#filter_model').val();
+                    d.po_filter = $('#filter_po').val();
                     d.status_filter = $('#filter_status').val();
                 }
             },
@@ -135,6 +144,7 @@
                 data.customFilters = {
                     customer: $('#filter_customer').val(),
                     model: $('#filter_model').val(),
+                    po: $('#filter_po').val(),
                     status: $('#filter_status').val()
                 };
             },
@@ -145,6 +155,9 @@
                     }
                     if (data.customFilters.model !== undefined) {
                         $('#filter_model').val(data.customFilters.model);
+                    }
+                    if (data.customFilters.po !== undefined) {
+                        $('#filter_po').val(data.customFilters.po);
                     }
                     if (data.customFilters.status !== undefined) {
                         $('#filter_status').val(data.customFilters.status);
@@ -161,6 +174,9 @@
                     if ($('#filter_model').val() && !hasCustomer) {
                         $('#filter_model').trigger('change');
                     }
+                    if ($('#filter_po').val()) {
+                        $('#filter_po').trigger('change');
+                    }
                     if ($('#filter_status').val()) {
                         $('#filter_status').trigger('change');
                     }
@@ -169,6 +185,9 @@
                     }
                     if ($('#filter_model').hasClass('select2-hidden-accessible')) {
                         $('#filter_model').trigger('change.select2');
+                    }
+                    if ($('#filter_po').hasClass('select2-hidden-accessible')) {
+                        $('#filter_po').trigger('change.select2');
                     }
                     if ($('#filter_status').hasClass('select2-hidden-accessible')) {
                         $('#filter_status').trigger('change.select2');
@@ -411,9 +430,22 @@
             performSearch();
         });
 
+        $('#filter_po').on('change', function(e) {
+            performSearch();
+        });
+
         $('#clearFiltersBtn').on('click', function(e) {
             e.preventDefault();
             $('#filter_model').val('');
+            $('#filter_po').val('');
+            if ($('#filter_model').hasClass('select2-hidden-accessible')) {
+                $('#filter_model').trigger('change.select2');
+            }
+            if ($('#filter_po').hasClass('select2-hidden-accessible')) {
+                $('#filter_po').trigger('change.select2');
+            } else {
+                $('#filter_po').trigger('change.select2');
+            }
             $('#filter_customer').val('').trigger('change');
         });
         
