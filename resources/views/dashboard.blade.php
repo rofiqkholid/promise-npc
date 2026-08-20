@@ -483,17 +483,63 @@
                         <div class="divide-y divide-slate-100 dark:divide-slate-700/50">
                             <!-- Rolled Back Items -->
                             @foreach($rolledBackParts as $part)
-                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route('tracking.index', ['search' => $part->event->po_no ?? '', 'open_event' => $part->npc_event_id, 'from_dashboard' => 1]) }}'">
+                                @php
+                                    $stuckAt = 'Unknown';
+                                    $supportFrom = 'Unknown';
+                                    $targetRoute = 'tracking.index';
+                                    $targetParams = ['search' => $part->event->po_no ?? '', 'open_event' => $part->npc_event_id, 'from_dashboard' => 1];
+                                    
+                                    if ($part->status === 'PO_REGISTERED') {
+                                        $stuckAt = 'Setup Routing';
+                                        $supportFrom = 'NPC';
+                                        $targetRoute = 'tracking.setup';
+                                        $targetParams['open_part'] = $part->hashed_id;
+                                    } elseif ($part->status === 'WAITING_DEPT_CONFIRM') {
+                                        $waitingProc = $part->processes->where('status', 'WAITING')->first();
+                                        if ($waitingProc) {
+                                            $stuckAt = optional($waitingProc->process)->process_name ?? 'Production Process';
+                                            $supportFrom = optional($waitingProc->department)->name ?? 'Production Dept';
+                                        } else {
+                                            $stuckAt = 'Production';
+                                            $supportFrom = 'Production Dept';
+                                        }
+                                        $targetRoute = 'tracking.production';
+                                        $targetParams['open_part'] = $part->hashed_id;
+                                    } elseif ($part->status === 'WAITING_QE_CHECK') {
+                                        $stuckAt = 'QC Check';
+                                        $supportFrom = 'Quality Engineering (QE)';
+                                        $targetRoute = 'tracking.qc';
+                                        $targetParams['open_part'] = $part->hashed_id;
+                                    } elseif ($part->status === 'WAITING_MGM_CHECK') {
+                                        $stuckAt = 'Management Check';
+                                        $supportFrom = 'Management';
+                                        $targetRoute = 'tracking.mgm';
+                                        $targetParams['open_part'] = $part->hashed_id;
+                                    } elseif ($part->status === 'WAITING_APPROVAL') {
+                                        $stuckAt = 'Checksheet Approval';
+                                        $supportFrom = 'Management Staff/Mgr';
+                                        $targetRoute = 'checksheet-approvals.index';
+                                        $targetParams = ['search' => $part->event->po_no ?? '', 'open_checksheet' => optional($part->checksheet)->hashed_id];
+                                    } elseif ($part->status === 'FINISHED') {
+                                        $stuckAt = 'Finished Goods';
+                                        $supportFrom = 'Delivery / Logistics';
+                                        $targetRoute = 'tracking.stock';
+                                        $targetParams['open_part'] = $part->hashed_id;
+                                    }
+                                @endphp
+                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route($targetRoute, $targetParams) }}'">
                                     <div class="flex justify-between items-start">
                                         <div class="w-full">
                                             <span class="text-[8px] font-bold text-red-600 bg-red-100 px-1 uppercase mb-0.5 inline-block">Rolled Back</span>
                                             <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
-                                            <div class="text-[9px] text-slate-500 mt-0.5 truncate flex justify-between w-full">
-                                                <span>PO: {{ $part->event->po_no ?? '-' }}</span>
-                                            </div>
-                                            <p class="text-[9px] text-red-600 font-medium mt-1 truncate">
+                                            <p class="text-[9px] text-red-600 font-medium mt-0.5 truncate border-b border-slate-100 pb-1 mb-1">
                                                 <i class="fa-solid fa-triangle-exclamation"></i> {{ $part->rollback_reason }}
                                             </p>
+                                            <div class="flex flex-col mt-0.5 gap-0.5">
+                                                <p class="text-[9px] text-slate-500 font-bold"><i class="fa-solid fa-file-invoice text-slate-400 w-3"></i> PO: {{ $part->event->po_no ?? '-' }}</p>
+                                                <p class="text-[9px] text-rose-600"><i class="fa-solid fa-hourglass-half text-rose-400 w-3"></i> Stuck at: <strong>{{ $stuckAt }}</strong></p>
+                                                <p class="text-[9px] text-blue-600"><i class="fa-solid fa-handshake-angle text-blue-400 w-3"></i> Need Support: <strong>{{ $supportFrom }}</strong></p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -530,12 +576,60 @@
                             @endforeach
                             <!-- Stagnant Items -->
                             @foreach($stagnantParts as $part)
-                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route('tracking.index', ['search' => $part->event->po_no ?? '', 'open_event' => $part->npc_event_id, 'from_dashboard' => 1]) }}'">
+                                @php
+                                    $stuckAt = 'Unknown';
+                                    $supportFrom = 'Unknown';
+                                    $targetRoute = 'tracking.index';
+                                    $targetParams = ['search' => $part->event->po_no ?? '', 'open_event' => $part->npc_event_id, 'from_dashboard' => 1];
+                                    
+                                    if ($part->status === 'PO_REGISTERED') {
+                                        $stuckAt = 'Setup Routing';
+                                        $supportFrom = 'NPC';
+                                        $targetRoute = 'tracking.setup';
+                                        $targetParams['open_part'] = $part->hashed_id;
+                                    } elseif ($part->status === 'WAITING_DEPT_CONFIRM') {
+                                        $waitingProc = $part->processes->where('status', 'WAITING')->first();
+                                        if ($waitingProc) {
+                                            $stuckAt = optional($waitingProc->process)->process_name ?? 'Production Process';
+                                            $supportFrom = optional($waitingProc->department)->name ?? 'Production Dept';
+                                        } else {
+                                            $stuckAt = 'Production';
+                                            $supportFrom = 'Production Dept';
+                                        }
+                                        $targetRoute = 'tracking.production';
+                                        $targetParams['open_part'] = $part->hashed_id;
+                                    } elseif ($part->status === 'WAITING_QE_CHECK') {
+                                        $stuckAt = 'QC Check';
+                                        $supportFrom = 'Quality Engineering (QE)';
+                                        $targetRoute = 'tracking.qc';
+                                        $targetParams['open_part'] = $part->hashed_id;
+                                    } elseif ($part->status === 'WAITING_MGM_CHECK') {
+                                        $stuckAt = 'Management Check';
+                                        $supportFrom = 'Management';
+                                        $targetRoute = 'tracking.mgm';
+                                        $targetParams['open_part'] = $part->hashed_id;
+                                    } elseif ($part->status === 'WAITING_APPROVAL') {
+                                        $stuckAt = 'Checksheet Approval';
+                                        $supportFrom = 'Management Staff/Mgr';
+                                        $targetRoute = 'checksheet-approvals.index';
+                                        $targetParams = ['search' => $part->event->po_no ?? '', 'open_checksheet' => optional($part->checksheet)->hashed_id];
+                                    } elseif ($part->status === 'FINISHED') {
+                                        $stuckAt = 'Finished Goods';
+                                        $supportFrom = 'Delivery / Logistics';
+                                        $targetRoute = 'tracking.stock';
+                                        $targetParams['open_part'] = $part->hashed_id;
+                                    }
+                                @endphp
+                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route($targetRoute, $targetParams) }}'">
                                     <div class="flex justify-between items-start">
-                                        <div>
+                                        <div class="w-full">
                                             <span class="text-[8px] font-bold text-amber-600 bg-amber-100 px-1 uppercase mb-0.5 inline-block">Stagnant > 3d</span>
                                             <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
-                                            <p class="text-[9px] text-slate-500 mt-0.5">PO: {{ $part->event->po_no ?? '-' }}</p>
+                                            <div class="flex flex-col mt-0.5 gap-0.5">
+                                                <p class="text-[9px] text-slate-500 font-bold"><i class="fa-solid fa-file-invoice text-slate-400 w-3"></i> PO: {{ $part->event->po_no ?? '-' }}</p>
+                                                <p class="text-[9px] text-rose-600"><i class="fa-solid fa-hourglass-half text-rose-400 w-3"></i> Stuck at: <strong>{{ $stuckAt }}</strong></p>
+                                                <p class="text-[9px] text-blue-600"><i class="fa-solid fa-handshake-angle text-blue-400 w-3"></i> Need Support: <strong>{{ $supportFrom }}</strong></p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

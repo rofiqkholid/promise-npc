@@ -86,7 +86,9 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
+        let urlParams = new URLSearchParams(window.location.search);
         initPromiseDataTable('#checksheetApprovalTable', {
+            search: { search: urlParams.get('search') || '' },
             ajax: {
                 url: "{{ route('checksheet-approvals.index') }}",
                 data: function (d) {
@@ -105,6 +107,10 @@
                 };
             },
             stateLoadParams: function (settings, data) {
+                let urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('search')) {
+                    data.search.search = urlParams.get('search');
+                }
                 if (data.customFilters) {
                     if (data.customFilters.stage !== undefined) {
                         $('#filterStage').val(data.customFilters.stage);
@@ -156,7 +162,23 @@
                 { data: 'model_customer', name: 'model_customer', className: 'px-4 py-2', orderable: false },
                 { data: 'approval_stage', name: 'approval_stage', className: 'px-4 py-2 text-center', orderable: false, searchable: false },
                 { data: 'action', name: 'action', orderable: false, searchable: false, className: 'px-4 py-2 text-right' }
-            ]
+            ],
+            drawCallback: function() {
+                let urlParams = new URLSearchParams(window.location.search);
+                let openChecksheetId = urlParams.get('open_checksheet');
+                if (openChecksheetId && !window.modalAlreadyOpened) {
+                    setTimeout(() => {
+                        let btn = $(`a[href$="/checksheet-approvals/${openChecksheetId}"]`);
+                        if (btn.length > 0) {
+                            window.modalAlreadyOpened = true;
+                            let url = new URL(window.location);
+                            url.searchParams.delete('open_checksheet');
+                            window.history.replaceState({}, document.title, url);
+                            window.location.href = btn.attr('href');
+                        }
+                    }, 200);
+                }
+            }
         });
 
         let isResetting = false;

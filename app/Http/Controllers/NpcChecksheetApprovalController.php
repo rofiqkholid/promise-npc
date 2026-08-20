@@ -87,7 +87,13 @@ class NpcChecksheetApprovalController extends Controller
                         return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-100 border border-yellow-200 text-yellow-800 text-[10px] font-bold tracking-wide"><i class="fa-solid fa-hourglass-half animate-pulse"></i> ' . $levelName . '</span>';
                     }
                 })
-                ->addColumn('action', function ($checksheet) {
+                ->addColumn('action', function($checksheet) {
+                    $url = route('checksheet-approvals.show', $checksheet->hashed_id);
+                    $btn = '<div class="flex flex-col items-end gap-2">';
+                    $btn .= '<a href="' . $url . '" data-part-id="' . $checksheet->npcPart->hashed_id . '" class="inline-flex px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white shadow-sm font-bold transition items-center gap-2 text-[11px] w-full max-w-[150px] justify-center" style="background-color: #3b82f6;">';
+                    $btn .= '<i class="fa-solid fa-file-signature"></i> View / Approve';
+                    $btn .= '</a>';
+                    
                     $previewBtn = '<a href="' . route('checksheets.preview', $checksheet->hashed_id) . '" target="_blank" class="inline-flex items-center gap-2 px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white text-xs font-bold transition shadow-sm" title="Preview Report"><i class="fa-solid fa-file-pdf"></i> Preview</a>';
                     
                     if ($checksheet->approval_status === 'APPROVED') {

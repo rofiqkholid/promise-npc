@@ -300,6 +300,21 @@ $(document).ready(function() {
             updateModelDropdown($('#customerFilter').val());
         }, 50);
     }
+    
+    // Auto-open setup if requested
+    let openPartId = urlParams.get('open_part');
+    if (openPartId && !window.modalAlreadyOpened) {
+        setTimeout(() => {
+            let btn = $(`a[href$="/${openPartId}/routing"]`);
+            if (btn.length > 0) {
+                window.modalAlreadyOpened = true;
+                let url = new URL(window.location);
+                url.searchParams.delete('open_part');
+                window.history.replaceState({}, document.title, url);
+                window.location.href = btn.attr('href');
+            }
+        }, 300); // slight delay to ensure everything is ready
+    }
 });
 </script>
 @endpush

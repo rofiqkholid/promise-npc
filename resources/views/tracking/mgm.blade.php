@@ -297,6 +297,21 @@ $(document).ready(function() {
             });
             $('#modelFilter').select2({ width: '100%' });
         }
+        
+        let urlParams = new URLSearchParams(window.location.search);
+        let openPartId = urlParams.get('open_part');
+        if (openPartId && !window.modalAlreadyOpened) {
+            setTimeout(() => {
+                let btn = $(`a[href$="/${openPartId}/checksheet/create"]`);
+                if (btn.length > 0) {
+                    window.modalAlreadyOpened = true;
+                    let url = new URL(window.location);
+                    url.searchParams.delete('open_part');
+                    window.history.replaceState({}, document.title, url);
+                    window.location.href = btn.attr('href');
+                }
+            }, 300);
+        }
     });
 
     function confirmRollbackWithReason(event) {

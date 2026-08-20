@@ -303,7 +303,9 @@ style="display: none;">
     };
 
     $(document).ready(function() {
+        let urlParams = new URLSearchParams(window.location.search);
         $('#qcTable').DataTable({
+            search: { search: urlParams.get('search') || '' },
             processing: true,
             serverSide: true,
             ajax: {
@@ -324,6 +326,10 @@ style="display: none;">
                 };
             },
             stateLoadParams: function (settings, data) {
+                let urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('search')) {
+                    data.search.search = urlParams.get('search');
+                }
                 if (data.customFilters) {
                     if (data.customFilters.customer !== undefined) {
                         $('#customerFilter').val(data.customFilters.customer);
@@ -532,6 +538,21 @@ style="display: none;">
                     .css('margin-left', '0');
                 $('.dataTables_length select')
                     .addClass('py-2 pl-3 pr-8 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm rounded-md shadow-sm');
+                    
+                let urlParams = new URLSearchParams(window.location.search);
+                let openPartId = urlParams.get('open_part');
+                if (openPartId && !window.modalAlreadyOpened) {
+                    setTimeout(() => {
+                        let btn = $(`a[href$="/${openPartId}/checksheet/create"]`);
+                        if (btn.length > 0) {
+                            window.modalAlreadyOpened = true;
+                            let url = new URL(window.location);
+                            url.searchParams.delete('open_part');
+                            window.history.replaceState({}, document.title, url);
+                            window.location.href = btn.attr('href');
+                        }
+                    }, 200);
+                }
             }
         });
 

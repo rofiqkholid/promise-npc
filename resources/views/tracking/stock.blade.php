@@ -130,7 +130,9 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
+        let urlParams = new URLSearchParams(window.location.search);
         initPromiseDataTable('#stockTable', {
+            search: { search: urlParams.get('search') || '' },
             ajax: {
                 url: "{{ route('tracking.stock') }}",
                 data: function (d) {
@@ -149,6 +151,10 @@
                 };
             },
             stateLoadParams: function (settings, data) {
+                let urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('search')) {
+                    data.search.search = urlParams.get('search');
+                }
                 if (data.customFilters) {
                     if (data.customFilters.customer !== undefined) {
                         $('#filter_customer').val(data.customFilters.customer);
@@ -394,7 +400,23 @@
                                 </div>`;
                     }
                 }
-            ]
+            ],
+            drawCallback: function() {
+                let urlParams = new URLSearchParams(window.location.search);
+                let openPartId = urlParams.get('open_part');
+                if (openPartId && !window.modalAlreadyOpened) {
+                    setTimeout(() => {
+                        let btn = $(`button[onclick*="openDeliverModal('${openPartId}'"]`);
+                        if (btn.length > 0) {
+                            btn.click();
+                            window.modalAlreadyOpened = true;
+                            let url = new URL(window.location);
+                            url.searchParams.delete('open_part');
+                            window.history.replaceState({}, document.title, url);
+                        }
+                    }, 200);
+                }
+            }
         });
 
         function performSearch() {

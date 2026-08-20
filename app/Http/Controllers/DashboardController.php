@@ -213,7 +213,7 @@ class DashboardController extends Controller
 
         // 3. Action Required (To-Do List)
         // a. ECN Updates
-        $allEcnUpdates = NpcPart::with(['product.docPackage.currentRevision', 'event.customerCategory', 'drawingRevision'])
+        $allEcnUpdates = NpcPart::with(['product.docPackage.currentRevision', 'event.customerCategory', 'drawingRevision', 'processes.department', 'processes.process'])
             ->whereHas('event', $noFilters)
             ->whereNotIn('status', ['FINISHED', 'CLOSED'])
             ->whereNotNull('part_revision_id')
@@ -230,7 +230,7 @@ class DashboardController extends Controller
         })->values()->take(5);
 
         // b. Stagnant Parts (No update for > 3 days, excluding finished/closed)
-        $stagnantParts = NpcPart::with(['product', 'event.customerCategory'])
+        $stagnantParts = NpcPart::with(['product', 'event.customerCategory', 'processes.department', 'processes.process'])
             ->whereHas('event', $noFilters)
             ->whereNotIn('status', ['FINISHED', 'CLOSED'])
             ->where('updated_at', '<', Carbon::now()->subDays(3))
@@ -239,7 +239,7 @@ class DashboardController extends Controller
             ->get();
 
         // c. Rolled Back Parts (Action Required)
-        $rolledBackParts = NpcPart::with(['product', 'event.customerCategory'])
+        $rolledBackParts = NpcPart::with(['product', 'event.customerCategory', 'processes.department', 'processes.process'])
             ->whereHas('event', $noFilters)
             ->whereNotNull('rollback_reason')
             ->orderBy('updated_at', 'desc')

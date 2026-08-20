@@ -94,6 +94,19 @@
                     </div>
                 </div>
 
+                <div class="p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded flex flex-col gap-1.5">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="text-sm font-bold text-gray-800 dark:text-gray-200" id="modal-part-no"></div>
+                            <div class="text-[11px] text-gray-500 font-medium" id="modal-part-name"></div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-[10px] text-blue-700 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 px-1.5 py-0.5 uppercase font-bold" id="modal-po-no"></div>
+                            <div class="text-[10px] text-gray-400 mt-1 uppercase" id="modal-model-name"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Total Qty Completed <span class="text-red-500">*</span></label>
@@ -133,13 +146,18 @@
 
 @push('scripts')
 <script>
-function openCompleteModal(partId, processId, processName, departmentName, targetDate, actionUrl, partQty) {
+function openCompleteModal(partId, processId, processName, departmentName, targetDate, actionUrl, partQty, partNo, partName, poNo, modelName) {
     document.getElementById('form-complete').action = actionUrl;
     document.getElementById('modal-process-id').value = processId;
     document.getElementById('modal-process-name-title').textContent = processName;
     document.getElementById('modal-process-name').textContent = processName;
     document.getElementById('modal-department-name').textContent = departmentName;
     document.getElementById('modal-target-date').textContent = targetDate;
+    
+    document.getElementById('modal-part-no').textContent = partNo;
+    document.getElementById('modal-part-name').textContent = partName;
+    document.getElementById('modal-po-no').textContent = 'PO: ' + poNo;
+    document.getElementById('modal-model-name').textContent = modelName;
     
     const qtyInput = document.querySelector('#modal-complete input[name="actual_qty"]');
     qtyInput.min = partQty;
@@ -160,7 +178,9 @@ document.getElementById('modal-complete').addEventListener('click', function(e) 
 
 
 $(document).ready(function() {
+    let urlParams = new URLSearchParams(window.location.search);
     let table = $('#productionTable').DataTable({
+        search: { search: urlParams.get('search') || '' },
         processing: true,
         serverSide: true,
         ajax: {
@@ -182,6 +202,10 @@ $(document).ready(function() {
             };
         },
         stateLoadParams: function (settings, data) {
+            let urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('search')) {
+                data.search.search = urlParams.get('search');
+            }
             if (data.customFilters) {
                 if (data.customFilters.customer !== undefined) {
                     $('#customerFilter').val(data.customFilters.customer);
@@ -363,6 +387,11 @@ $(document).ready(function() {
                         }
                         const completeUrl = row.complete_process_url || '';
                         
+                        const partNo = (row.product?.part_no || 'Unknown Part').replace(/'/g, "\\'");
+                        const partName = (row.product?.part_name || '').replace(/'/g, "\\'");
+                        const poNo = (row.event?.po_no || 'Unknown PO').replace(/'/g, "\\'");
+                        const modelName = (row.product?.vehicle_model?.name || 'Unknown Model').replace(/'/g, "\\'");
+                        
                         let rollbackBtn = '';
                         if (hasFinishedProcess) {
                             const csrf = $('meta[name="csrf-token"]').attr('content') || '';
@@ -375,7 +404,7 @@ $(document).ready(function() {
                         }
                         
                         return `<button type="button"
-                            onclick="openCompleteModal('${row.hashed_id}', '${activeProcess.hashed_id || activeProcess.id}', '${procName}', '${deptName}', '${targetFormatted}', '${completeUrl}', ${row.qty})"
+                            onclick="openCompleteModal('${row.hashed_id}', '${activeProcess.hashed_id || activeProcess.id}', '${procName}', '${deptName}', '${targetFormatted}', '${completeUrl}', ${row.qty}, '${partNo}', '${partName}', '${poNo}', '${modelName}')"
                             class="inline-flex px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white shadow-sm font-bold transition items-center gap-2 text-[11px] mb-2 w-full justify-center" style="background-color: #f59e0b;">
                             Complete ${procName} <i class="fa-solid fa-forward-step"></i>
                         </button>
@@ -432,6 +461,23 @@ $(document).ready(function() {
                 .css('margin-left', '0');
             $('.dataTables_length select')
                 .addClass('py-2 pl-3 pr-8 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm rounded-md shadow-sm');
+        },
+        drawCallback: function() {
+            let urlParams = new URLSearchParams(window.location.search);
+            let openPartId = urlParams.get('open_part');
+            
+            if (openPartId && !window.modalAlreadyOpened) {
+                setTimeout(() => {
+                    let btn = $(`button[onclick*="openCompleteModal('${openPartId}'"]`);
+                    if (btn.length > 0) {
+                        btn.click();
+                        window.modalAlreadyOpened = true;
+                        let url = new URL(window.location);
+                        url.searchParams.delete('open_part');
+                        window.history.replaceState({}, document.title, url);
+                    }
+                }, 200);
+            }
         }
     });
 
