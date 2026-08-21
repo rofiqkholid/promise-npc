@@ -279,6 +279,12 @@ $(document).ready(function() {
             
             $('#modelFilter').val('');
             $('#poFilter').val('');
+            if ($('#modelFilter').hasClass('select2-hidden-accessible')) {
+                $('#modelFilter').trigger('change.select2');
+            }
+            if ($('#poFilter').hasClass('select2-hidden-accessible')) {
+                $('#poFilter').trigger('change.select2');
+            }
             $('#customerFilter').val('').trigger('change');
         });
         
