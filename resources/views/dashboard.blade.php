@@ -680,7 +680,7 @@
                                             </div>
                                         </td>
                                         <td class="py-1 px-3 text-right">
-                                            <span class="text-[10px] font-bold text-slate-800 dark:text-white">{{ $percentage }}%</span>
+                                            <span class="text-[10px] font-bold text-slate-800 dark:text-white">{{ number_format($completed_items) }} / {{ number_format($deliv->total_items) }}</span>
                                         </td>
                                     </tr>
                                 @endforeach
