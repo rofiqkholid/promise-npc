@@ -47,7 +47,7 @@ class NpcChecksheetController extends Controller
             }
         }
 
-        return redirect()->route('checksheets.edit', $checksheet->id);
+        return redirect()->route('checksheets.edit', $checksheet->hashed_id);
     }
 
     private function generateChecksheetDetails(NpcChecksheet $checksheet, NpcPart $part)
