@@ -309,17 +309,18 @@ class DashboardController extends Controller
         $chunks = [];
         $currentChunk = [];
         
-        // Group the events first by PO No and Event Type
+        // Group the events first by PO No and Delivery Group
         $groupedEvents = [];
         foreach ($recentEvents as $ev) {
             $poLabel = $ev->po_no ? $ev->po_no : 'EV-'.$ev->id;
-            $groupKey = $poLabel;
             $grName = $ev->deliveryGroup ? $ev->deliveryGroup->name : 'Unknown Batch';
+            $groupKey = $poLabel . '_' . $grName;
             
             if (!isset($groupedEvents[$groupKey])) {
                 $groupedEvents[$groupKey] = [
                     'id' => $ev->id,
                     'po_no' => $poLabel,
+                    'gr_name' => $grName,
                     'custName' => $ev->customerCategory ? $ev->customerCategory->name : 'Unknown',
                     'modelStr' => $ev->vehicleModel ? $ev->vehicleModel->name : '-',
                     'parts' => [],
@@ -379,8 +380,8 @@ class DashboardController extends Controller
                 $chartTooltip[1] .= ' | ' . $singleBatch;
             }
             
-            // X-Axis label (Full string, let Chart.js handle it)
-            $chartLabel = $poLabel;
+            // X-Axis label (Array for multiline, let Chart.js handle it)
+            $chartLabel = [$poLabel, $group['gr_name']];
             
             $totalItems = count($group['parts']);
             $finishedItems = 0;
