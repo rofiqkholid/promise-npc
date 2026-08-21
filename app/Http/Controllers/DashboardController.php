@@ -408,7 +408,7 @@ class DashboardController extends Controller
                 } elseif ($part->status === 'FINISHED') {
                     $currentDept = 'Finished';
                 } elseif ($part->status === 'CLOSED' || $part->status === 'OUTSTANDING') {
-                    $currentDept = 'Closed';
+                    $currentDept = 'Delivered';
                 }
                 
                 if(!isset($deptCounts[$currentDept])) $deptCounts[$currentDept] = 0;

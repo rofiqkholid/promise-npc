@@ -921,10 +921,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Quality': '#eab308',
                     'MGM': '#a855f7',
                     'Finished': '#28e826',
-                    'Closed': '#15803d'
+                    'Delivered': '#15803d'
                 };
                 
-                const departments = ['NPC', 'Production', 'Quality', 'MGM', 'Finished', 'Closed'];
+                const departments = ['NPC', 'Production', 'Quality', 'MGM', 'Finished', 'Delivered'];
                 
                 const datasetsProg = departments.map(dept => {
                     const data = chunk.map(po => {
@@ -955,7 +955,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         plugins: {
                             datalabels: {
                                 color: function(context) {
-                                    return context.dataset.label === 'Closed' ? '#ffffff' : '#000000';
+                                    return context.dataset.label === 'Delivered' ? '#ffffff' : '#000000';
                                 },
                                 font: { weight: 'bold', size: 9 },
                                 formatter: function(value) { return value > 0 ? value : ''; },

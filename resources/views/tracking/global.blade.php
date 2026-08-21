@@ -401,7 +401,7 @@ function globalTrackingComponent() {
                 { icon: 'fa-industry', title: 'Part Making' },
                 { icon: 'fa-microscope', title: 'QE' },
                 { icon: 'fa-user-tie', title: 'MGM' },
-                { icon: 'fa-boxes-stacked', title: 'Stok' }
+                { icon: 'fa-boxes-stacked', title: 'Delivery' }
             ];
 
             let mappedStatus = part.status === 'WAITING_APPROVAL' ? 'WAITING_MGM_CHECK' : part.status;
@@ -489,7 +489,7 @@ function calculatePoProgress(po) {
         { icon: 'fa-industry', title: 'Part Making' },
         { icon: 'fa-microscope', title: 'QE' },
         { icon: 'fa-user-tie', title: 'MGM' },
-        { icon: 'fa-boxes-stacked', title: 'Stok' }
+        { icon: 'fa-boxes-stacked', title: 'Delivery' }
     ];
 
     const reachedCounts = [];
