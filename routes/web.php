@@ -31,6 +31,9 @@ Route::get('/login', function () {
 })->name('login');
 
 Route::get('/', function () {
+    if (Auth::check() && session()->has('url.intended')) {
+        return redirect()->to(session()->pull('url.intended'));
+    }
     return redirect()->route('dashboard');
 });
 
