@@ -648,7 +648,7 @@
             <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden">
                 <div class="py-1.5 px-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex-none flex justify-between items-center">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
-                        <i class="fa-solid fa-truck-ramp-box text-emerald-500 mr-1.5"></i> Achievment Delivery (Remain Delivery)
+                        <i class="fa-solid fa-truck-ramp-box text-emerald-500 mr-1.5"></i> Achievment Delivery
                     </h3>
                     <a href="{{ route('tracking.index') }}" class="text-[9px] text-primary-600 font-medium">View All</a>
                 </div>
@@ -673,8 +673,10 @@
                                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route('tracking.index', ['search' => $deliv->po_no ?? '', 'open_event' => $deliv->id, 'from_dashboard' => 1]) }}'">
                                         <td class="py-1.5 px-3">
                                             <p class="text-[10px] font-bold text-slate-800 dark:text-white truncate max-w-[120px]" title="{{ $modelStr }}">{{ $modelStr }}</p>
-                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                            <div class="flex items-center flex-wrap gap-1 mt-0.5">
                                                 <span class="text-[9px] font-medium text-slate-500 dark:text-slate-400">PO: {{ $deliv->po_no ?? '-' }}</span>
+                                                <span class="text-[8px] text-slate-400">&bull;</span>
+                                                <span class="text-[9px] font-medium text-slate-500 dark:text-slate-400">{{ optional($deliv->deliveryGroup)->name ?? '-' }}</span>
                                                 <span class="text-[8px] text-slate-400">&bull;</span>
                                                 <p class="text-[8px] text-slate-500">{{ $deliv->nearest_delivery_date ? \Carbon\Carbon::parse($deliv->nearest_delivery_date)->format('d M y') : '-' }}</p>
                                             </div>
