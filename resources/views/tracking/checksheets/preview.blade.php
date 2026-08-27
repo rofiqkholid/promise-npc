@@ -417,6 +417,17 @@
                 @endforeach
             @endforeach
             
+            @if(!empty($checksheet->final_result))
+            <!-- Remark Spacer -->
+            <tr><td colspan="17" class="no-border-cell" style="height: 2px;"></td></tr>
+            
+            <!-- Remark Row -->
+            <tr>
+                <td colspan="2" class="font-bold" style="vertical-align: top;">Remark</td>
+                <td colspan="15" style="text-align: left; padding: 5px; white-space: pre-wrap;">{{ $checksheet->final_result }}</td>
+            </tr>
+            @endif
+            
             <!-- Footer Signatures Spacer -->
             <tr><td colspan="17" class="no-border-cell" style="height: 2px;"></td></tr>
             
