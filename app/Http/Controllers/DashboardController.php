@@ -200,13 +200,49 @@ class DashboardController extends Controller
             'data' => array_values($custCounts)
         ];
 
-        // --- END CHARTS DATA ---
+        $npcDepts = \App\Models\NpcDepartment::orderBy('name')->get();
+        $idQE = $npcDepts->where('name', 'QE')->first()->id ?? -1;
+        $idNPC = $npcDepts->where('name', 'NPC')->first()->id ?? -1;
+        
+        $actionDept = $request->input('action_dept');
+        $applyDeptFilter = function($q) use ($actionDept, $idQE, $idNPC) {
+            if (!$actionDept) return;
+            
+            if ($actionDept === 'MGM') {
+                $q->where(function($sub) {
+                    $sub->where('status', 'WAITING_MGM_CHECK')
+                        ->orWhere(function($app) {
+                            $app->where('status', 'WAITING_APPROVAL')
+                                ->whereHas('checksheet', function($cs) {
+                                    $cs->where('approval_status', 'like', '%MGM%');
+                                });
+                        });
+                });
+            } elseif (is_numeric($actionDept)) {
+                $q->where(function($sub) use ($actionDept, $idQE, $idNPC) {
+                    $sub->where('status', 'WAITING_DEPT_CONFIRM');
+                    
+                    if ($actionDept == $idQE) {
+                        $sub->orWhere('status', 'WAITING_QE_CHECK')
+                            ->orWhere(function($app) {
+                                $app->where('status', 'WAITING_APPROVAL')
+                                    ->whereHas('checksheet', function($cs) {
+                                        $cs->where('approval_status', 'like', '%QE%');
+                                    });
+                            });
+                    }
+                    if ($actionDept == $idNPC) {
+                        $sub->orWhere('status', 'PO_REGISTERED');
+                    }
+                });
+            }
+        };
 
-        // 3. Action Required (To-Do List)
         // b. Delayed Parts (Past delivery date or past process target date, excluding finished/closed)
         $delayedParts = NpcPart::with(['product', 'event.customerCategory', 'processes.department', 'processes.process'])
             ->whereHas('event', $noFilters)
             ->whereNotIn('status', ['FINISHED', 'CLOSED'])
+            ->where($applyDeptFilter)
             ->where(function($q) {
                 $q->where(function($q1) {
                     $q1->whereNotNull('delivery_date')
@@ -218,16 +254,40 @@ class DashboardController extends Controller
                 });
             })
             ->orderBy('delivery_date', 'asc')
-            ->take(5)
             ->get();
 
         // c. Rolled Back Parts (Action Required)
         $rolledBackParts = NpcPart::with(['product', 'event.customerCategory', 'processes.department', 'processes.process'])
             ->whereHas('event', $noFilters)
             ->whereNotNull('rollback_reason')
+            ->where($applyDeptFilter)
             ->orderBy('updated_at', 'desc')
-            ->take(10)
             ->get();
+
+        if (is_numeric($actionDept)) {
+            $filterActiveProcess = function($part) use ($actionDept, $idQE, $idNPC) {
+                if ($part->status === 'WAITING_DEPT_CONFIRM') {
+                    $activeProcess = $part->processes->where('status', 'WAITING')->sortBy('sequence_order')->first();
+                    return $activeProcess && $activeProcess->department_id == $actionDept;
+                }
+                
+                if ($actionDept == $idQE) {
+                    if ($part->status === 'WAITING_QE_CHECK') return true;
+                    if ($part->status === 'WAITING_APPROVAL' && $part->checksheet && str_contains($part->checksheet->approval_status, 'QE')) return true;
+                }
+                
+                if ($actionDept == $idNPC) {
+                    if ($part->status === 'PO_REGISTERED') return true;
+                }
+                
+                return false;
+            };
+            $delayedParts = $delayedParts->filter($filterActiveProcess)->values();
+            $rolledBackParts = $rolledBackParts->filter($filterActiveProcess)->values();
+        }
+
+        $delayedParts = $delayedParts->take(5);
+        $rolledBackParts = $rolledBackParts->take(10);
 
         // 4. Remain Deliveries (Grouped by PO)
         $remainDeliveries = NpcEvent::with(['customerCategory', 'vehicleModel', 'parts.product.vehicleModel', 'deliveryGroup'])
@@ -261,7 +321,7 @@ class DashboardController extends Controller
             'poChunks', 'progressChunks', 'departmentChart', 'customerChart',
             'filterYear', 'filterMonth', 'filterCustomer', 'filterPo', 'filterModel', 
             'progressYear', 'progressMonth', 'progressCustomer', 'progressPo', 'progressModel',
-            'customers', 'vehicleModels', 'availableYears'
+            'customers', 'vehicleModels', 'availableYears', 'npcDepts', 'actionDept'
         ));
     }
 

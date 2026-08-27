@@ -488,7 +488,30 @@
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
                         <span class="w-1.5 h-1.5 bg-rose-500 rounded-full mr-1.5 animate-pulse"></span> Action Required
                     </h3>
+                    <div class="flex items-center">
+                        <button type="button" onclick="document.getElementById('actionFilterForm').classList.toggle('hidden')" class="text-slate-500 hover:text-primary-600 focus:outline-none transition-colors" title="Toggle Filters">
+                            <i class="fa-solid fa-filter {{ $actionDept ? 'text-primary-500' : '' }}"></i>
+                        </button>
+                    </div>
                 </div>
+                
+                <div id="actionFilterForm" class="{{ $actionDept ? '' : 'hidden' }} bg-slate-50 dark:bg-slate-700/50 p-2 border-b border-slate-200 dark:border-slate-600 flex-none flex justify-end">
+                    <select onchange="updateActionDeptFilter(this.value)" class="text-[10px] w-full md:w-auto min-w-[120px] border border-slate-300 dark:border-slate-600 rounded px-2 py-1 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:border-primary-500">
+                        <option value="">-- All Depts --</option>
+                        @foreach($npcDepts as $dept)
+                            <option value="{{ $dept->id }}" {{ $actionDept == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
+                        @endforeach
+                        <option value="MGM" {{ $actionDept == 'MGM' ? 'selected' : '' }}>Management</option>
+                    </select>
+                </div>
+                <script>
+                    function updateActionDeptFilter(val) {
+                        const url = new URL(window.location.href);
+                        if(val) { url.searchParams.set('action_dept', val); }
+                        else { url.searchParams.delete('action_dept'); }
+                        window.location.href = url.toString();
+                    }
+                </script>
                 
                 <div class="flex-1 overflow-y-auto custom-scrollbar p-0">
                     @if($delayedParts->count() > 0 || $rolledBackParts->count() > 0)
@@ -507,7 +530,7 @@
                                         $targetRoute = 'tracking.setup';
                                         $targetParams['open_part'] = $part->hashed_id;
                                     } elseif ($part->status === 'WAITING_DEPT_CONFIRM') {
-                                        $waitingProc = $part->processes->where('status', 'WAITING')->first();
+                                        $waitingProc = $part->processes->where('status', 'WAITING')->sortBy('sequence_order')->first();
                                         if ($waitingProc) {
                                             $stuckAt = optional($waitingProc->process)->process_name ?? 'Production Process';
                                             $supportFrom = optional($waitingProc->department)->name ?? 'Production Dept';
@@ -582,7 +605,7 @@
                                         $targetRoute = 'tracking.setup';
                                         $targetParams['open_part'] = $part->hashed_id;
                                     } elseif ($part->status === 'WAITING_DEPT_CONFIRM') {
-                                        $waitingProc = $part->processes->where('status', 'WAITING')->first();
+                                        $waitingProc = $part->processes->where('status', 'WAITING')->sortBy('sequence_order')->first();
                                         if ($waitingProc) {
                                             $stuckAt = optional($waitingProc->process)->process_name ?? 'Production Process';
                                             $supportFrom = optional($waitingProc->department)->name ?? 'Production Dept';
