@@ -31,7 +31,7 @@ class NpcPartController extends Controller
                     });
                 })
                 ->filterColumn('model', function($query, $keyword) {
-                    $query->whereHas('product.vehicleModel', function($q) use ($keyword) {
+                    $query->whereHas('event.vehicleModel', function($q) use ($keyword) {
                         $q->where('name', 'like', "%{$keyword}%");
                     });
                 })
@@ -54,7 +54,7 @@ class NpcPartController extends Controller
                     return '<span class="text-blue-600 dark:text-blue-400 text-sm font-semibold">' . optional($part->product)->part_no . '</span>';
                 })
                 ->addColumn('model', function ($part) {
-                    return '<span class="text-slate-600 dark:text-slate-400 text-sm">' . optional(optional($part->product)->vehicleModel)->name . '</span>';
+                    return '<span class="text-slate-600 dark:text-slate-400 text-sm">' . optional(optional($part->event)->vehicleModel)->name . '</span>';
                 })
                 ->addColumn('part_name', function ($part) {
                     return '<span class="text-slate-600 dark:text-slate-400 text-sm">' . optional($part->product)->part_name . '</span>';

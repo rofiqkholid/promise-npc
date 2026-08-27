@@ -396,8 +396,8 @@
                 <div class="label-fields">
                     <div>
                         <span class="field-label">Model/Event</span>
-                        <span class="field-value" title="{{ optional(optional($part->product)->vehicleModel)->name ?? (optional(optional($part->event)->customerCategory)->name ?? '-') }}">
-                            {{ optional(optional($part->product)->vehicleModel)->name ?? (optional(optional($part->event)->customerCategory)->name ?? '-') }}
+                        <span class="field-value" title="{{ optional(optional($part->event)->vehicleModel)->name ?? (optional(optional($part->event)->customerCategory)->name ?? '-') }}">
+                            {{ optional(optional($part->event)->vehicleModel)->name ?? (optional(optional($part->event)->customerCategory)->name ?? '-') }}
                         </span>
                     </div>
                     <div>

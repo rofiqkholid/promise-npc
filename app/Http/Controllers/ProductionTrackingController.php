@@ -45,7 +45,7 @@ class ProductionTrackingController extends Controller
 
         if (request()->filled('model_filter') && request('model_filter') !== 'null' && request('model_filter') !== 'all') {
             $modelFilter = request('model_filter');
-            $query->whereHas('product', function ($q) use ($modelFilter) {
+            $query->whereHas('event', function ($q) use ($modelFilter) {
                 $q->where('model_id', $modelFilter);
             });
         }

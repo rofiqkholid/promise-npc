@@ -162,7 +162,7 @@
             <!-- Row 5 -->
             <tr>
                 <td colspan="2" class="font-bold">Model</td>
-                <td colspan="7" class="text-center font-bold text-blue">{{ optional(optional($product)->vehicleModel)->name ?? '-' }}</td>
+                <td colspan="7" class="text-center font-bold text-blue">{{ optional(optional($part)->event)->vehicleModel->name ?? (optional(optional($product)->vehicleModel)->name ?? '-') }}</td>
                 <td colspan="4">Event</td>
                 <td colspan="4" class="text-center text-blue">{{ optional(optional(optional($part)->event)->customerCategory)->name ?? '-' }}</td>
             </tr>
