@@ -529,7 +529,18 @@
                                         $targetParams['open_part'] = $part->hashed_id;
                                     } elseif ($part->status === 'WAITING_APPROVAL') {
                                         $stuckAt = 'Checksheet Approval';
-                                        $supportFrom = 'Management Staff/Mgr';
+                                        $appStatus = optional($part->checksheet)->approval_status;
+                                        $levelMap = [
+                                            'WAITING_QE_STAFF' => 'QE Staff',
+                                            'WAITING_MGM_STAFF' => 'MGM Staff',
+                                            'WAITING_QE_SPV' => 'QE Spv',
+                                            'WAITING_MGM_SPV' => 'MGM Spv',
+                                            'WAITING_QE_ASSMAN' => 'QE Asst Mgr',
+                                            'WAITING_MGM_ASSMAN' => 'MGM Asst Mgr',
+                                            'WAITING_QE_MGR' => 'QE Mgr',
+                                            'WAITING_MGM_MGR' => 'MGM Mgr',
+                                        ];
+                                        $supportFrom = $appStatus && isset($levelMap[$appStatus]) ? $levelMap[$appStatus] : 'Approvers';
                                         $targetRoute = 'checksheet-approvals.index';
                                         $targetParams = ['search' => $part->event->po_no ?? '', 'open_checksheet' => optional($part->checksheet)->hashed_id];
                                     } elseif ($part->status === 'FINISHED') {
@@ -593,7 +604,18 @@
                                         $targetParams['open_part'] = $part->hashed_id;
                                     } elseif ($part->status === 'WAITING_APPROVAL') {
                                         $stuckAt = 'Checksheet Approval';
-                                        $supportFrom = 'Management Staff/Mgr';
+                                        $appStatus = optional($part->checksheet)->approval_status;
+                                        $levelMap = [
+                                            'WAITING_QE_STAFF' => 'QE Staff',
+                                            'WAITING_MGM_STAFF' => 'MGM Staff',
+                                            'WAITING_QE_SPV' => 'QE Spv',
+                                            'WAITING_MGM_SPV' => 'MGM Spv',
+                                            'WAITING_QE_ASSMAN' => 'QE Asst Mgr',
+                                            'WAITING_MGM_ASSMAN' => 'MGM Asst Mgr',
+                                            'WAITING_QE_MGR' => 'QE Mgr',
+                                            'WAITING_MGM_MGR' => 'MGM Mgr',
+                                        ];
+                                        $supportFrom = $appStatus && isset($levelMap[$appStatus]) ? $levelMap[$appStatus] : 'Approvers';
                                         $targetRoute = 'checksheet-approvals.index';
                                         $targetParams = ['search' => $part->event->po_no ?? '', 'open_checksheet' => optional($part->checksheet)->hashed_id];
                                     } elseif ($part->status === 'FINISHED') {
