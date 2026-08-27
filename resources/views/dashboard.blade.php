@@ -73,7 +73,10 @@
                             @foreach($metrics['total_po_list'] ?? [] as $idx => $item)
                             <div class="flex items-center border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 py-1.5 px-1">
                                 <div class="w-8 text-slate-500">{{ $idx + 1 }}</div>
-                                <div class="flex-1 font-medium text-slate-800 dark:text-slate-200">{{ $item->po_no ?? '-' }}</div>
+                                <div class="flex-1">
+                                    <div class="font-medium text-slate-800 dark:text-slate-200">{{ $item->po_no ?? '-' }}</div>
+                                    <div class="text-[10px] text-slate-500 font-normal leading-tight">{{ optional($item->customerCategory)->name ?? '-' }} - {{ optional($item->deliveryGroup)->name ?? '-' }}</div>
+                                </div>
                             </div>
                             @endforeach
                         </div>
@@ -107,7 +110,10 @@
                             @foreach($metrics['po_on_hand_list'] ?? [] as $idx => $item)
                             <div class="flex items-center border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 py-1.5 px-1">
                                 <div class="w-8 text-slate-500">{{ $idx + 1 }}</div>
-                                <div class="flex-1 font-medium text-slate-800 dark:text-slate-200">{{ $item->po_no ?? '-' }}</div>
+                                <div class="flex-1">
+                                    <div class="font-medium text-slate-800 dark:text-slate-200">{{ $item->po_no ?? '-' }}</div>
+                                    <div class="text-[10px] text-slate-500 font-normal leading-tight">{{ optional($item->customerCategory)->name ?? '-' }} - {{ optional($item->deliveryGroup)->name ?? '-' }}</div>
+                                </div>
                             </div>
                             @endforeach
                         </div>
@@ -141,7 +147,10 @@
                             @foreach($metrics['po_complete_list'] ?? [] as $idx => $item)
                             <div class="flex items-center border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 py-1.5 px-1">
                                 <div class="w-8 text-slate-500">{{ $idx + 1 }}</div>
-                                <div class="flex-1 font-medium text-slate-800 dark:text-slate-200">{{ $item->po_no ?? '-' }}</div>
+                                <div class="flex-1">
+                                    <div class="font-medium text-slate-800 dark:text-slate-200">{{ $item->po_no ?? '-' }}</div>
+                                    <div class="text-[10px] text-slate-500 font-normal leading-tight">{{ optional($item->customerCategory)->name ?? '-' }} - {{ optional($item->deliveryGroup)->name ?? '-' }}</div>
+                                </div>
                             </div>
                             @endforeach
                         </div>
@@ -175,7 +184,10 @@
                             @foreach($metrics['stock_list'] ?? [] as $idx => $item)
                             <div class="flex items-center border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/30 py-1.5 px-1">
                                 <div class="w-8 text-slate-500">{{ $idx + 1 }}</div>
-                                <div class="flex-1 font-medium text-slate-800 dark:text-slate-200">{{ $item->event->po_no ?? '-' }}</div>
+                                <div class="flex-1">
+                                    <div class="font-medium text-slate-800 dark:text-slate-200">{{ optional($item->event)->po_no ?? '-' }}</div>
+                                    <div class="text-[10px] text-slate-500 font-normal leading-tight">{{ optional(optional($item->event)->customerCategory)->name ?? '-' }} - {{ optional(optional($item->event)->deliveryGroup)->name ?? '-' }}</div>
+                                </div>
                             </div>
                             @endforeach
                         </div>

@@ -41,39 +41,30 @@ class DashboardController extends Controller
 
         // 1. Top Level Metrics (KPI Cards)
         $totalPOQuery = NpcEvent::where($noFilters);
-        $totalPOList = $totalPOQuery->select('id', 'po_no')->get()->unique(function($item) {
-            return $item->po_no ?: 'EV-'.$item->id;
-        })->values();
+        $totalPOList = $totalPOQuery->select('id', 'po_no', 'customer_category_id', 'delivery_group_id')->with(['customerCategory', 'deliveryGroup'])->get();
         $totalPO = $totalPOList->count();
 
-        // A PO is complete if it has parts and NONE of its parts are in an active status or just finished
-        $poCompleteQuery = NpcEvent::where($noFilters)->whereHas('parts')->whereDoesntHave('parts', function($q) {
-            $q->whereNotIn('status', ['CLOSED', 'OUTSTANDING']);
-        });
-        $poCompleteList = $poCompleteQuery->select('id', 'po_no')->get()->unique(function($item) {
-            return $item->po_no ?: 'EV-'.$item->id;
-        })->values();
-        $poComplete = $poCompleteList->count();
-
-        $poOnHandList = clone $totalPOQuery;
-        $poOnHandList = NpcEvent::with(['parts.product.vehicleModel'])->where($noFilters)->where(function($q) {
+        $poOnHandList = NpcEvent::with(['customerCategory', 'deliveryGroup', 'parts.product.vehicleModel'])->where($noFilters)->where(function($q) {
             $q->whereDoesntHave('parts')
               ->orWhereHas('parts', function($q2) {
                   $q2->whereNotIn('status', ['CLOSED', 'OUTSTANDING']);
               });
-        })->select('id', 'po_no')->get()->unique(function($item) {
-            return $item->po_no ?: 'EV-'.$item->id;
-        })->values();
+        })->select('id', 'po_no', 'customer_category_id', 'delivery_group_id')->get();
         $poOnHand = $poOnHandList->count();
+
+        $poCompleteList = NpcEvent::with(['customerCategory', 'deliveryGroup'])->where($noFilters)->whereHas('parts')->whereDoesntHave('parts', function($q) {
+            $q->whereNotIn('status', ['CLOSED', 'OUTSTANDING']);
+        })->select('id', 'po_no', 'customer_category_id', 'delivery_group_id')->get();
+        $poComplete = $poCompleteList->count();
+
+
 
         $stockQuery = NpcPart::where('status', 'FINISHED')->whereHas('event', $noFilters);
         $stockList = $stockQuery->with(['event' => function($q) {
-            $q->select('id', 'po_no');
+            $q->select('id', 'po_no', 'customer_category_id', 'delivery_group_id')->with(['customerCategory', 'deliveryGroup']);
         }, 'product' => function($q) {
             $q->select('id', 'part_no');
-        }])->select('id', 'npc_event_id', 'product_id')->get()->unique(function($item) {
-            return ($item->event && $item->event->po_no) ? $item->event->po_no : 'EV-'.($item->npc_event_id ?? $item->id);
-        })->values();
+        }])->select('id', 'npc_event_id', 'product_id')->get()->unique('npc_event_id')->values();
         $stock = $stockList->count();
 
         // Active Models (Total Active Projects)
