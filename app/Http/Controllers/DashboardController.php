@@ -203,29 +203,21 @@ class DashboardController extends Controller
         // --- END CHARTS DATA ---
 
         // 3. Action Required (To-Do List)
-        // a. ECN Updates
-        $allEcnUpdates = NpcPart::with(['product.docPackage.currentRevision', 'event.customerCategory', 'drawingRevision', 'processes.department', 'processes.process'])
+        // b. Delayed Parts (Past delivery date or past process target date, excluding finished/closed)
+        $delayedParts = NpcPart::with(['product', 'event.customerCategory', 'processes.department', 'processes.process'])
             ->whereHas('event', $noFilters)
             ->whereNotIn('status', ['FINISHED', 'CLOSED'])
-            ->whereNotNull('part_revision_id')
-            ->whereHas('product.docPackage', function ($q) {
-                $q->whereColumn('doc_packages.current_revision_id', '!=', 'npc_parts.part_revision_id');
+            ->where(function($q) {
+                $q->where(function($q1) {
+                    $q1->whereNotNull('delivery_date')
+                       ->where('delivery_date', '<', \Carbon\Carbon::today());
+                })->orWhereHas('processes', function($q2) {
+                    $q2->where('status', 'WAITING')
+                       ->whereNotNull('target_completion_date')
+                       ->where('target_completion_date', '<', \Carbon\Carbon::today());
+                });
             })
-            ->latest()
-            ->get();
-            
-        $ecnUpdates = $allEcnUpdates->groupBy('product_id')->map(function($group) {
-            $first = $group->first();
-            $first->po_count = $group->count();
-            return $first;
-        })->values()->take(5);
-
-        // b. Stagnant Parts (No update for > 3 days, excluding finished/closed)
-        $stagnantParts = NpcPart::with(['product', 'event.customerCategory', 'processes.department', 'processes.process'])
-            ->whereHas('event', $noFilters)
-            ->whereNotIn('status', ['FINISHED', 'CLOSED'])
-            ->where('updated_at', '<', Carbon::now()->subDays(3))
-            ->orderBy('updated_at', 'asc')
+            ->orderBy('delivery_date', 'asc')
             ->take(5)
             ->get();
 
@@ -265,7 +257,7 @@ class DashboardController extends Controller
         }
 
         return view('dashboard', compact(
-            'metrics', 'nearestEvents', 'ecnUpdates', 'stagnantParts', 'rolledBackParts', 'remainDeliveries',
+            'metrics', 'nearestEvents', 'delayedParts', 'rolledBackParts', 'remainDeliveries',
             'poChunks', 'progressChunks', 'departmentChart', 'customerChart',
             'filterYear', 'filterMonth', 'filterCustomer', 'filterPo', 'filterModel', 
             'progressYear', 'progressMonth', 'progressCustomer', 'progressPo', 'progressModel',

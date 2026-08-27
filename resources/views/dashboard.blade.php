@@ -491,7 +491,7 @@
                 </div>
                 
                 <div class="flex-1 overflow-y-auto custom-scrollbar p-0">
-                    @if($ecnUpdates->count() > 0 || $stagnantParts->count() > 0 || $rolledBackParts->count() > 0)
+                    @if($delayedParts->count() > 0 || $rolledBackParts->count() > 0)
                         <div class="divide-y divide-slate-100 dark:divide-slate-700/50">
                             <!-- Rolled Back Items -->
                             @foreach($rolledBackParts as $part)
@@ -542,52 +542,23 @@
                                 <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route($targetRoute, $targetParams) }}'">
                                     <div class="flex justify-between items-start">
                                         <div class="w-full">
-                                            <span class="text-[8px] font-bold text-red-600 bg-red-100 px-1 uppercase mb-0.5 inline-block">Rolled Back</span>
+                                            <span class="text-[8px] font-bold text-orange-600 bg-orange-100 px-1 uppercase mb-0.5 inline-block">Rolled Back</span>
                                             <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
-                                            <p class="text-[9px] text-red-600 font-medium mt-0.5 truncate border-b border-slate-100 pb-1 mb-1">
+                                            <p class="text-[9px] text-orange-600 font-medium mt-0.5 truncate border-b border-slate-100 pb-1 mb-1">
                                                 <i class="fa-solid fa-triangle-exclamation"></i> {{ $part->rollback_reason }}
                                             </p>
                                             <div class="flex flex-col mt-0.5 gap-0.5">
                                                 <p class="text-[9px] text-slate-500 font-bold"><i class="fa-solid fa-file-invoice text-slate-400 w-3"></i> PO: {{ $part->event->po_no ?? '-' }}</p>
-                                                <p class="text-[9px] text-rose-600"><i class="fa-solid fa-hourglass-half text-rose-400 w-3"></i> Stuck at: <strong>{{ $stuckAt }}</strong></p>
+                                                <p class="text-[9px] text-amber-600"><i class="fa-solid fa-hourglass-half text-amber-500 w-3"></i> On Process: <strong>{{ $stuckAt }}</strong></p>
                                                 <p class="text-[9px] text-blue-600"><i class="fa-solid fa-handshake-angle text-blue-400 w-3"></i> Need Support: <strong>{{ $supportFrom }}</strong></p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             @endforeach
-                            <!-- ECN Items -->
-                            @foreach($ecnUpdates as $part)
-                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route('tracking.index', ['search' => $part->event->po_no ?? '', 'open_event' => $part->npc_event_id, 'from_dashboard' => 1]) }}'">
-                                    <div class="flex justify-between items-start">
-                                        @php
-                                            $oldRev = optional($part->drawingRevision)->revision_no !== null && optional($part->drawingRevision)->revision_no !== '' ? optional($part->drawingRevision)->revision_no : '-';
-                                            $oldEcn = optional($part->drawingRevision)->ecn_no ?: 'No ECN';
-                                            
-                                            $newRevObj = optional(optional(optional($part->product)->docPackage)->currentRevision);
-                                            $newRev = $newRevObj->revision_no !== null && $newRevObj->revision_no !== '' ? $newRevObj->revision_no : '-';
-                                            $newEcn = $newRevObj->ecn_no ?: 'No ECN';
-                                            
-                                            $isIdentical = ("Rev $oldRev ($oldEcn)" === "Rev $newRev ($newEcn)");
-                                        @endphp
-                                        <div>
-                                            @if($isIdentical)
-                                                <span class="text-[8px] font-bold text-amber-600 bg-amber-100 px-1 uppercase mb-0.5 inline-block" title="Document file re-uploaded">File Updated</span>
-                                            @else
-                                                <span class="text-[8px] font-bold text-rose-600 bg-rose-100 px-1 uppercase mb-0.5 inline-block">ECN Update</span>
-                                            @endif
-                                            <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
-                                            @if(isset($part->po_count) && $part->po_count > 1)
-                                                <p class="text-[9px] text-slate-500 mt-0.5" title="{{ $part->po_list ?? '' }}">{{ $part->po_count }} Active PO(s)</p>
-                                            @else
-                                                <p class="text-[9px] text-slate-500 mt-0.5">PO: {{ $part->event->po_no ?? '-' }}</p>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                            <!-- Stagnant Items -->
-                            @foreach($stagnantParts as $part)
+
+                            <!-- Delayed Items -->
+                            @foreach($delayedParts as $part)
                                 @php
                                     $stuckAt = 'Unknown';
                                     $supportFrom = 'Unknown';
@@ -635,11 +606,11 @@
                                 <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route($targetRoute, $targetParams) }}'">
                                     <div class="flex justify-between items-start">
                                         <div class="w-full">
-                                            <span class="text-[8px] font-bold text-amber-600 bg-amber-100 px-1 uppercase mb-0.5 inline-block">Stagnant > 3d</span>
+                                            <span class="text-[8px] font-bold text-amber-600 bg-amber-100 px-1 uppercase mb-0.5 inline-block">Delayed</span>
                                             <p class="text-[10px] font-semibold text-slate-800 dark:text-white leading-tight">{{ $part->product->part_no }}</p>
                                             <div class="flex flex-col mt-0.5 gap-0.5">
                                                 <p class="text-[9px] text-slate-500 font-bold"><i class="fa-solid fa-file-invoice text-slate-400 w-3"></i> PO: {{ $part->event->po_no ?? '-' }}</p>
-                                                <p class="text-[9px] text-rose-600"><i class="fa-solid fa-hourglass-half text-rose-400 w-3"></i> Stuck at: <strong>{{ $stuckAt }}</strong></p>
+                                                <p class="text-[9px] text-amber-600"><i class="fa-solid fa-hourglass-half text-amber-500 w-3"></i> On Process: <strong>{{ $stuckAt }}</strong></p>
                                                 <p class="text-[9px] text-blue-600"><i class="fa-solid fa-handshake-angle text-blue-400 w-3"></i> Need Support: <strong>{{ $supportFrom }}</strong></p>
                                             </div>
                                         </div>
