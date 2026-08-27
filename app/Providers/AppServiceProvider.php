@@ -24,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Pagination\Paginator::defaultView('pagination.tailwind');
+        \Illuminate\Pagination\Paginator::defaultSimpleView('pagination.simple-tailwind');
+
         if (config('app.url')) {
             URL::forceRootUrl(config('app.url'));
         }

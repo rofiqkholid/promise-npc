@@ -461,20 +461,19 @@ $(document).ready(function() {
                 .css('margin-left', '0');
             $('.dataTables_length select')
                 .addClass('py-2 pl-3 pr-8 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm rounded-md shadow-sm');
-        },
-        drawCallback: function() {
+            
             let urlParams = new URLSearchParams(window.location.search);
             let openPartId = urlParams.get('open_part');
             
             if (openPartId && !window.modalAlreadyOpened) {
                 setTimeout(() => {
-                    let btn = $(`button[onclick*="openCompleteModal('${openPartId}'"]`);
+                    let btn = $(`button[onclick*="'${openPartId}'"]`);
                     if (btn.length > 0) {
-                        btn.click();
                         window.modalAlreadyOpened = true;
                         let url = new URL(window.location);
                         url.searchParams.delete('open_part');
                         window.history.replaceState({}, document.title, url);
+                        btn.click();
                     }
                 }, 200);
             }
