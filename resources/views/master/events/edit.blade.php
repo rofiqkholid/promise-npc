@@ -411,8 +411,16 @@
             }
         });
 
-        // WAF Bypass: Intercept form submission, encode parts as Base64 JSON
+        // WAF Bypass: Intercept form submission, encode parts as Base64 JSON and submit via Fetch
         document.getElementById('edit_event_form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnHtml = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...';
+
             const parts = [];
             const partItems = partsContainer.querySelectorAll('.part-item');
             
@@ -434,20 +442,51 @@
                         qty: qty.value
                     });
                 }
-                
-                // Disable these inputs so they aren't sent in the normal POST body
-                if(deliveryDate) deliveryDate.disabled = true;
-                if(partNo) partNo.disabled = true;
-                if(partName) partName.disabled = true;
-                if(productId) productId.disabled = true;
-                if(partId) partId.disabled = true;
-                if(qty) qty.disabled = true;
             });
 
-            // Encode to base64
             const jsonString = JSON.stringify(parts);
             const base64String = btoa(unescape(encodeURIComponent(jsonString)));
             document.getElementById('parts_json').value = base64String;
+
+            // Remove name attributes from dynamic parts so they don't bloat the payload
+            partItems.forEach(item => {
+                const inputs = item.querySelectorAll('input[name]');
+                inputs.forEach(inp => {
+                    if(!inp.id || inp.id !== 'parts_json') {
+                         inp.removeAttribute('name');
+                    }
+                });
+            });
+
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(async response => {
+                if (response.ok) {
+                    window.location.href = "{{ route('events.index') }}";
+                } else {
+                    const text = await response.text();
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                    
+                    // Show a modal or alert with the error to debug the WAF block
+                    const errorMsg = `Error ${response.status} ${response.statusText}\n\nServer Response (first 200 chars):\n${text.substring(0, 200)}`;
+                    alert(errorMsg);
+                    console.error('Server response:', text);
+                }
+            })
+            .catch(error => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
+                alert('Network error: ' + error.message);
+                console.error('Fetch error:', error);
+            });
         });
 
     });
