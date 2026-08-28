@@ -67,9 +67,9 @@
     <div class="p-6">
 
         <!-- Filters -->
-        <div class="mb-4 flex flex-col md:flex-row justify-between gap-4">
-            <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                <div class="w-full md:w-64">
+        <div class="mb-4 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+            <div class="flex flex-col md:flex-row flex-wrap gap-4 w-full xl:w-auto flex-1">
+                <div class="w-full md:flex-1 xl:w-56">
                     <select id="customerFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
                         <option value="">All Customers</option>
                         @foreach($customers ?? [] as $customer)
@@ -77,7 +77,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="w-full md:w-64">
+                <div class="w-full md:flex-1 xl:w-56">
                     <select id="modelFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
                         <option value="">All Models</option>
                         @foreach($models ?? [] as $mod)
@@ -85,7 +85,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="w-full md:w-64">
+                <div class="w-full md:flex-1 xl:w-56">
                     <select id="poFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
                         <option value="">All POs</option>
                         @foreach($poList ?? [] as $po)
@@ -93,24 +93,24 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="flex items-end">
-                    <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center">
+                <div class="flex items-end w-full md:w-auto mt-1 md:mt-0">
+                    <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center min-w-[100px]">
                         <i class="fa-solid fa-rotate-left"></i> Reset
                     </button>
                 </div>
             </div>
 
-            <div class="flex items-end w-full md:w-auto">
-                <div class="relative w-full md:w-80">
+            <div class="flex items-end w-full xl:w-[350px] shrink-0">
+                <div class="relative w-full">
                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
                         <i class="fa-solid fa-magnifying-glass text-sm"></i>
                     </div>
                     <input type="text" id="searchInput"
                         value="{{ request('search') }}"
                         placeholder="Search Part No, Part Name, PO No..."
-                        class="!pl-10 !pr-10 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-md">
+                        style="padding-left: 2.5rem; padding-right: 2.5rem;" class="py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-md">
                     <button type="button" id="clearSearchBtn" style="display:none;"
-                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-red-500 transition">
+                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-red-500 transition cursor-pointer z-10">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>

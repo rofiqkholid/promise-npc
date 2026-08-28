@@ -17,70 +17,70 @@
     <!-- Table -->
     <div class="p-6">
 
-        <!-- Filters -->
-        <div class="mb-4 flex flex-col xl:flex-row justify-between gap-4">
-            <div class="flex flex-wrap gap-3 w-full xl:w-auto items-end">
-                <div class="w-full sm:w-48 lg:w-56">
-                    <select id="customerFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
-                        <option value="">All Customers</option>
-                        @foreach($customers ?? [] as $customer)
-                            <option value="{{ $customer->id }}" {{ request('customer_filter') == $customer->id ? 'selected' : '' }}>{{ $customer->code }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="w-full sm:w-48 lg:w-56">
-                    <select id="modelFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
-                        <option value="">All Models</option>
-                        @foreach($models ?? [] as $mod)
-                            <option value="{{ $mod->id }}" data-customer="{{ $mod->customer_id }}" {{ request('model_filter') == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="w-full sm:w-48 lg:w-56">
-                    <select id="poFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
-                        <option value="">All POs</option>
-                        @foreach($poList ?? [] as $po)
-                            <option value="{{ $po->po_no }}" {{ request('po_filter') == $po->po_no ? 'selected' : '' }}>{{ $po->po_no }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="flex items-end w-full sm:w-auto">
-                    <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center">
-                        <i class="fa-solid fa-rotate-left"></i> Reset
-                    </button>
-                </div>
+    <!-- Filters -->
+    <div class="px-6 pt-4 pb-4 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+        <div class="flex flex-wrap items-center gap-4 w-full xl:w-auto">
+            <div class="w-full sm:w-auto">
+                <select id="customerFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-48 rounded-md shadow-sm">
+                    <option value="all">All Customers</option>
+                    @foreach($customers ?? [] as $customer)
+                        <option value="{{ $customer->id }}" {{ request('customer_filter') == $customer->id ? 'selected' : '' }}>{{ $customer->code }}</option>
+                    @endforeach
+                </select>
             </div>
-
-            <div class="flex items-end w-full xl:w-auto">
-                <div class="relative w-full sm:w-80 xl:w-80">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                        <i class="fa-solid fa-magnifying-glass text-sm"></i>
-                    </div>
-                    <input type="text" id="searchInput"
-                        value="{{ request('search') }}"
-                        placeholder="Search Part No, Part Name, PO No..."
-                        class="!pl-10 !pr-10 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-md">
-                    <button type="button" id="clearSearchBtn" style="display:none;"
-                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-red-500 transition">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
+            <div class="w-full sm:w-auto">
+                <select id="modelFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-48 rounded-md shadow-sm">
+                    <option value="all">All Models</option>
+                    @foreach($models ?? [] as $mod)
+                        <option value="{{ $mod->id }}" data-customer="{{ $mod->customer_id }}" {{ request('model_filter') == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="w-full sm:w-auto">
+                <select id="poFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-48 rounded-md shadow-sm">
+                    <option value="all">All POs</option>
+                    @foreach($poList ?? [] as $po)
+                        <option value="{{ $po->po_no }}" {{ request('po_filter') == $po->po_no ? 'selected' : '' }}>{{ $po->po_no }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex items-end w-full sm:w-auto">
+                <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center min-w-[100px]">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
             </div>
         </div>
 
-        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
+        <div class="flex items-end w-full xl:w-auto">
+            <div class="relative w-full sm:w-80 xl:w-80">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </div>
+                <input type="text" id="searchInput"
+                    value="{{ request('search') }}"
+                    placeholder="Search Part No, Part Name, PO No..."
+                    style="padding-left: 2.5rem; padding-right: 2.5rem;" class="py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-md">
+                <button type="button" id="clearSearchBtn" style="display:none;"
+                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-red-500 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+        <div class="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-sm overflow-hidden">
             <table class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
-                <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
+                <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 uppercase text-[11px] tracking-wider font-bold">
                     <tr>
-                        <th scope="col" class="px-4 py-2 font-semibold w-16">No</th>
-                        <th scope="col" class="px-4 py-2 font-semibold w-72">Product Identity</th>
-                        <th scope="col" class="px-4 py-2 font-semibold text-center">Quality Validation Status (QC)</th>
-                        <th scope="col" class="px-4 py-2 font-semibold text-right w-48">Final Validation (MGM)</th>
+                        <th scope="col" class="px-4 py-3 w-16">#</th>
+                        <th scope="col" class="px-4 py-3 w-72">PRODUCT IDENTITY</th>
+                        <th scope="col" class="px-4 py-3 text-center">QUALITY VALIDATION STATUS (QC)</th>
+                        <th scope="col" class="px-4 py-3 text-right w-48">FINAL VALIDATION (MGM)</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                     @forelse($parts as $part)
-                    <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-gray-700/30 transition text-sm">
+                    <tr class="odd:bg-white even:bg-slate-100 dark:odd:bg-slate-800 dark:even:bg-slate-800/50 border-b dark:border-slate-700 hover:bg-blue-50/50 dark:hover:bg-slate-700/30 transition text-sm">
                         <td class="px-4 py-2 text-slate-800 dark:text-slate-200 text-[13px]">
                             {{ ($parts->currentPage() - 1) * $parts->perPage() + $loop->iteration }}
                         </td>
@@ -90,8 +90,8 @@
                             <div class="text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-700 px-2 py-0.5 inline-block border border-gray-200 dark:border-gray-600 mb-2">PO: {{ optional($part->event)->po_no }} | MODEL: {{ optional($part->event->vehicleModel)->name ?? 'Unknown Model' }}</div>
                             <div class="text-gray-800 dark:text-gray-300 font-black flex items-center gap-1.5"><i class="fa-solid fa-boxes-stacked text-gray-400"></i> {{ number_format($part->qty) }} <span class="text-xs font-semibold text-gray-500">PCS</span></div>
                             @if($part->rollback_reason)
-                            <div class="mt-2 flex items-start gap-1.5 text-[10px] text-red-600 bg-red-50 p-1.5 border border-red-200">
-                                <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                            <div class="mt-2 flex items-start gap-1.5 text-[10px] text-orange-700 bg-orange-50 p-1.5 border border-orange-200 dark:text-orange-400 dark:bg-orange-900/30 dark:border-orange-800">
+                                <i class="fa-solid fa-clock-rotate-left mt-0.5"></i>
                                 <div class="font-medium text-balance">
                                     <span class="font-bold">Rolled Back:</span> {{ $part->rollback_reason }}
                                 </div>
@@ -179,7 +179,7 @@
         </div>
     </div>
 
-    <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+    <div class="p-4 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
         {{ $parts->links() }}
     </div>
 </div>

@@ -13,34 +13,34 @@
 
     <div class="p-6">
         <!-- Filters -->
-        <div class="mb-4 flex flex-col md:flex-row justify-between gap-4">
-            <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                <div class="w-full md:w-48">
-                    <select id="filterCustomer" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
+        <div class="mb-4 flex flex-col xl:flex-row justify-between gap-4 items-start xl:items-end">
+            <div class="flex flex-wrap items-center gap-4 w-full xl:w-auto">
+                <div class="w-full sm:w-auto">
+                    <select id="filterCustomer" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm">
                         <option value="">All Customers</option>
                         @foreach($customers as $c)
                             <option value="{{ $c->id }}">{{ $c->code }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="w-full md:w-48">
-                    <select id="filterModel" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
+                <div class="w-full sm:w-auto">
+                    <select id="filterModel" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm">
                         <option value="">All Models</option>
                         @foreach($models as $m)
                             <option value="{{ $m->id }}">{{ $m->name }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="w-full md:w-48">
-                    <select id="filterPo" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
+                <div class="w-full sm:w-auto">
+                    <select id="filterPo" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm">
                         <option value="">All POs</option>
                         @foreach($poList ?? [] as $po)
                             <option value="{{ $po->po_no }}">{{ $po->po_no }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="w-full md:w-48">
-                    <select id="filterStage" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
+                <div class="w-full sm:w-auto">
+                    <select id="filterStage" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm">
                         <option value="">All Stages</option>
                         <option value="WAITING_QE_STAFF">Waiting QE Staff</option>
                         <option value="WAITING_MGM_STAFF">Waiting NPC Staff</option>
@@ -53,28 +53,44 @@
                         <option value="APPROVED">Fully Approved</option>
                     </select>
                 </div>
-                <div class="flex items-end">
-                    <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center">
+                <div class="flex items-end w-full sm:w-auto">
+                    <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center min-w-[100px]">
                         <i class="fa-solid fa-rotate-left"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-end w-full md:w-[350px] shrink-0">
+                <div class="relative w-full">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                        <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                    </div>
+                    <input type="text" id="customSearchInput"
+                        value="{{ request('search') }}"
+                        placeholder="Search..."
+                        style="padding-left: 2.5rem; padding-right: 2.5rem;" class="py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-md">
+                    <button type="button" id="clearSearchBtn" style="display:none;"
+                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-red-500 transition cursor-pointer z-10">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
             </div>
         </div>
 
-        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
+        <div class="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-sm overflow-hidden">
             <table id="checksheetApprovalTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
-                <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
+                <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 uppercase text-[11px] tracking-wider font-bold">
                     <tr>
-                        <th class="px-4 py-2 font-semibold w-16">#</th>
-                        <th class="px-4 py-2 font-semibold">Part No / Name</th>
-                        <th class="px-4 py-2 font-semibold">Event</th>
-                        <th class="px-4 py-2 font-semibold">GR / PO</th>
-                        <th class="px-4 py-2 font-semibold">Model / Customer</th>
-                        <th class="px-4 py-2 font-semibold text-center">Approval Stage</th>
-                        <th class="px-4 py-2 font-semibold text-right w-40">Action</th>
+                        <th class="px-4 py-3 w-16">#</th>
+                        <th class="px-4 py-3">PART NO / NAME</th>
+                        <th class="px-4 py-3">EVENT</th>
+                        <th class="px-4 py-3">GR / PO</th>
+                        <th class="px-4 py-3">MODEL / CUSTOMER</th>
+                        <th class="px-4 py-3 text-center">APPROVAL STAGE</th>
+                        <th class="px-4 py-3 text-right w-40">ACTION</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                     <!-- DataTables Data -->
                 </tbody>
             </table>
@@ -88,6 +104,19 @@
     $(document).ready(function() {
         let urlParams = new URLSearchParams(window.location.search);
         initPromiseDataTable('#checksheetApprovalTable', {
+            pageLength: 10,
+            stripeClasses: ['bg-white dark:bg-slate-800', 'bg-slate-100 dark:bg-slate-800/50'],
+            dom: '<"overflow-x-auto"t><"p-4 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500"ip>',
+            language: {
+                search: "",
+                searchPlaceholder: "Search Part No, PO No...",
+                lengthMenu: "Show _MENU_ rows",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                paginate: {
+                    previous: "Prev",
+                    next: "Next"
+                }
+            },
             search: { search: urlParams.get('search') || '' },
             ajax: {
                 url: "{{ route('checksheet-approvals.index') }}",
@@ -189,15 +218,45 @@
             }
         });
 
-        $('#clearFiltersBtn').on('click', function() {
-            isResetting = true;
-            $('#filterStage').val('').trigger('change');
-            $('#filterCustomer').val('').trigger('change');
-            $('#filterModel').val('').trigger('change');
-            $('#filterPo').val('').trigger('change');
-            isResetting = false;
+        // Link Custom Search Bar to DataTables
+        let debounceTimer;
+        $('#customSearchInput').on('input', function() {
+            if ($(this).val().length > 0) {
+                $('#clearSearchBtn').show();
+            } else {
+                $('#clearSearchBtn').hide();
+            }
+            clearTimeout(debounceTimer);
+            let val = this.value;
+            let table = $('#checksheetApprovalTable').DataTable();
+            debounceTimer = setTimeout(function() {
+                table.search(val).draw();
+            }, 500);
+        });
+
+        if ($('#customSearchInput').val() && $('#customSearchInput').val().length > 0) {
+            $('#clearSearchBtn').show();
+        }
+
+        $('#clearSearchBtn').on('click', function(e) {
+            e.preventDefault();
+            $('#customSearchInput').val('');
+            $(this).hide();
+            $('#checksheetApprovalTable').DataTable().search('').draw();
+            $('#customSearchInput').focus();
+        });
+
+        $('#clearFiltersBtn').on('click', function(e) {
+            e.preventDefault();
+            $('#customSearchInput').val('');
+            $('#clearSearchBtn').hide();
             
-            $('#checksheetApprovalTable').DataTable().ajax.reload();
+            $('#filterStage').val('').trigger('change.select2');
+            $('#filterCustomer').val('').trigger('change.select2');
+            $('#filterModel').val('').trigger('change.select2');
+            $('#filterPo').val('').trigger('change.select2');
+            
+            $('#checksheetApprovalTable').DataTable().search('').draw();
         });
     });
 

@@ -15,57 +15,58 @@
             </div>
         </div>
 
-        <form id="searchForm" method="GET" action="{{ route('master.checksheet_approvals.index') }}" class="w-full">
-            <div class="flex flex-wrap gap-3 items-end justify-between">
+        <form id="filterForm" class="mb-4">
+            <div class="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
                 
-                <!-- Left Side: Dropdown Filters -->
-                <div class="flex flex-wrap gap-3 flex-1">
-                    <div class="w-full sm:w-40">
-                        <select name="customer_id" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none">
-                            <option value="ALL">All Customers</option>
-                            @foreach($customers as $customer)
-                                <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>
-                                    {{ $customer->code }}
-                                </option>
+                <!-- Left Side: Dropdowns -->
+                <div class="flex flex-wrap items-center gap-4 w-full xl:w-auto">
+                    <div class="w-full sm:w-auto">
+                        <select name="customer_id" class="w-full sm:w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-none text-sm bg-white dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500 transition shadow-sm">
+                            <option value="">All Customers</option>
+                            @foreach($customers as $c)
+                                <option value="{{ $c->id }}" {{ request('customer_id') == $c->id ? 'selected' : '' }}>{{ $c->code }}</option>
                             @endforeach
                         </select>
                     </div>
                     
-                    <div class="w-full sm:w-40">
-                        <select name="model_id" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none">
-                            <option value="ALL">All Models</option>
-                            @foreach($models as $model)
-                                <option value="{{ $model->id }}" {{ request('model_id') == $model->id ? 'selected' : '' }}>
-                                    {{ $model->name }}
-                                </option>
+                    <div class="w-full sm:w-auto">
+                        <select name="model_id" class="w-full sm:w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-none text-sm bg-white dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500 transition shadow-sm">
+                            <option value="">All Models</option>
+                            @foreach($models as $m)
+                                <option value="{{ $m->id }}" {{ request('model_id') == $m->id ? 'selected' : '' }}>{{ $m->name }}</option>
                             @endforeach
                         </select>
                     </div>
-
-                    <div class="w-full sm:w-40">
-                        <select name="status" class="w-full py-2 pl-3 pr-10 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all rounded-none">
-                            <option value="ALL">All Statuses</option>
-                            <option value="WAITING_APPROVAL" {{ request('status', 'WAITING_APPROVAL') == 'WAITING_APPROVAL' ? 'selected' : '' }}>Waiting Approval</option>
+                    
+                    <div class="w-full sm:w-auto">
+                        <select name="status" class="w-full sm:w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-none text-sm bg-white dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500 transition shadow-sm">
+                            <option value="">All Statuses</option>
+                            <option value="MAPPED" {{ request('status') == 'MAPPED' ? 'selected' : '' }}>Mapped</option>
+                            <option value="WAITING_APPROVAL" {{ request('status') == 'WAITING_APPROVAL' ? 'selected' : '' }}>Waiting Approval</option>
                             <option value="APPROVED" {{ request('status') == 'APPROVED' ? 'selected' : '' }}>Approved</option>
                             <option value="REJECTED" {{ request('status') == 'REJECTED' ? 'selected' : '' }}>Rejected</option>
                         </select>
                     </div>
                     
-                    <button type="button" id="resetFilters" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 transition text-[13px] flex items-center gap-2 shadow-sm rounded-none" title="Reset Filters">
-                        <i class="fa-solid fa-rotate-right"></i> Reset
-                    </button>
+                    <div class="w-full sm:w-auto">
+                        <button type="button" id="resetFilters" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 transition text-[13px] flex items-center justify-center gap-2 shadow-sm rounded-none w-full" title="Reset Filters">
+                            <i class="fa-solid fa-rotate-right"></i> Reset
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Right Side: Search Input -->
                 <div class="w-full sm:w-64 lg:w-80">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fa-solid fa-search text-gray-400"></i>
+                    <div class="relative w-full">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-search text-sm"></i>
                         </div>
                         <input type="text" id="searchInput" name="search" value="{{ request('search') }}" 
-                            class="w-full pr-4 py-2 bg-white text-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-gray-400 rounded-none" 
-                            style="padding-left: 2.5rem;"
+                            style="padding-left: 2.5rem; padding-right: 2.5rem;" class="py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-md" 
                             placeholder="Search Part No / Name...">
+                        <button type="button" id="clearSearchBtn" style="display:none;" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-red-500 transition cursor-pointer">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -74,22 +75,22 @@
     </div>
 
     <!-- Table -->
-    <div class="p-6">
-        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
-            <table id="checksheetApprovalTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400 border-collapse">
-                <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
+    <div class="px-6 pb-6">
+        <div class="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-sm overflow-hidden">
+            <table id="checksheetApprovalTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
+                <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 uppercase text-[11px] tracking-wider font-bold">
                     <tr>
-                        <th scope="col" class="px-4 py-2 font-semibold w-12 text-center">No</th>
-                        <th scope="col" class="px-4 py-2 font-semibold">Customer</th>
-                        <th scope="col" class="px-4 py-2 font-semibold">Model</th>
-                        <th scope="col" class="px-4 py-2 font-semibold">Part No</th>
-                        <th scope="col" class="px-4 py-2 font-semibold">Name Part</th>
-                        <th scope="col" class="px-4 py-2 font-semibold">ECN</th>
-                        <th scope="col" class="px-4 py-2 font-semibold text-center">Mapping Status</th>
-                        <th scope="col" class="px-4 py-2 font-semibold text-right">Action</th>
+                        <th scope="col" class="px-4 py-3 w-12 text-center">#</th>
+                        <th scope="col" class="px-4 py-3">CUSTOMER</th>
+                        <th scope="col" class="px-4 py-3">MODEL</th>
+                        <th scope="col" class="px-4 py-3">PART NO</th>
+                        <th scope="col" class="px-4 py-3">PART NAME</th>
+                        <th scope="col" class="px-4 py-3">ECN</th>
+                        <th scope="col" class="px-4 py-3 text-center">MAPPING STATUS</th>
+                        <th scope="col" class="px-4 py-3 text-right">ACTION</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                     <!-- DataTables Data -->
                 </tbody>
             </table>
@@ -123,8 +124,19 @@
                 { data: 'mapping_status', name: 'mapping_status', className: 'px-4 py-2 text-center', searchable: false, orderable: false },
                 { data: 'action', name: 'action', orderable: false, searchable: false, className: 'px-4 py-2 text-right align-middle' }
             ],
-            // Since we use custom filters and search box:
-            dom: '<"flex justify-between items-center mb-4"<"text-sm"l>>rt<"flex justify-between items-center mt-4 text-sm"ip>',
+            pageLength: 10,
+            stripeClasses: ['bg-white dark:bg-slate-800', 'bg-slate-100 dark:bg-slate-800/50'],
+            dom: '<"overflow-x-auto"t><"p-4 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500"ip>',
+            language: {
+                search: "",
+                searchPlaceholder: "Search Part No, PO No...",
+                lengthMenu: "Show _MENU_ rows",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                paginate: {
+                    previous: "Prev",
+                    next: "Next"
+                }
+            },
             stateSaveParams: function (settings, data) {
                 data.customFilters = {
                     customer_id: $('select[name="customer_id"]').val(),

@@ -39,8 +39,11 @@
     @stack('styles')
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 text-slate-800 dark:text-gray-200 antialiased overflow-hidden">
-    <div x-data="{ 
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans antialiased overflow-hidden">
+    <!-- Tailwind CSS Safelist for dynamic classes (e.g. DataTables stripeClasses) -->
+    <div class="hidden odd:bg-white even:bg-slate-100 bg-slate-100 bg-slate-50 dark:odd:bg-slate-800 dark:even:bg-slate-800/50"></div>
+
+    <div id="app" x-data="{ 
             sidebarExpanded: localStorage.getItem('sidebarExpanded') !== 'false',
             sidebarMobileOpen: false,
             toggleSidebar() {

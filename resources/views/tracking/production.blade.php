@@ -15,52 +15,70 @@
     </div>
 
     <!-- Filters -->
-    <div class="px-6 pt-4 pb-2 flex flex-col md:flex-row gap-4">
-        <div class="w-full md:w-64">
-            <select id="customerFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
-                <option value="all">All Customers</option>
-                @foreach($customers ?? [] as $customer)
-                    <option value="{{ $customer->id }}">{{ $customer->code }}</option>
-                @endforeach
-            </select>
+    <div class="px-6 pt-4 pb-4 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+        <div class="flex flex-wrap items-center gap-4 w-full xl:w-auto">
+            <div class="w-full sm:w-auto">
+                <select id="customerFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-48 rounded-md shadow-sm">
+                    <option value="all">All Customers</option>
+                    @foreach($customers ?? [] as $customer)
+                        <option value="{{ $customer->id }}">{{ $customer->code }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="w-full sm:w-auto">
+                <select id="modelFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-48 rounded-md shadow-sm">
+                    <option value="all">All Models</option>
+                    @foreach($models ?? [] as $mod)
+                        <option value="{{ $mod->id }}" data-customer="{{ $mod->customer_id }}">{{ $mod->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="w-full sm:w-auto">
+                <select id="poFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-48 rounded-md shadow-sm">
+                    <option value="all">All POs</option>
+                    @foreach($poList ?? [] as $po)
+                        <option value="{{ $po->po_no }}">{{ $po->po_no }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex items-end w-full sm:w-auto">
+                <button id="clearFiltersBtn" type="button" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center min-w-[100px]">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+            </div>
         </div>
-        <div class="w-full md:w-64">
-            <select id="modelFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
-                <option value="all">All Models</option>
-                @foreach($models ?? [] as $mod)
-                    <option value="{{ $mod->id }}" data-customer="{{ $mod->customer_id }}">{{ $mod->name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="w-full md:w-64">
-            <select id="poFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm">
-                <option value="all">All POs</option>
-                @foreach($poList ?? [] as $po)
-                    <option value="{{ $po->po_no }}">{{ $po->po_no }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="flex items-end">
-            <button id="clearFiltersBtn" type="button" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2">
-                <i class="fa-solid fa-rotate-left"></i> Reset
-            </button>
+
+        <div class="flex items-end w-full xl:w-[350px] shrink-0">
+            <div class="relative w-full">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </div>
+                <input type="text" id="customSearchInput"
+                    value="{{ request('search') }}"
+                    placeholder="Search Part No, PO No..."
+                    style="padding-left: 2.5rem; padding-right: 2.5rem;" class="py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full transition shadow-sm rounded-md">
+                <button type="button" id="clearSearchBtn" style="display:none;"
+                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-red-500 transition cursor-pointer z-10">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- Table -->
     <div class="p-6 pt-0">
-        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
+        <div class="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-sm overflow-hidden">
             <table id="productionTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
-                <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
+                <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 uppercase text-[11px] tracking-wider font-bold">
                     <tr>
-                        <th scope="col" class="px-4 py-2 font-semibold w-16">No</th>
-                        <th scope="col" class="px-4 py-2 font-semibold w-64">Part Info / PO</th>
-                        <th scope="col" class="px-4 py-2 font-semibold text-center w-32">Status PO</th>
-                        <th scope="col" class="px-4 py-2 font-semibold text-center">Routing Execution Overview</th>
-                        <th scope="col" class="px-4 py-2 font-semibold text-right w-48">Action Production</th>
+                        <th scope="col" class="px-4 py-3 w-16">#</th>
+                        <th scope="col" class="px-4 py-3 w-64">WO NO / PART INFO</th>
+                        <th scope="col" class="px-4 py-3 text-center w-32">STATUS PO</th>
+                        <th scope="col" class="px-4 py-3 text-center">ROUTING EXECUTION OVERVIEW</th>
+                        <th scope="col" class="px-4 py-3 text-right w-48">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                     <!-- DataTables will fill this -->
                 </tbody>
             </table>
@@ -236,14 +254,15 @@ $(document).ready(function() {
                 $('#poFilter').trigger('change.select2');
             }, 100);
         },
-        pageLength: 15,
+        pageLength: 10,
         lengthMenu: [[10, 15, 25, 50, 100], [10, 15, 25, 50, 100]],
-        stripeClasses: ['bg-white dark:bg-gray-800', 'bg-gray-50 dark:bg-gray-750'],
-        dom: '<"flex flex-col md:flex-row justify-between items-center mb-4 gap-4"<"w-full md:w-auto"l><"w-full md:w-80"f>>rt<"flex flex-col md:flex-row justify-between items-center mt-6 gap-4"ip>',
+        stripeClasses: ['bg-white dark:bg-slate-800', 'bg-slate-100 dark:bg-slate-800/50'],
+        dom: '<"overflow-x-auto"t><"p-4 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500"ip>',
         language: {
             search: "",
             searchPlaceholder: "Search Part No, PO No...",
-            lengthMenu: "Show _MENU_ entries",
+            lengthMenu: "Show _MENU_ rows",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
             paginate: {
                 previous: "Prev",
                 next: "Next"
@@ -516,11 +535,43 @@ $(document).ready(function() {
         table.ajax.reload();
     });
 
+    // Link Custom Search Bar to DataTables
+    let debounceTimer;
+    $('#customSearchInput').on('input', function() {
+        if ($(this).val().length > 0) {
+            $('#clearSearchBtn').show();
+        } else {
+            $('#clearSearchBtn').hide();
+        }
+        clearTimeout(debounceTimer);
+        let val = this.value;
+        debounceTimer = setTimeout(function() {
+            table.search(val).draw();
+        }, 500);
+    });
+
+    if ($('#customSearchInput').val() && $('#customSearchInput').val().length > 0) {
+        $('#clearSearchBtn').show();
+    }
+
+    $('#clearSearchBtn').on('click', function(e) {
+        e.preventDefault();
+        $('#customSearchInput').val('');
+        $(this).hide();
+        table.search('').draw();
+        $('#customSearchInput').focus();
+    });
+
     $('#clearFiltersBtn').on('click', function(e) {
         e.preventDefault();
-        $('#modelFilter').val('all');
-        $('#poFilter').val('all').trigger('change');
-        $('#customerFilter').val('all').trigger('change');
+        $('#customSearchInput').val('');
+        $('#clearSearchBtn').hide();
+        
+        $('#modelFilter').val('all').trigger('change.select2');
+        $('#poFilter').val('all').trigger('change.select2');
+        $('#customerFilter').val('all').trigger('change.select2');
+        
+        table.search('').draw();
     });
 });
 </script>

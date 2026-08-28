@@ -64,8 +64,8 @@ class ProductChecksheetSetupController extends Controller
                         ->first();
                         
                     if ($rolledBackPart) {
-                        $html .= '<div class="mt-2 flex items-start gap-1.5 text-[10px] text-red-600 bg-red-50 p-1.5 border border-red-200">
-                            <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                        $html .= '<div class="mt-2 flex items-start gap-1.5 text-[10px] text-orange-700 bg-orange-50 p-1.5 border border-orange-200 dark:text-orange-400 dark:bg-orange-900/30 dark:border-orange-800">
+                            <i class="fa-solid fa-clock-rotate-left mt-0.5"></i>
                             <div class="font-medium text-balance">
                                 <span class="font-bold">Rolled Back:</span> ' . htmlspecialchars($rolledBackPart->rollback_reason) . '
                             </div>
