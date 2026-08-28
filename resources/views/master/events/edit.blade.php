@@ -12,9 +12,10 @@
             </h2>
         </div>
 
-        <form id="edit_event_form" action="{{ route('events.update_post', $event->hashed_id) }}" method="POST" class="p-6 space-y-6">
+        <form id="edit_event_form" action="{{ route('events.store') }}" method="POST" class="p-6 space-y-6">
             @csrf
-            <input type="hidden" name="parts_json" id="parts_json">
+            <input type="hidden" name="_is_update" value="1">
+            <input type="hidden" name="event_id" value="{{ $event->hashed_id }}">
             
 
 
@@ -409,84 +410,6 @@
                     if(emptyMsg) emptyMsg.style.display = 'block';
                 }
             }
-        });
-
-        // WAF Bypass: Intercept form submission, encode parts as Base64 JSON and submit via Fetch
-        document.getElementById('edit_event_form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const form = this;
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const originalBtnHtml = submitBtn.innerHTML;
-            
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...';
-
-            const parts = [];
-            const partItems = partsContainer.querySelectorAll('.part-item');
-            
-            partItems.forEach((item, idx) => {
-                const deliveryDate = item.querySelector('input[name*="[delivery_date]"]');
-                const partNo = item.querySelector('.part-no-input');
-                const partName = item.querySelector('.part-name-input');
-                const productId = item.querySelector('.product-id-input');
-                const partId = item.querySelector('input[name*="[id]"]');
-                const qty = item.querySelector('input[name*="[qty]"]');
-
-                if (partNo && qty && deliveryDate) {
-                    parts.push({
-                        id: partId ? partId.value : '',
-                        delivery_date: deliveryDate.value,
-                        part_no: partNo.value,
-                        part_name: partName ? partName.value : '',
-                        product_id: productId ? productId.value : '',
-                        qty: qty.value
-                    });
-                }
-            });
-
-            const jsonString = JSON.stringify(parts);
-            const base64String = btoa(unescape(encodeURIComponent(jsonString)));
-            document.getElementById('parts_json').value = base64String;
-
-            // Remove name attributes from dynamic parts so they don't bloat the payload
-            partItems.forEach(item => {
-                const inputs = item.querySelectorAll('input[name]');
-                inputs.forEach(inp => {
-                    if(!inp.id || inp.id !== 'parts_json') {
-                         inp.removeAttribute('name');
-                    }
-                });
-            });
-
-            const formData = new FormData(form);
-
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(async response => {
-                if (response.ok) {
-                    window.location.href = "{{ route('events.index') }}";
-                } else {
-                    const text = await response.text();
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnHtml;
-                    
-                    // Show a modal or alert with the error to debug the WAF block
-                    const errorMsg = `Error ${response.status} ${response.statusText}\n\nServer Response (first 200 chars):\n${text.substring(0, 200)}`;
-                    alert(errorMsg);
-                    console.error('Server response:', text);
-                }
-            })
-            .catch(error => {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnHtml;
-                alert('Network error: ' + error.message);
-                console.error('Fetch error:', error);
-            });
         });
 
     });

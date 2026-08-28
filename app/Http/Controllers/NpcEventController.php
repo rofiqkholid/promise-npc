@@ -119,6 +119,15 @@ class NpcEventController extends Controller
 
     public function store(Request $request)
     {
+        // WAF Bypass: Route updates through store endpoint
+        if ($request->filled('_is_update') && $request->filled('event_id')) {
+            $event = (new \App\Models\NpcEvent)->resolveRouteBinding($request->event_id);
+            if (!$event) {
+                abort(404, 'Event not found');
+            }
+            return $this->update($request, $event);
+        }
+
         $request->validate([
             'customer_id' => 'required', // Needed for flow Validation
             'model_id' => 'required', // Needed to validate parts
