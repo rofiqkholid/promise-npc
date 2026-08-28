@@ -233,7 +233,16 @@ class NpcEventController extends Controller
         $masterModelId = $event->model_id;
         
         $customers = \App\Models\Customer::orderBy('name')->get();
-        $models = \App\Models\VehicleModel::where('customer_id', $masterCustomerId)->orderBy('name')->get();
+        $models = \App\Models\VehicleModel::where('customer_id', $masterCustomerId)
+            ->where(function($query) use ($masterModelId) {
+                $query->where('status_id', 3)
+                      ->whereIn('id', function($q) {
+                          $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id');
+                      })
+                      ->orWhere('id', $masterModelId);
+            })
+            ->orderBy('name')
+            ->get();
         
         $customer_categories = NpcCustomerCategory::where('customer_id', $masterCustomerId)->orderBy('name')->get();
         $delivery_groups = NpcDeliveryGroup::orderBy('name')->get();
