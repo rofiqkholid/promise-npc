@@ -57,7 +57,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/events/import/template', [\App\Http\Controllers\NpcEventController::class, 'downloadTemplate'])->name('events.import.template');
     Route::get('/events/import', [\App\Http\Controllers\NpcEventController::class, 'importForm'])->name('events.import');
     Route::post('/events/import', [\App\Http\Controllers\NpcEventController::class, 'importData'])->name('events.import.store');
-    Route::post('/events/{event}/update', [\App\Http\Controllers\NpcEventController::class, 'update'])->name('events.update_post');
+    Route::post('/events/{event}/save-edit', [\App\Http\Controllers\NpcEventController::class, 'update'])->name('events.update_post');
     Route::resource('events', \App\Http\Controllers\NpcEventController::class);
     Route::resource('events.parts', \App\Http\Controllers\NpcPartController::class);
 
