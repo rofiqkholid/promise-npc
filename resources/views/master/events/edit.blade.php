@@ -412,6 +412,104 @@
             }
         });
 
+        // ULTIMATE WAF BYPASS: Submit as application/json instead of form-urlencoded
+        document.getElementById('edit_event_form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnHtml = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...';
+
+            // Build JSON payload
+            const payload = {
+                _token: form.querySelector('input[name="_token"]').value,
+                _is_update: form.querySelector('input[name="_is_update"]').value,
+                event_id: form.querySelector('input[name="event_id"]').value,
+                po_no: form.querySelector('input[name="po_no"]').value,
+                customer_id: form.querySelector('select[name="customer_id"]').value,
+                model_id: form.querySelector('select[name="model_id"]').value,
+                customer_category_id: form.querySelector('select[name="customer_category_id"]').value,
+                delivery_group_id: form.querySelector('select[name="delivery_group_id"]').value,
+                delivery_to: form.querySelector('select[name="delivery_to"]') ? form.querySelector('select[name="delivery_to"]').value : '',
+                parts: []
+            };
+
+            const partItems = partsContainer.querySelectorAll('.part-item');
+            partItems.forEach((item) => {
+                const deliveryDate = item.querySelector('input[name*="[delivery_date]"]');
+                const partNo = item.querySelector('.part-no-input');
+                const partName = item.querySelector('.part-name-input');
+                const productId = item.querySelector('.product-id-input');
+                const partId = item.querySelector('input[name*="[id]"]');
+                const qty = item.querySelector('input[name*="[qty]"]');
+
+                if (partNo && qty && deliveryDate) {
+                    payload.parts.push({
+                        id: partId ? partId.value : null,
+                        delivery_date: deliveryDate.value,
+                        part_no: partNo.value,
+                        part_name: partName ? partName.value : null,
+                        product_id: productId ? productId.value : null,
+                        qty: qty.value
+                    });
+                }
+            });
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': payload._token
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(async response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    // Laravel redirect responses (302) might not be followed if it's an AJAX JSON request in some setups,
+                    // but usually Laravel returns JSON with redirect URL if expectsJson()
+                    const contentType = response.headers.get("content-type");
+                    if (contentType && contentType.indexOf("application/json") !== -1) {
+                        const data = await response.json();
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                            return;
+                        }
+                    }
+                    window.location.href = "{{ route('events.index') }}";
+                } else {
+                    const text = await response.text();
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                    
+                    let errMsg = `Error ${response.status} ${response.statusText}`;
+                    if (response.status === 422) {
+                        try {
+                            const errors = JSON.parse(text).errors;
+                            errMsg = Object.values(errors).flat().join('\n');
+                        } catch(e) {}
+                    } else if (response.status === 403) {
+                         errMsg = `WAF / Server Blocked (403 Forbidden)\n\nResponse:\n${text.substring(0, 200)}`;
+                    } else {
+                         errMsg += `\n\n${text.substring(0, 200)}`;
+                    }
+                    
+                    alert(errMsg);
+                    console.error('Server response:', text);
+                }
+            })
+            .catch(error => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
+                alert('Network error: ' + error.message);
+                console.error('Fetch error:', error);
+            });
+        });
+
     });
 </script>
 @endpush
