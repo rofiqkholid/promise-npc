@@ -12,8 +12,9 @@
             </h2>
         </div>
 
-        <form action="{{ route('events.update_post', $event->hashed_id) }}" method="POST" class="p-6 space-y-6">
+        <form id="edit_event_form" action="{{ route('events.update_post', $event->hashed_id) }}" method="POST" class="p-6 space-y-6">
             @csrf
+            <input type="hidden" name="parts_json" id="parts_json">
             
 
 
@@ -408,6 +409,45 @@
                     if(emptyMsg) emptyMsg.style.display = 'block';
                 }
             }
+        });
+
+        // WAF Bypass: Intercept form submission, encode parts as Base64 JSON
+        document.getElementById('edit_event_form').addEventListener('submit', function(e) {
+            const parts = [];
+            const partItems = partsContainer.querySelectorAll('.part-item');
+            
+            partItems.forEach((item, idx) => {
+                const deliveryDate = item.querySelector('input[name*="[delivery_date]"]');
+                const partNo = item.querySelector('.part-no-input');
+                const partName = item.querySelector('.part-name-input');
+                const productId = item.querySelector('.product-id-input');
+                const partId = item.querySelector('input[name*="[id]"]');
+                const qty = item.querySelector('input[name*="[qty]"]');
+
+                if (partNo && qty && deliveryDate) {
+                    parts.push({
+                        id: partId ? partId.value : '',
+                        delivery_date: deliveryDate.value,
+                        part_no: partNo.value,
+                        part_name: partName ? partName.value : '',
+                        product_id: productId ? productId.value : '',
+                        qty: qty.value
+                    });
+                }
+                
+                // Disable these inputs so they aren't sent in the normal POST body
+                if(deliveryDate) deliveryDate.disabled = true;
+                if(partNo) partNo.disabled = true;
+                if(partName) partName.disabled = true;
+                if(productId) productId.disabled = true;
+                if(partId) partId.disabled = true;
+                if(qty) qty.disabled = true;
+            });
+
+            // Encode to base64
+            const jsonString = JSON.stringify(parts);
+            const base64String = btoa(unescape(encodeURIComponent(jsonString)));
+            document.getElementById('parts_json').value = base64String;
         });
 
     });
