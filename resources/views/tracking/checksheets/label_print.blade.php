@@ -390,7 +390,10 @@
                     @if($labelImgUrl)
                     <img src="{{ $labelImgUrl }}" class="part-img" alt="Part Image">
                     @endif
-                    <img src="{{ $qrCode }}" class="part-img" alt="QR Code Checksheet" title="Scan to fill checksheet">
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+                        <img src="{{ $qrCode }}" class="part-img" alt="QR Code Checksheet" title="Scan to fill checksheet">
+                        <span style="font-size: 5px; color: #64748b; margin-top: 2px; word-break: break-all; max-width: 70px; text-align: center;">{{ $qrData }}</span>
+                    </div>
                 </div>
 
                 <div class="label-fields">
