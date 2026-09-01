@@ -38,7 +38,8 @@ class CheckMenuAccess
         $hasAccess = auth()->user()->hasMenuAccess($checkRoute, $action);
 
         // BYPASS: If user doesn't have access, but the action is strictly 'view' and URL/Referer contains 'from_dashboard'
-        $isFromDashboard = $request->has('from_dashboard') || str_contains($request->headers->get('referer', ''), 'from_dashboard=1');
+        $referer = (string) $request->headers->get('referer', '');
+        $isFromDashboard = $request->has('from_dashboard') || \Illuminate\Support\Str::contains($referer, 'from_dashboard=1');
         if (!$hasAccess && $action === 'view' && $isFromDashboard) {
             $hasAccess = true;
         }
@@ -57,7 +58,7 @@ class CheckMenuAccess
     {
         $suffixes = ['.create', '.store', '.show', '.edit', '.update', '.destroy', '.import', '.import.template', '.import.store', '.approve', '.reject'];
         foreach ($suffixes as $suffix) {
-            if (str_ends_with($routeName, $suffix)) {
+            if (\Illuminate\Support\Str::endsWith($routeName, $suffix)) {
                 return str_replace($suffix, '.index', $routeName);
             }
         }
@@ -66,16 +67,16 @@ class CheckMenuAccess
 
     private function resolveAction($routeName)
     {
-        if (str_ends_with($routeName, '.create') || str_ends_with($routeName, '.store') || str_ends_with($routeName, '.import') || str_ends_with($routeName, '.import.template') || str_ends_with($routeName, '.import.store')) {
+        if (\Illuminate\Support\Str::endsWith($routeName, '.create') || \Illuminate\Support\Str::endsWith($routeName, '.store') || \Illuminate\Support\Str::endsWith($routeName, '.import') || \Illuminate\Support\Str::endsWith($routeName, '.import.template') || \Illuminate\Support\Str::endsWith($routeName, '.import.store')) {
             return 'create';
         }
-        if (str_ends_with($routeName, '.edit') || str_ends_with($routeName, '.update')) {
+        if (\Illuminate\Support\Str::endsWith($routeName, '.edit') || \Illuminate\Support\Str::endsWith($routeName, '.update')) {
             return 'update';
         }
-        if (str_ends_with($routeName, '.destroy')) {
+        if (\Illuminate\Support\Str::endsWith($routeName, '.destroy')) {
             return 'delete';
         }
-        if (str_ends_with($routeName, '.approve') || str_ends_with($routeName, '.reject')) {
+        if (\Illuminate\Support\Str::endsWith($routeName, '.approve') || \Illuminate\Support\Str::endsWith($routeName, '.reject')) {
             return 'approve';
         }
         return 'view';
