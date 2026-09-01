@@ -231,8 +231,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tracking/products/{product}/checksheet-setup/preview', [ProductChecksheetSetupController::class, 'preview'])->name('checksheets.setup.preview')->middleware('menu.access:master.checksheets.index,view');
     
     Route::get('/tracking/{part}/checksheet/create', [NpcChecksheetController::class, 'create'])->name('checksheets.create')->middleware('menu.access:tracking.qc,create');
-    Route::post('/tracking/bulk-print-labels', [NpcChecksheetController::class, 'bulkPrintLabel'])->name('checksheets.bulk-print-labels')->middleware('menu.access:tracking.stock,create');
-    Route::get('/tracking/{part}/print-label', [NpcChecksheetController::class, 'printLabel'])->name('checksheets.print-label')->middleware('menu.access:tracking.stock,create');
+    Route::post('/tracking/bulk-print-labels', [NpcChecksheetController::class, 'bulkPrintLabel'])->name('checksheets.bulk-print-labels')->middleware('menu.access:tracking.qc|tracking.stock,create');
+    Route::get('/tracking/{part}/print-label', [NpcChecksheetController::class, 'printLabel'])->name('checksheets.print-label')->middleware('menu.access:tracking.qc|tracking.stock,create');
     Route::get('/checksheets/{checksheet}/preview', [NpcChecksheetController::class, 'preview'])->name('checksheets.preview')->middleware('menu.access:tracking.qc,view');
     Route::get('/checksheets/{checksheet}/export', [NpcChecksheetController::class, 'export'])->name('checksheets.export')->middleware('menu.access:tracking.qc,view');
     Route::get('/checksheets/{checksheet}/edit', [NpcChecksheetController::class, 'edit'])->name('checksheets.edit')->middleware('menu.access:tracking.qc,update');

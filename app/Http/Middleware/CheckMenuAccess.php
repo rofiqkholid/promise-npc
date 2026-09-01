@@ -34,8 +34,15 @@ class CheckMenuAccess
             $action = $this->resolveAction($routeName);
         }
 
-        // We check if the user has access to this route with the specific action
-        $hasAccess = auth()->user()->hasMenuAccess($checkRoute, $action);
+        // Support multiple routes separated by pipe (|)
+        $checkRoutes = explode('|', $checkRoute);
+        $hasAccess = false;
+        foreach ($checkRoutes as $cr) {
+            if (auth()->user()->hasMenuAccess($cr, $action)) {
+                $hasAccess = true;
+                break;
+            }
+        }
 
         // BYPASS: If user doesn't have access, but the action is strictly 'view' and URL/Referer contains 'from_dashboard'
         $referer = (string) $request->headers->get('referer', '');
