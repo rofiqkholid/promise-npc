@@ -98,8 +98,18 @@ class NpcChecksheetController extends Controller
     /**
      * Display the checksheet form.
      */
-    public function edit(NpcChecksheet $checksheet)
+    public function edit($checksheet)
     {
+        if (!is_numeric($checksheet)) {
+            $hashids = new \Hashids\Hashids(config('app.key'), 10);
+            $decoded = $hashids->decode($checksheet);
+            if (empty($decoded)) {
+                abort(500, "Hashids failed to decode checksheet ID: {$checksheet}. This indicates an APP_KEY mismatch on the server.");
+            }
+            $checksheet = $decoded[0];
+        }
+        $checksheet = NpcChecksheet::findOrFail($checksheet);
+
         $checksheet->load('details', 'npcPart.checkpoints', 'qeChecker', 'mgmChecker');
         $part = $checksheet->npcPart;
 
