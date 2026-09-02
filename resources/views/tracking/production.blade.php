@@ -41,6 +41,9 @@
                     @endforeach
                 </select>
             </div>
+            <div class="w-full sm:w-auto">
+                <input type="date" id="targetDateFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm" title="Filter by Target Delivery Date">
+            </div>
             <div class="flex items-end w-full sm:w-auto">
                 <button id="clearFiltersBtn" type="button" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center min-w-[100px]">
                     <i class="fa-solid fa-rotate-left"></i> Reset
@@ -207,6 +210,7 @@ $(document).ready(function() {
                 d.customer_filter = $('#customerFilter').val();
                 d.model_filter = $('#modelFilter').val();
                 d.po_filter = $('#poFilter').val();
+                d.target_date_filter = $('#targetDateFilter').val();
             }
         },
         responsive: true,
@@ -216,7 +220,8 @@ $(document).ready(function() {
             data.customFilters = {
                 customer: $('#customerFilter').val(),
                 model: $('#modelFilter').val(),
-                po: $('#poFilter').val()
+                po: $('#poFilter').val(),
+                targetDate: $('#targetDateFilter').val()
             };
         },
         stateLoadParams: function (settings, data) {
@@ -233,6 +238,9 @@ $(document).ready(function() {
                 }
                 if (data.customFilters.po !== undefined) {
                     $('#poFilter').val(data.customFilters.po);
+                }
+                if (data.customFilters.targetDate !== undefined) {
+                    $('#targetDateFilter').val(data.customFilters.targetDate);
                 }
             }
         },
@@ -535,6 +543,10 @@ $(document).ready(function() {
         table.ajax.reload();
     });
 
+    $('#targetDateFilter').on('change', function(e) {
+        table.ajax.reload();
+    });
+
     // Link Custom Search Bar to DataTables
     let debounceTimer;
     $('#customSearchInput').on('input', function() {
@@ -570,6 +582,7 @@ $(document).ready(function() {
         $('#modelFilter').val('all').trigger('change.select2');
         $('#poFilter').val('all').trigger('change.select2');
         $('#customerFilter').val('all').trigger('change.select2');
+        $('#targetDateFilter').val('');
         
         table.search('').draw();
     });

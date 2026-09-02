@@ -60,6 +60,11 @@ class ProductionTrackingController extends Controller
         if (request()->has('status_filter') && request('status_filter') !== '') {
             $query->where('status', request('status_filter'));
         }
+
+        if (request()->filled('target_date_filter') && request('target_date_filter') !== 'null' && request('target_date_filter') !== '') {
+            $targetDate = request('target_date_filter');
+            $query->whereDate('delivery_date', $targetDate);
+        }
         
         return $query;
     }
@@ -112,6 +117,33 @@ class ProductionTrackingController extends Controller
                 ->addColumn('print_label_url', function ($part) {
                     return route('checksheets.print-label', $part->hashed_id);
                 });
+            } elseif ($viewFile === 'tracking.setup') {
+                $dt->addColumn('routing_edit_url', function ($part) {
+                    return route('parts.routing.edit', $part->hashed_id);
+                })
+                ->addColumn('rollback_setup_url', function ($part) {
+                    return route('tracking.setup.rollback', $part->hashed_id);
+                })
+                ->addColumn('can_rollback_setup', function ($part) {
+                    return $part->status === 'WAITING_DEPT_CONFIRM' && !$part->processes->where('status', 'FINISHED')->count();
+                })
+                ->addColumn('is_overdue', function ($part) {
+                    return \Carbon\Carbon::now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($part->delivery_date)->startOfDay(), false) < 0;
+                });
+            } elseif ($viewFile === 'tracking.mgm') {
+                $dt->addColumn('create_checksheet_url', function ($part) {
+                    return route('checksheets.create', $part->hashed_id);
+                })
+                ->addColumn('export_checksheet_url', function ($part) {
+                    return $part->checksheet ? route('checksheets.export', $part->checksheet->hashed_id) : null;
+                })
+                ->addColumn('master_status', function ($part) {
+                    return optional(optional($part->product)->productDetail)->master_checksheet_status ?? 'DRAFT';
+                });
+            } elseif ($viewFile === 'tracking.index') {
+                $dt->addColumn('has_ecn_update', function ($part) {
+                    return $part->has_ecn_update;
+                });
             }
             
             // Add other pages when ready
@@ -120,7 +152,7 @@ class ProductionTrackingController extends Controller
         }
 
         // For DataTables views, we don't need the actual parts data on initial load.
-        if (in_array($viewFile, ['tracking.qc', 'tracking.production', 'tracking.stock'])) {
+        if (in_array($viewFile, ['tracking.qc', 'tracking.production', 'tracking.stock', 'tracking.setup', 'tracking.mgm', 'tracking.index'])) {
             $parts = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
         } else {
             // For other views that still use normal Laravel pagination

@@ -93,6 +93,9 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="w-full md:flex-1 xl:w-48">
+                    <input type="date" id="targetDateFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full rounded-md shadow-sm" value="{{ request('target_date_filter') }}" title="Filter by Target Delivery Date">
+                </div>
                 <div class="flex items-end w-full md:w-auto mt-1 md:mt-0">
                     <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center min-w-[100px]">
                         <i class="fa-solid fa-rotate-left"></i> Reset
@@ -126,168 +129,18 @@
                         <th scope="col" class="px-4 py-2 font-semibold">PO Number</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Part Info</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Qty & Target</th>
-                        <th scope="col" class="px-4 py-2 font-semibold text-center" colspan="2">Overall Progress</th>
+                        <th scope="col" class="px-4 py-2 font-semibold text-center">Overall Progress</th>
                         <th scope="col" class="px-4 py-2 font-semibold text-right">System Duration</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                    @forelse($parts as $part)
-                    <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-gray-700/30 transition group text-sm">
-                        <td class="px-4 py-2 text-slate-800 dark:text-slate-200 text-[13px]">
-                            {{ ($parts->currentPage() - 1) * $parts->perPage() + $loop->iteration }}
-                        </td>
-                        <td class="px-4 py-2">
-                            <div class="text-blue-600 dark:text-blue-400 font-bold text-xs uppercase tracking-wide border border-blue-100 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 inline-block mb-1">{{ optional(optional($part->event)->customerCategory)->name ?? 'Unknown Event' }}</div>
-                            @if($part->has_ecn_update)
-                            <div class="mt-1 text-[10px] font-bold text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/30 px-2 py-0.5 inline-flex items-center gap-1 shadow-sm">
-                                <span class="relative flex h-2 w-2 mr-0.5">
-                                    <span class="animate-ping absolute inline-flex h-full w-full bg-red-400 opacity-75"></span>
-                                    <span class="relative inline-flex h-2 w-2 bg-red-500"></span>
-                                </span>
-                                ⚠️ ECN UPDATED
-                            </div>
-                            @endif
-                        </td>
-                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300 font-semibold text-[13px]">
-                            {{ optional($part->event)->po_no }}
-                        </td>
-                        <td class="px-4 py-2">
-                            <div class="text-gray-800 dark:text-gray-200 font-medium text-sm">{{ optional($part->product)->part_no }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium">{{ optional($part->product)->part_name }}</div>
-                        </td>
-                        <td class="px-4 py-2">
-                            <div class="text-gray-800 dark:text-gray-300 font-bold text-sm">{{ number_format($part->qty) }} PCS</div>
-                            @if($part->delivered_qty > 0)
-                            <div class="text-[11px] font-bold text-blue-600 dark:text-blue-400 mt-1">
-                                <i class="fa-solid fa-truck-ramp-box"></i> Delivered: {{ number_format($part->delivered_qty) }} / {{ number_format($part->qty) }}
-                            </div>
-                            @endif
-                            <div class="text-xs text-red-500 font-medium mt-1"><i class="fa-regular fa-calendar md:mr-1"></i> {{ \Carbon\Carbon::parse($part->delivery_date)->format('d M y') }}</div>
-                        </td>
-                        <td class="px-4 py-2 font-medium align-middle" colspan="2">
-                            <div class="flex items-start justify-center w-full max-w-sm pt-2">
-                                @php
-                                    $phases = ['PO_REGISTERED', 'WAITING_DEPT_CONFIRM', 'WAITING_QE_CHECK', 'WAITING_MGM_CHECK', 'FINISHED', 'CLOSED'];
-                                    $currentIndex = array_search($part->status === 'WAITING_APPROVAL' ? 'WAITING_MGM_CHECK' : $part->status, $phases);
-                                    if($currentIndex === false) $currentIndex = -1;
-                                    $steps = [
-                                        ['icon' => 'fa-file-contract', 'title' => 'Draft'],
-                                        ['icon' => 'fa-industry', 'title' => 'Part Making'],
-                                        ['icon' => 'fa-microscope', 'title' => 'QE'],
-                                        ['icon' => 'fa-user-tie', 'title' => 'MGM'],
-                                        ['icon' => 'fa-boxes-stacked', 'title' => 'Stock'],
-                                    ];
-                                    if($part->status === 'CLOSED') $currentIndex = 5; // To fill the entire bar
-                                    if($part->status === 'OUTSTANDING') $currentIndex = 4;
-                                    
-                                    // Check overdue based on delivery_date
-                                    $isOverdue = \Carbon\Carbon::parse($part->delivery_date)->endOfDay()->isPast() && !in_array($part->status, ['CLOSED']);
-                                @endphp
-                                
-                                <div class="flex w-full">
-                                @foreach($steps as $idx => $step)
-                                    @php
-                                        $isFinished = $currentIndex > $idx;
-                                        $isActive = ($currentIndex === $idx);
-                                        
-                                        // Default (Pending)
-                                        $circleClass = "text-gray-400 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800";
-                                        $lineClass = "bg-gray-200 dark:bg-gray-700";
-                                        $titleClass = "text-gray-400";
-
-                                        if ($isFinished) {
-                                            $circleClass = "text-white bg-emerald-500 border-emerald-500 shadow-sm";
-                                            $lineClass = "bg-emerald-500";
-                                            $titleClass = "text-emerald-700 dark:text-emerald-400";
-                                        } elseif ($isActive) {
-                                            if ($isOverdue) {
-                                                $circleClass = "text-red-600 border-red-500 bg-red-50 dark:bg-red-900/30 ring-4 ring-red-100 dark:ring-red-900/40";
-                                                $titleClass = "text-red-700 dark:text-red-400 font-extrabold";
-                                            } else {
-                                                $circleClass = "text-amber-600 border-amber-500 bg-amber-50 dark:bg-amber-900/30 ring-4 ring-amber-100 dark:ring-amber-900/40";
-                                                $titleClass = "text-amber-700 dark:text-amber-400 font-extrabold";
-                                            }
-                                        }
-                                    @endphp
-                                    <div class="flex flex-col items-center flex-1 relative group">
-                                        @if($idx < count($steps) - 1)
-                                            <div class="absolute w-[calc(100%-1.75rem)] top-3.5 left-[calc(50%+0.875rem)] h-[3px] {{ $lineClass }}"></div>
-                                        @endif
-                                        <div class="z-10 relative {{ $circleClass }} border-2 w-7 h-7 flex items-center justify-center text-[10px] transition-all duration-300">
-                                            <i class="fa-solid {{ $step['icon'] }}"></i>
-                                            
-                                            @if($isFinished)
-                                                <!-- Centang Overlay -->
-                                                <div class="absolute -bottom-1 -right-1.5 bg-white dark:bg-gray-800 w-3.5 h-3.5 flex items-center justify-center leading-none">
-                                                    <i class="fa-solid fa-circle-check text-emerald-600 text-[12px]"></i>
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <span class="text-[9px] mt-1.5 font-bold uppercase tracking-wider text-center {{ $titleClass }}">{{ $step['title'] }}</span>
-                                    </div>
-                                @endforeach
-                                </div>
-                            </div>
-                            
-                            @if(in_array($part->status, ['CLOSED', 'OUTSTANDING']))
-                                <div class="mt-4 text-center">
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 {{ $part->status === 'CLOSED' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-blue-100 text-blue-800 border-blue-200' }} text-[10px] font-bold tracking-wide shadow-sm">
-                                        <i class="fa-solid {{ $part->status === 'CLOSED' ? 'fa-flag-checkered' : 'fa-truck-fast' }}"></i> 
-                                        {{ $part->status === 'CLOSED' ? 'PROJECT CLOSED (DELIVERED)' : 'PARTIAL DELIVERY' }}
-                                    </span>
-                                </div>
-                            @endif
-                        </td>
-                        <td class="px-4 py-2 text-right align-top">
-                            <div class="text-[11px] font-medium text-gray-500 text-right w-full flex flex-col items-end gap-1">
-                                <span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 border border-gray-200 dark:border-gray-600">IN: {{ $part->created_at->format('d M Y') }}</span>
-                                @if($part->status === 'CLOSED')
-                                    <span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 border border-gray-200 dark:border-gray-600 mt-1">OUT: <strong>{{ $part->actual_delivery ? \Carbon\Carbon::parse($part->actual_delivery)->format('d M Y') : '-' }}</strong></span>
-                                    @if($part->actual_delivery)
-                                        @php
-                                            $targetDate = \Carbon\Carbon::parse($part->delivery_date)->startOfDay();
-                                            $actualDate = \Carbon\Carbon::parse($part->actual_delivery)->startOfDay();
-                                            $diffDays = (int)$targetDate->diffInDays($actualDate, false);
-                                            
-                                            if ($diffDays > 0) {
-                                                $statusClass = "bg-red-100 text-red-700 border-red-200";
-                                                $statusText = '<i class="fa-solid fa-circle-exclamation"></i> Late ' . $diffDays . ' Days';
-                                            } elseif ($diffDays < 0) {
-                                                $statusClass = "bg-blue-100 text-blue-700 border-blue-200";
-                                                $statusText = '<i class="fa-solid fa-bolt"></i> Early ' . abs($diffDays) . ' Days';
-                                            } else {
-                                                $statusClass = "bg-green-100 text-green-700 border-green-200";
-                                                $statusText = '<i class="fa-solid fa-check-double"></i> On Time';
-                                            }
-                                        @endphp
-                                        <span class="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 text-[10px] font-black tracking-wider uppercase border {{ $statusClass }}">
-                                            {!! $statusText !!}
-                                        </span>
-                                    @endif
-                                @else
-                                    <span class="text-amber-600 font-bold mt-1 tracking-wide"><i class="fa-solid fa-hourglass-half animate-pulse"></i> {{ str_replace(' ago', '', $part->created_at->diffForHumans()) }}</span>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="8" class="p-12 text-center text-gray-500 dark:text-gray-400">
-                            <div class="flex flex-col items-center justify-center gap-3">
-                                <i class="fa-regular fa-folder-open text-4xl text-gray-300 dark:text-gray-600"></i>
-                                <p>No routing / tracking data in this status.</p>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
+                    <!-- DataTables will populate this -->
                 </tbody>
             </table>
         </div>
     </div>
 
-    <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-        {{ $parts->withQueryString()->links() }}
-    </div>
+
 </div>
 
 {{-- Modal: Production Done --}}
@@ -341,123 +194,371 @@ function closeCompleteModal() {
 // Close on backdrop click
 document.getElementById('modal-complete').addEventListener('click', function(e) {
     if (e.target === this) closeCompleteModal();
-});
-
+});<script>
 $(document).ready(function() {
-    let debounceTimer;
-         function performSearch() {
-            let searchQuery = $('#searchInput').val();
-            let customerFilter = $('#customerFilter').val();
-            let modelFilter = $('#modelFilter').val();
-            let poFilter = $('#poFilter').val();
-            
-            let url = '{{ request()->url() }}?search=' + encodeURIComponent(searchQuery || '') + 
-                      '&customer_filter=' + encodeURIComponent(customerFilter || '') + 
-                      '&model_filter=' + encodeURIComponent(modelFilter || '') +
-                      '&po_filter=' + encodeURIComponent(poFilter || '');
-                      
-            fetch(url)
-            .then(res => res.text())
-            .then(html => {
-                let doc = new DOMParser().parseFromString(html, 'text/html');
-                document.querySelector('tbody').innerHTML = doc.querySelector('tbody').innerHTML;
-                let pagination = document.querySelector('.p-4.border-t nav');
-                let newPagination = doc.querySelector('.p-4.border-t nav');
-                if(pagination && newPagination) pagination.parentElement.innerHTML = newPagination.parentElement.innerHTML;
-                window.history.pushState(null, '', url);
-            })
-            .catch(err => console.error(err));
-        }
-
-        $('#searchInput').on('input', function() {
-            if ($(this).val().length > 0) {
-                $('#clearSearchBtn').show();
-            } else {
-                $('#clearSearchBtn').hide();
+    let urlParams = new URLSearchParams(window.location.search);
+    
+    // Add indexTable ID to the table
+    $('table').attr('id', 'indexTable');
+    
+    initPromiseDataTable('#indexTable', {
+        pageLength: 15,
+        stripeClasses: ['bg-white dark:bg-slate-800', 'bg-slate-100 dark:bg-slate-800/50'],
+        dom: '<"overflow-x-auto"t><"p-4 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500"ip>',
+        language: {
+            search: "",
+            searchPlaceholder: "Search Part No, PO No...",
+            lengthMenu: "Show _MENU_ rows",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            paginate: {
+                previous: "Prev",
+                next: "Next"
+            },
+            emptyTable: `<div class="flex flex-col items-center justify-center gap-3 py-8 text-gray-500">
+                            <i class="fa-regular fa-folder-open text-4xl text-gray-300 dark:text-gray-600"></i>
+                            <p>No routing / tracking data in this status.</p>
+                        </div>`
+        },
+        search: { search: urlParams.get('search') || '' },
+        ajax: {
+            url: "{{ request()->url() }}",
+            data: function (d) {
+                d.customer_filter = $('#customerFilter').val() === 'all' ? '' : $('#customerFilter').val();
+                d.model_filter = $('#modelFilter').val() === 'all' ? '' : $('#modelFilter').val();
+                d.po_filter = $('#poFilter').val() === 'all' ? '' : $('#poFilter').val();
+                d.target_date_filter = $('#targetDateFilter').val();
             }
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(performSearch, 500);
-        });
-        
-        if ($('#searchInput').val() && $('#searchInput').val().length > 0) {
-            $('#clearSearchBtn').show();
-        }
-        
-        $('#clearSearchBtn').on('click', function(e) {
-            e.preventDefault();
-            $('#searchInput').val('');
-            $(this).hide();
-            performSearch();
-            $('#searchInput').focus();
-        });
-
-        $('#customerFilter').on('change', function(e) {
-            let customerId = $(this).val();
-            
-            if ($('#modelFilter').data('select2')) {
-                $('#modelFilter').select2('destroy');
+        },
+        stateSaveParams: function (settings, data) {
+            data.customFilters = {
+                customer: $('#customerFilter').val(),
+                model: $('#modelFilter').val(),
+                po: $('#poFilter').val(),
+                targetDate: $('#targetDateFilter').val()
+            };
+        },
+        stateLoadParams: function (settings, data) {
+            let urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('search')) {
+                data.search.search = urlParams.get('search');
             }
-
-            $('#modelFilter option').each(function() {
-                if ($(this).val() == '') {
-                    $(this).prop('disabled', false);
-                    return;
+            if (data.customFilters) {
+                if (data.customFilters.customer !== undefined) {
+                    $('#customerFilter').val(data.customFilters.customer);
                 }
-                if (!customerId || $(this).data('customer') == customerId) {
-                    $(this).prop('disabled', false).show();
-                } else {
-                    $(this).prop('disabled', true).hide();
+                if (data.customFilters.model !== undefined) {
+                    $('#modelFilter').val(data.customFilters.model);
                 }
-            });
-
-            $('#modelFilter').select2({ width: '100%' });
-            
-            // If the currently selected model is now disabled, reset it
-            if ($('#modelFilter option:selected').prop('disabled')) {
-                $('#modelFilter').val('').trigger('change.select2');
-            }
-            performSearch();
-        });
-
-        $('#modelFilter').on('change', function(e) {
-            performSearch();
-        });
-
-        $('#poFilter').on('change', function(e) {
-            performSearch();
-        });
-
-        $('#clearFiltersBtn').on('click', function(e) {
-            e.preventDefault();
-            $('#searchInput').val('');
-            $('#clearSearchBtn').hide();
-            
-            $('#modelFilter').val('');
-            $('#poFilter').val('');
-            if ($('#poFilter').hasClass('select2-hidden-accessible')) {
-                $('#poFilter').trigger('change.select2');
-            } else {
-                // If Select2 is initialized globally on all selects, sometimes it's better to just do this:
-                $('#poFilter').trigger('change.select2');
-            }
-            $('#customerFilter').val('').trigger('change');
-        });
-        
-        let initialCustomerId = $('#customerFilter').val();
-        if (initialCustomerId) {
-            if ($('#modelFilter').data('select2')) {
-                $('#modelFilter').select2('destroy');
-            }
-            $('#modelFilter option').each(function() {
-                if ($(this).val() == '') return;
-                if ($(this).data('customer') == initialCustomerId) {
-                    $(this).prop('disabled', false).show();
-                } else {
-                    $(this).prop('disabled', true).hide();
+                if (data.customFilters.po !== undefined) {
+                    $('#poFilter').val(data.customFilters.po);
                 }
-            });
-            $('#modelFilter').select2({ width: '100%' });
-        }
+                if (data.customFilters.targetDate !== undefined) {
+                    $('#targetDateFilter').val(data.customFilters.targetDate);
+                }
+            }
+        },
+        initComplete: function(settings, json) {
+            setTimeout(function() {
+                let hasCustomer = false;
+                if ($('#customerFilter').val() && $('#customerFilter').val() !== 'all') {
+                    $('#customerFilter').trigger('change');
+                    hasCustomer = true;
+                }
+                if ($('#modelFilter').val() && $('#modelFilter').val() !== 'all' && !hasCustomer) {
+                    $('#modelFilter').trigger('change');
+                }
+                if ($('#poFilter').val() && $('#poFilter').val() !== 'all') {
+                    $('#poFilter').trigger('change');
+                }
+                if ($('#customerFilter').hasClass('select2-hidden-accessible')) {
+                    $('#customerFilter').trigger('change.select2');
+                }
+                if ($('#modelFilter').hasClass('select2-hidden-accessible')) {
+                    $('#modelFilter').trigger('change.select2');
+                }
+                if ($('#poFilter').hasClass('select2-hidden-accessible')) {
+                    $('#poFilter').trigger('change.select2');
+                }
+            }, 100);
+        },
+        columns: [
+            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-4 py-2 text-slate-800 dark:text-slate-200 text-[13px]' },
+            { 
+                data: 'event.customer_category.name', 
+                name: 'event.customer_category.name', 
+                className: 'px-4 py-2',
+                orderable: false,
+                render: function(data, type, row) {
+                    const eventName = row.event?.customer_category?.name || 'Unknown Event';
+                    let html = `<div class="text-blue-600 dark:text-blue-400 font-bold text-xs uppercase tracking-wide border border-blue-100 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 inline-block mb-1">${eventName}</div>`;
+                    if (row.has_ecn_update) {
+                        html += `<div class="mt-1 text-[10px] font-bold text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/30 px-2 py-0.5 inline-flex items-center gap-1 shadow-sm">
+                                    <span class="relative flex h-2 w-2 mr-0.5">
+                                        <span class="animate-ping absolute inline-flex h-full w-full bg-red-400 opacity-75"></span>
+                                        <span class="relative inline-flex h-2 w-2 bg-red-500"></span>
+                                    </span>
+                                    ⚠️ ECN UPDATED
+                                </div>`;
+                    }
+                    return html;
+                }
+            },
+            { 
+                data: 'event.po_no', 
+                name: 'event.po_no', 
+                className: 'px-4 py-2 text-gray-700 dark:text-gray-300 font-semibold text-[13px]',
+                orderable: false,
+                render: function(data, type, row) { return row.event?.po_no || ''; }
+            },
+            { 
+                data: 'product.part_no', 
+                name: 'product.part_no', 
+                className: 'px-4 py-2',
+                orderable: false,
+                render: function(data, type, row) {
+                    const partNo = row.product?.part_no || '';
+                    const partName = row.product?.part_name || '';
+                    return `<div class="text-gray-800 dark:text-gray-200 font-medium text-sm">${partNo}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium">${partName}</div>`;
+                }
+            },
+            { 
+                data: 'qty', 
+                name: 'qty', 
+                className: 'px-4 py-2',
+                orderable: false,
+                render: function(data, type, row) {
+                    const qty = Number(row.qty || 0).toLocaleString('id-ID');
+                    let html = `<div class="text-gray-800 dark:text-gray-300 font-bold text-sm">${qty} PCS</div>`;
+                    const deliveredQty = Number(row.delivered_qty || 0);
+                    if (deliveredQty > 0) {
+                        html += `<div class="text-[11px] font-bold text-blue-600 dark:text-blue-400 mt-1">
+                                    <i class="fa-solid fa-truck-ramp-box"></i> Delivered: ${deliveredQty.toLocaleString('id-ID')} / ${qty}
+                                </div>`;
+                    }
+                    const deliveryDate = row.delivery_date ? new Date(row.delivery_date.split('T')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }) : '-';
+                    html += `<div class="text-xs text-red-500 font-medium mt-1"><i class="fa-regular fa-calendar md:mr-1"></i> ${deliveryDate}</div>`;
+                    return html;
+                }
+            },
+            { 
+                data: 'status', 
+                name: 'status', 
+                className: 'px-4 py-2 font-medium align-middle',
+                orderable: false,
+                render: function(data, type, row) {
+                    const phases = ['PO_REGISTERED', 'WAITING_DEPT_CONFIRM', 'WAITING_QE_CHECK', 'WAITING_MGM_CHECK', 'FINISHED', 'CLOSED'];
+                    const actualStatus = row.status === 'WAITING_APPROVAL' ? 'WAITING_MGM_CHECK' : row.status;
+                    let currentIndex = phases.indexOf(actualStatus);
+                    if (currentIndex === -1) currentIndex = -1;
+                    if (row.status === 'CLOSED') currentIndex = 5;
+                    if (row.status === 'OUTSTANDING') currentIndex = 4;
+                    
+                    const isOverdue = row.delivery_date && new Date(row.delivery_date).setHours(23,59,59,999) < new Date().getTime() && row.status !== 'CLOSED';
+                    
+                    const steps = [
+                        { icon: 'fa-file-contract', title: 'Draft' },
+                        { icon: 'fa-industry', title: 'Part Making' },
+                        { icon: 'fa-microscope', title: 'QE' },
+                        { icon: 'fa-user-tie', title: 'MGM' },
+                        { icon: 'fa-boxes-stacked', title: 'Stock' }
+                    ];
+                    
+                    let html = '<div class="flex items-start justify-center w-full max-w-sm pt-2"><div class="flex w-full">';
+                    
+                    steps.forEach((step, idx) => {
+                        const isFinished = currentIndex > idx;
+                        const isActive = (currentIndex === idx);
+                        
+                        let circleClass = "text-gray-400 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800";
+                        let lineClass = "bg-gray-200 dark:bg-gray-700";
+                        let titleClass = "text-gray-400";
+                        
+                        if (isFinished) {
+                            circleClass = "text-white bg-emerald-500 border-emerald-500 shadow-sm";
+                            lineClass = "bg-emerald-500";
+                            titleClass = "text-emerald-700 dark:text-emerald-400";
+                        } else if (isActive) {
+                            if (isOverdue) {
+                                circleClass = "text-red-600 border-red-500 bg-red-50 dark:bg-red-900/30 ring-4 ring-red-100 dark:ring-red-900/40";
+                                titleClass = "text-red-700 dark:text-red-400 font-extrabold";
+                            } else {
+                                circleClass = "text-amber-600 border-amber-500 bg-amber-50 dark:bg-amber-900/30 ring-4 ring-amber-100 dark:ring-amber-900/40";
+                                titleClass = "text-amber-700 dark:text-amber-400 font-extrabold";
+                            }
+                        }
+                        
+                        html += `<div class="flex flex-col items-center flex-1 relative group">`;
+                        if (idx < steps.length - 1) {
+                            html += `<div class="absolute w-[calc(100%-1.75rem)] top-3.5 left-[calc(50%+0.875rem)] h-[3px] ${lineClass}"></div>`;
+                        }
+                        html += `<div class="z-10 relative ${circleClass} border-2 w-7 h-7 flex items-center justify-center text-[10px] transition-all duration-300">
+                                    <i class="fa-solid ${step.icon}"></i>`;
+                        if (isFinished) {
+                            html += `<div class="absolute -bottom-1 -right-1.5 bg-white dark:bg-gray-800 w-3.5 h-3.5 flex items-center justify-center leading-none">
+                                        <i class="fa-solid fa-circle-check text-emerald-600 text-[12px]"></i>
+                                    </div>`;
+                        }
+                        html += `</div>
+                                <span class="text-[9px] mt-1.5 font-bold uppercase tracking-wider text-center ${titleClass}">${step.title}</span>
+                            </div>`;
+                    });
+                    
+                    html += '</div></div>';
+                    
+                    if (['CLOSED', 'OUTSTANDING'].includes(row.status)) {
+                        const badgeClass = row.status === 'CLOSED' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-blue-100 text-blue-800 border-blue-200';
+                        const iconClass = row.status === 'CLOSED' ? 'fa-flag-checkered' : 'fa-truck-fast';
+                        const labelText = row.status === 'CLOSED' ? 'PROJECT CLOSED (DELIVERED)' : 'PARTIAL DELIVERY';
+                        html += `<div class="mt-4 text-center">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 ${badgeClass} text-[10px] font-bold tracking-wide shadow-sm">
+                                        <i class="fa-solid ${iconClass}"></i> 
+                                        ${labelText}
+                                    </span>
+                                </div>`;
+                    }
+                    return html;
+                }
+            },
+            { 
+                data: 'created_at', 
+                name: 'created_at', 
+                className: 'px-4 py-2 text-right align-top',
+                orderable: false,
+                render: function(data, type, row) {
+                    const inDate = row.created_at ? new Date(row.created_at.split('T')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+                    let html = `<div class="text-[11px] font-medium text-gray-500 text-right w-full flex flex-col items-end gap-1">
+                                    <span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 border border-gray-200 dark:border-gray-600">IN: ${inDate}</span>`;
+                    if (row.status === 'CLOSED') {
+                        const outDate = row.actual_delivery ? new Date(row.actual_delivery.split('T')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+                        html += `<span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 border border-gray-200 dark:border-gray-600 mt-1">OUT: <strong>${outDate}</strong></span>`;
+                        if (row.actual_delivery) {
+                            const tDate = new Date(row.delivery_date.split('T')[0]);
+                            const aDate = new Date(row.actual_delivery.split('T')[0]);
+                            tDate.setHours(0,0,0,0);
+                            aDate.setHours(0,0,0,0);
+                            const diffTime = aDate.getTime() - tDate.getTime();
+                            const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+                            
+                            let statusClass, statusText;
+                            if (diffDays > 0) {
+                                statusClass = "bg-red-100 text-red-700 border-red-200";
+                                statusText = '<i class="fa-solid fa-circle-exclamation"></i> Late ' + diffDays + ' Days';
+                            } else if (diffDays < 0) {
+                                statusClass = "bg-blue-100 text-blue-700 border-blue-200";
+                                statusText = '<i class="fa-solid fa-bolt"></i> Early ' + Math.abs(diffDays) + ' Days';
+                            } else {
+                                statusClass = "bg-green-100 text-green-700 border-green-200";
+                                statusText = '<i class="fa-solid fa-check-double"></i> On Time';
+                            }
+                            html += `<span class="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 text-[10px] font-black tracking-wider uppercase border ${statusClass}">
+                                        ${statusText}
+                                    </span>`;
+                        }
+                    } else {
+                        const created = new Date(row.created_at);
+                        const now = new Date();
+                        const diffDays = Math.floor((now - created) / (1000 * 3600 * 24));
+                        let agoText = diffDays > 0 ? diffDays + " days" : "Today";
+                        html += `<span class="text-amber-600 font-bold mt-1 tracking-wide"><i class="fa-solid fa-hourglass-half animate-pulse"></i> ${agoText}</span>`;
+                    }
+                    html += `</div>`;
+                    return html;
+                }
+            }
+        ]
     });
+
+    function performSearch() {
+        $('#indexTable').DataTable().ajax.reload();
+    }
+
+    let debounceTimer;
+    $('#searchInput').on('input', function() {
+        if ($(this).val().length > 0) {
+            $('#clearSearchBtn').show();
+        } else {
+            $('#clearSearchBtn').hide();
+        }
+        clearTimeout(debounceTimer);
+        let val = this.value;
+        let table = $('#indexTable').DataTable();
+        debounceTimer = setTimeout(function() {
+            table.search(val).draw();
+        }, 500);
+    });
+    
+    if ($('#searchInput').val() && $('#searchInput').val().length > 0) {
+        $('#clearSearchBtn').show();
+    }
+    
+    $('#clearSearchBtn').on('click', function(e) {
+        e.preventDefault();
+        $('#searchInput').val('');
+        $(this).hide();
+        $('#indexTable').DataTable().search('').draw();
+        $('#searchInput').focus();
+    });
+
+    function updateModelDropdown(customerId) {
+        $('#modelFilter option').each(function() {
+            if ($(this).val() == '') {
+                $(this).prop('disabled', false);
+                return;
+            }
+            if (!customerId || customerId == '' || $(this).data('customer') == customerId) {
+                $(this).prop('disabled', false).show();
+            } else {
+                $(this).prop('disabled', true).hide();
+            }
+        });
+        
+        if ($('#modelFilter option:selected').prop('disabled')) {
+            $('#modelFilter').val('');
+        }
+        
+        setTimeout(function() {
+            if ($('#modelFilter').hasClass('select2-hidden-accessible')) {
+                $('#modelFilter').trigger('change.select2');
+            }
+        }, 10);
+    }
+
+    $('#customerFilter').on('change', function(e) {
+        updateModelDropdown($(this).val());
+        performSearch();
+    });
+
+    $('#modelFilter').on('change', function(e) {
+        performSearch();
+    });
+
+    $('#poFilter').on('change', function(e) {
+        performSearch();
+    });
+
+    $('#targetDateFilter').on('change', function(e) {
+        performSearch();
+    });
+
+    $('#clearFiltersBtn').on('click', function(e) {
+        e.preventDefault();
+        
+        $('#searchInput').val('');
+        $('#clearSearchBtn').hide();
+        
+        $('#modelFilter').val('').trigger('change.select2');
+        $('#poFilter').val('').trigger('change.select2');
+        $('#customerFilter').val('').trigger('change.select2');
+        $('#targetDateFilter').val('');
+        
+        updateModelDropdown('');
+        $('#indexTable').DataTable().search('').draw();
+    });
+    
+    setTimeout(function() {
+        updateModelDropdown($('#customerFilter').val());
+    }, 50);
+});
 </script>
 @endpush
