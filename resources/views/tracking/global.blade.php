@@ -623,7 +623,13 @@ window.triggerPoModal = function(poId) {
 };
 
 $(document).ready(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialSearch = urlParams.get('search') || "";
+
     initPromiseDataTable('#globalTrackingTable', {
+        search: {
+            search: initialSearch
+        },
         ajax: {
             url: "{{ route('tracking.index') }}",
             dataSrc: function (json) {
