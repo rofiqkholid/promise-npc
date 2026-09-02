@@ -100,15 +100,21 @@ class NpcChecksheetController extends Controller
      */
     public function edit($checksheet)
     {
+        $originalHash = request()->route('checksheet') ?? $checksheet;
         if (!is_numeric($checksheet)) {
             $hashids = new \Hashids\Hashids(config('app.key'), 10);
             $decoded = $hashids->decode($checksheet);
             if (empty($decoded)) {
-                abort(500, "Hashids failed to decode checksheet ID: {$checksheet}. This indicates an APP_KEY mismatch on the server.");
+                abort(500, "DEBUG-DECODE: Hashids failed to decode checksheet ID: {$checksheet}. This indicates an APP_KEY mismatch on the server.");
             }
             $checksheet = $decoded[0];
         }
-        $checksheet = NpcChecksheet::findOrFail($checksheet);
+        
+        $checksheetModel = NpcChecksheet::find($checksheet);
+        if (!$checksheetModel) {
+            abort(500, "DEBUG-FIND: Hashids successfully decoded '{$originalHash}' into Database ID '{$checksheet}', BUT NpcChecksheet::find({$checksheet}) returned null! The record does not exist in the database.");
+        }
+        $checksheet = $checksheetModel;
 
         $checksheet->load('details', 'npcPart.checkpoints', 'qeChecker', 'mgmChecker');
         $part = $checksheet->npcPart;
