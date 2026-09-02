@@ -24,6 +24,8 @@ class NpcChecksheet extends Model
 
     use HasHashedId;
 
+    protected $appends = ['hashed_id'];
+
     protected $fillable = [
         'npc_part_id',
         'qe_checked_by',

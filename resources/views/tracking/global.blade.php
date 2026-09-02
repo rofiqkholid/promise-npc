@@ -281,8 +281,8 @@
                                             <div class="relative w-full aspect-video bg-gray-900 flex items-center justify-center border-b border-gray-100 dark:border-gray-700">
                                                 <template x-if="p.photo_proof">
                                                     <div class="w-full h-full relative">
-                                                        <img :src="'/storage/' + p.photo_proof" class="w-full h-full object-contain">
-                                                        <a :href="'/storage/' + p.photo_proof" target="_blank" class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white font-bold text-sm gap-2 backdrop-blur-[2px]">
+                                                        <img :src="'{{ url('file/storage') }}/' + p.photo_proof.replace('public/', '').replace(/^\/+/, '')" class="w-full h-full object-contain">
+                                                        <a :href="'{{ url('file/storage') }}/' + p.photo_proof.replace('public/', '').replace(/^\/+/, '')" target="_blank" class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white font-bold text-sm gap-2 backdrop-blur-[2px]">
                                                             <i class="fa-solid fa-expand"></i> Enlarge Photo
                                                         </a>
                                                     </div>
