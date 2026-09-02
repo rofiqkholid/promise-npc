@@ -627,6 +627,7 @@ $(document).ready(function() {
     const initialSearch = urlParams.get('search') || "";
 
     initPromiseDataTable('#globalTrackingTable', {
+        stateSave: initialSearch === "", // Disable stateSave if we want to force a search from URL
         search: {
             search: initialSearch
         },
