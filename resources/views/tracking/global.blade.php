@@ -196,7 +196,7 @@
                                                                         </button>
                                                                     </template>
                                                                     <template x-if="part.checksheet">
-                                                                        <a :href="'/checksheets/' + part.checksheet.id + '/edit?readonly=1'" class="text-[9px] font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2 py-0.5 transition flex items-center gap-1 shadow-sm">
+                                                                        <a :href="'/checksheets/' + part.checksheet.hashed_id + '/edit?readonly=1'" class="text-[9px] font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2 py-0.5 transition flex items-center gap-1 shadow-sm">
                                                                             <i class="fa-solid fa-clipboard-check"></i> View Checksheet
                                                                         </a>
                                                                     </template>
