@@ -20,48 +20,59 @@
 
     @if(isset($metrics))
     <!-- Dashboard Cards -->
-    <div class="px-6 pt-6 pb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Card 1: Total Event -->
+    <div class="px-6 pt-6 pb-2 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <!-- Card 1: DRAFT -->
         <div class="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
-            <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30 flex items-center justify-center text-white text-xl">
-                <i class="fa-solid fa-calendar-check mt-1"></i>
+            <div class="w-14 h-14 bg-gradient-to-br from-slate-500 to-slate-600 shadow-lg shadow-slate-500/30 flex items-center justify-center text-white text-xl">
+                <i class="fa-solid fa-file-lines mt-1"></i>
             </div>
             <div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">Total Events</p>
-                <h3 class="text-2xl font-black text-gray-800 dark:text-white leading-none">{{ number_format($metrics['total_events']) }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">Draft</p>
+                <h3 class="text-2xl font-black text-gray-800 dark:text-white leading-none">{{ number_format($metrics['draft'] ?? 0) }}</h3>
             </div>
         </div>
         
-        <!-- Card 2: Total PO -->
+        <!-- Card 2: PART MAKING -->
+        <div class="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
+            <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30 flex items-center justify-center text-white text-xl">
+                <i class="fa-solid fa-industry mt-1"></i>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">Part Making</p>
+                <h3 class="text-2xl font-black text-gray-800 dark:text-white leading-none">{{ number_format($metrics['part_making'] ?? 0) }}</h3>
+            </div>
+        </div>
+
+        <!-- Card 3: QE -->
         <div class="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
             <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center text-white text-xl">
-                <i class="fa-solid fa-file-invoice mt-1"></i>
+                <i class="fa-solid fa-microscope mt-1"></i>
             </div>
             <div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">Total PO</p>
-                <h3 class="text-2xl font-black text-gray-800 dark:text-white leading-none">{{ number_format($metrics['total_pos']) }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">QE</p>
+                <h3 class="text-2xl font-black text-gray-800 dark:text-white leading-none">{{ number_format($metrics['qe'] ?? 0) }}</h3>
             </div>
         </div>
 
-        <!-- Card 3: Total Part -->
+        <!-- Card 4: MGM -->
         <div class="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
             <div class="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shadow-amber-500/30 flex items-center justify-center text-white text-xl">
-                <i class="fa-solid fa-cubes mt-1"></i>
+                <i class="fa-solid fa-user-tie mt-1"></i>
             </div>
             <div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">Total Parts</p>
-                <h3 class="text-2xl font-black text-gray-800 dark:text-white leading-none">{{ number_format($metrics['total_parts']) }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">MGM</p>
+                <h3 class="text-2xl font-black text-gray-800 dark:text-white leading-none">{{ number_format($metrics['mgm'] ?? 0) }}</h3>
             </div>
         </div>
 
-        <!-- Card 4: PO Close -->
+        <!-- Card 5: DELIVERY -->
         <div class="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
             <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center text-white text-xl">
-                <i class="fa-solid fa-flag-checkered mt-1"></i>
+                <i class="fa-solid fa-truck mt-1"></i>
             </div>
             <div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">Closed PO</p>
-                <h3 class="text-2xl font-black text-gray-800 dark:text-white leading-none">{{ number_format($metrics['total_po_close']) }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">Delivery</p>
+                <h3 class="text-2xl font-black text-gray-800 dark:text-white leading-none">{{ number_format($metrics['delivery'] ?? 0) }}</h3>
             </div>
         </div>
     </div>

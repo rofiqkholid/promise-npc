@@ -174,10 +174,11 @@ class ProductionTrackingController extends Controller
     public function index(\Illuminate\Http\Request $request)
     {
         $metrics = [
-            'total_events' => \App\Models\NpcEvent::count(),
-            'total_pos' => \App\Models\NpcEvent::whereNotNull('po_no')->count(),
-            'total_parts' => \App\Models\NpcPart::count(),
-            'total_po_close' => \App\Models\NpcPart::where('status', 'CLOSED')->count(),
+            'draft' => \App\Models\NpcPart::whereIn('status', ['PO_REGISTERED', 'WAITING_APPROVAL'])->count(),
+            'part_making' => \App\Models\NpcPart::where('status', 'WAITING_DEPT_CONFIRM')->count(),
+            'qe' => \App\Models\NpcPart::where('status', 'WAITING_QE_CHECK')->count(),
+            'mgm' => \App\Models\NpcPart::where('status', 'WAITING_MGM_CHECK')->count(),
+            'delivery' => \App\Models\NpcPart::whereIn('status', ['FINISHED', 'CLOSED'])->count(),
         ];
 
         if ($request->ajax()) {
