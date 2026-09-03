@@ -267,9 +267,9 @@ class NpcChecksheetApprovalController extends Controller
                 $updateData['mgm_assman_id'] = null;
                 $updateData['mgm_assman_date'] = null;
             } elseif ($status === 'WAITING_MGM_ASSMAN') {
-                $updateData['approval_status'] = 'WAITING_QE_ASSMAN';
-                $updateData['qe_assman_id'] = null;
-                $updateData['qe_assman_date'] = null;
+                $updateData['approval_status'] = 'WAITING_MGM_SPV';
+                $updateData['mgm_spv_id'] = null;
+                $updateData['mgm_spv_date'] = null;
             } elseif ($status === 'WAITING_QE_ASSMAN') {
                 $updateData['approval_status'] = 'WAITING_MGM_SPV';
                 $updateData['mgm_spv_id'] = null;
@@ -313,7 +313,7 @@ class NpcChecksheetApprovalController extends Controller
         } elseif ($status === 'WAITING_MGM_SPV') {
             $updateData['mgm_spv_id'] = $userId;
             $updateData['mgm_spv_date'] = $now;
-            $updateData['approval_status'] = 'WAITING_QE_ASSMAN';
+            $updateData['approval_status'] = 'WAITING_MGM_ASSMAN';
         } elseif ($status === 'WAITING_QE_ASSMAN') {
             $updateData['qe_assman_id'] = $userId;
             $updateData['qe_assman_date'] = $now;

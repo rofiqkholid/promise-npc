@@ -46,7 +46,6 @@
                         <option value="WAITING_MGM_STAFF">Waiting NPC Staff</option>
                         <option value="WAITING_QE_SPV">Waiting QE SPV</option>
                         <option value="WAITING_MGM_SPV">Waiting NPC SPV</option>
-                        <option value="WAITING_QE_ASSMAN">Waiting QE Asst. Mgr</option>
                         <option value="WAITING_MGM_ASSMAN">Waiting NPC Asst. Mgr</option>
                         <option value="WAITING_QE_MGR">Waiting QE Mgr</option>
                         <option value="WAITING_MGM_MGR">Waiting NPC Mgr</option>

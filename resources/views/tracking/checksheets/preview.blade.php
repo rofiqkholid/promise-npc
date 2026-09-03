@@ -447,8 +447,12 @@
             
             <!-- Footer Row 3 -->
             <tr class="text-center">
-                <td colspan="1">Mgr</td>
-                <td colspan="1">Asst Mgr</td>
+                @if(optional($checksheet)->qe_assman_id)
+                    <td colspan="1">Mgr</td>
+                    <td colspan="1">Asst Mgr</td>
+                @else
+                    <td colspan="2">Mgr</td>
+                @endif
                 <td colspan="2">SPV</td>
                 <td colspan="2">Staff</td>
                 <td colspan="2">Mgr</td>
@@ -459,6 +463,7 @@
             
             <!-- Footer Row 4 (Signature empty space) -->
             <tr class="text-center" style="height: 35px;">
+                @if(optional($checksheet)->qe_assman_id)
                 <td colspan="1" style="vertical-align: bottom; font-weight:bold;">
                     @if(optional($checksheet)->qe_mgr_id) <div style="color: green; font-size: 10px; margin-bottom: 2px;">✔ Approved</div> @endif
                     {{ optional($checksheet->qeMgr)->name ?? '' }}
@@ -467,6 +472,12 @@
                     @if(optional($checksheet)->qe_assman_id) <div style="color: green; font-size: 10px; margin-bottom: 2px;">✔ Approved</div> @endif
                     {{ optional($checksheet->qeAssman)->name ?? '' }}
                 </td>
+                @else
+                <td colspan="2" style="vertical-align: bottom; font-weight:bold;">
+                    @if(optional($checksheet)->qe_mgr_id) <div style="color: green; font-size: 10px; margin-bottom: 2px;">✔ Approved</div> @endif
+                    {{ optional($checksheet->qeMgr)->name ?? '' }}
+                </td>
+                @endif
                 <td colspan="2" style="vertical-align: bottom; font-weight:bold;">
                     @if(optional($checksheet)->qe_spv_id) <div style="color: green; font-size: 10px; margin-bottom: 2px;">✔ Approved</div> @endif
                     {{ optional($checksheet->qeSpv)->name ?? '' }}
