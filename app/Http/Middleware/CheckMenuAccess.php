@@ -63,7 +63,20 @@ class CheckMenuAccess
     
     private function resolveBaseRoute($routeName)
     {
-        $suffixes = ['.create', '.store', '.show', '.edit', '.update', '.destroy', '.import', '.import.template', '.import.store', '.approve', '.reject'];
+        $suffixes = [
+            '.import.template',
+            '.import.store',
+            '.import',
+            '.create',
+            '.store',
+            '.show',
+            '.edit',
+            '.update',
+            '.destroy',
+            '.approve',
+            '.reject'
+        ];
+
         foreach ($suffixes as $suffix) {
             if (\Illuminate\Support\Str::endsWith($routeName, $suffix)) {
                 return str_replace($suffix, '.index', $routeName);
