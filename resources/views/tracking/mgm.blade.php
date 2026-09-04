@@ -191,7 +191,7 @@ $(document).ready(function() {
                     const partNo = row.product?.part_no || '';
                     const partName = row.product?.part_name || '';
                     const poNo = row.event?.po_no || '';
-                    const modelName = row.event?.vehicle_model?.name || 'Unknown Model';
+                    const modelName = row.product?.vehicle_model?.name || 'Unknown Model';
                     const qty = Number(row.qty || 0).toLocaleString('id-ID');
                     let html = `<div class="text-gray-800 dark:text-gray-200 font-bold text-sm">${partNo}</div>
                             <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5">${partName}</div>
