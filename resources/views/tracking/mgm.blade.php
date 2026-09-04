@@ -266,7 +266,7 @@ $(document).ready(function() {
                             const canRollback = !checksheet || !checksheet.approval_status || ['WAITING_MGM_STAFF', 'APPROVED'].includes(checksheet.approval_status);
                             if (canRollback) {
                                 const csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '';
-                                html += `<form action="/tracking/mgm/${row.hashed_id}/rollback" method="POST" class="rollback-form">
+                                html += `<form action="/tracking/${row.hashed_id}/mgm-rollback" method="POST" class="rollback-form">
                                             <input type="hidden" name="_token" value="${csrfToken}">
                                             <input type="hidden" name="rollback_reason" class="rollback-reason-input">
                                             <button type="button" class="text-[10px] text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold transition mt-1" onclick="confirmRollbackWithReason(event)">
