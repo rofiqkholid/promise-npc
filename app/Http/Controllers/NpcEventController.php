@@ -246,7 +246,7 @@ class NpcEventController extends Controller
             ->where(function($query) use ($masterModelId) {
                 $query->where('status_id', 3)
                       ->whereIn('id', function($q) {
-                          $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id');
+                          $q->selectRaw('MIN(id)')->from('models')->where('status_id', 3)->groupBy('name', 'customer_id');
                       })
                       ->orWhere('id', $masterModelId);
             })

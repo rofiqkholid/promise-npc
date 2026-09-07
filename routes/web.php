@@ -116,7 +116,7 @@ Route::middleware(['auth'])->group(function () {
             $models = \App\Models\VehicleModel::where('customer_id', $request->customer_id)
                 ->where('status_id', 3) // Only Project status
                 ->whereIn('id', function($q) {
-                    $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id');
+                    $q->selectRaw('MIN(id)')->from('models')->where('status_id', 3)->groupBy('name', 'customer_id');
                 })
                 ->orderBy('name')
                 ->get(['id', 'name as text']);
