@@ -97,8 +97,14 @@ class ProductionTrackingController extends Controller
                 ->addColumn('rollback_qc_url', function ($part) {
                     return route('tracking.qc.rollback', $part->hashed_id);
                 })
+                ->addColumn('rollback_process_url', function ($part) {
+                    return route('tracking.process.rollback', $part->hashed_id);
+                })
                 ->addColumn('has_checksheet', function ($part) {
                     return (bool) $part->checksheet;
+                })
+                ->addColumn('can_rollback_process', function ($part) {
+                    return $part->status === 'WAITING_QE_CHECK';
                 })
                 ->addColumn('can_rollback', function ($part) {
                     return $part->status === 'WAITING_MGM_CHECK' && (!$part->checksheet || !$part->checksheet->mgm_checked_by);
@@ -409,11 +415,7 @@ class ProductionTrackingController extends Controller
         }
         
         if ($part->status === 'WAITING_QE_CHECK') {
-            // Cek apakah QC sudah mulai mengisi checksheet
-            $checksheet = $part->checksheet;
-            if ($checksheet && $checksheet->qe_checked_by) {
-                return back()->with('error', 'No rollback because QC has started checking (Checksheet filled).');
-            }
+            // Kita izinkan rollback meskipun checksheet sudah ada, checksheet akan dihapus otomatis di bawah
         }
 
         // Delete bukti foto jika ada

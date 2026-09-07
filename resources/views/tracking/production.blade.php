@@ -442,7 +442,7 @@ $(document).ready(function() {
                     }
                     
                     if (row.status === 'WAITING_QE_CHECK') {
-                        const canRollback = !row.checksheet || !row.checksheet.qe_checked_by;
+                        const canRollback = true;
                         let rollbackBtn = '';
                         if (canRollback) {
                             const csrf = $('meta[name="csrf-token"]').attr('content') || '';

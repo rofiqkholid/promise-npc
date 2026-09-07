@@ -508,10 +508,24 @@ style="display: none;">
                             </div>`;
                         }
                         if (row.status === 'WAITING_QE_CHECK') {
-                            return `<a href="${row.create_checksheet_url}" class="inline-flex px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white shadow-sm font-bold transition items-center gap-2 text-[11px]" style="background-color: #f97316;">
-                                <i class="fa-regular fa-clipboard"></i> Input Quality (QC)
-                            </a>
-                            <p class="text-[9px] text-gray-400 mt-2 italic text-right max-w-[150px] mx-auto float-right text-balance">Fill quality parameter form & pass to MGM</p>`;
+                            let rollbackBtn = '';
+                            if (row.can_rollback_process) {
+                                const csrf = $('meta[name="csrf-token"]').attr('content') || '';
+                                rollbackBtn = `<form action="${row.rollback_process_url}" method="POST">
+                                    <input type="hidden" name="_token" value="${csrf}">
+                                    <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 flex items-center justify-end w-full gap-1 font-semibold transition mt-2" onclick="confirmAction(event, 'Are you sure you want to rollback this part to Production stage? This will delete the checksheet.')">
+                                        <i class="fa-solid fa-rotate-left"></i> Rollback to Production
+                                    </button>
+                                </form>`;
+                            }
+                            
+                            return `<div class="flex flex-col items-end w-full">
+                                <a href="${row.create_checksheet_url}" class="inline-flex px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full" style="background-color: #f97316;">
+                                    <i class="fa-regular fa-clipboard"></i> Input Quality (QC)
+                                </a>
+                                <p class="text-[9px] text-gray-400 mt-1 italic text-right max-w-[150px] text-balance">Fill quality parameter form & pass to MGM</p>
+                                ${rollbackBtn}
+                            </div>`;
                         }
                         
                         let rollbackBtn = '';
