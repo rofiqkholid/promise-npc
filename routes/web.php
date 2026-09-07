@@ -230,6 +230,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/tracking/products/{product}/checksheet-setup', [ProductChecksheetSetupController::class, 'update'])->name('checksheets.setup.update')->middleware('menu.access:master.checksheets.index,update');
     Route::get('/tracking/products/{product}/checksheet-setup/preview', [ProductChecksheetSetupController::class, 'preview'])->name('checksheets.setup.preview')->middleware('menu.access:master.checksheets.index,view');
     
+    Route::get('/tracking/{part}/scan', [NpcChecksheetController::class, 'scan'])->name('tracking.scan');
     Route::get('/tracking/{part}/checksheet/create', [NpcChecksheetController::class, 'create'])->name('checksheets.create')->middleware('menu.access:tracking.qc|tracking.mgm,create');
     Route::post('/tracking/bulk-print-labels', [NpcChecksheetController::class, 'bulkPrintLabel'])->name('checksheets.bulk-print-labels')->middleware('menu.access:tracking.qc|tracking.stock,create');
     Route::get('/tracking/{part}/print-label', [NpcChecksheetController::class, 'printLabel'])->name('checksheets.print-label')->middleware('menu.access:tracking.qc|tracking.stock,create');

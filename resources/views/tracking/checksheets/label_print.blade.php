@@ -383,7 +383,7 @@
                         ? url('file/storage/' . ltrim(str_replace('public/', '', $labelImgPath), '/'))
                         : null;
                     
-                    $qrData = route('checksheets.create', ['part' => $part->id]);
+                    $qrData = route('tracking.scan', ['part' => $part->hashed_id]);
                     $qrCode = (new \chillerlan\QRCode\QRCode)->render($qrData);
                 @endphp
                 <div class="img-wrapper" style="gap: 16px;">

@@ -18,6 +18,25 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 class NpcChecksheetController extends Controller
 {
     /**
+     * Show options when QR code is scanned.
+     */
+    public function scan(NpcPart $part)
+    {
+        $user = auth()->user();
+        
+        $canMgm = $user->hasMenuAccess('tracking.mgm', 'create');
+        $canApproval = $user->hasMenuAccess('checksheet-approvals.index', 'view');
+
+        if (!$canMgm && !$canApproval) {
+            abort(403, 'Anda tidak memiliki akses ke halaman ini (MGM Check / Checksheet Approval).');
+        }
+
+        $checksheet = $part->checksheet;
+
+        return view('tracking.checksheets.scan_options', compact('part', 'checksheet', 'canMgm', 'canApproval'));
+    }
+
+    /**
      * Show the form for creating/editing the QC or MGM checksheet.
      */
     public function create(NpcPart $part)
