@@ -306,13 +306,23 @@ class ProductionTrackingController extends Controller
 
     public function completeProcess(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
     {
-        $request->validate([
+        $rules = [
             'process_id'              => 'required',
             'actual_completion_date'  => 'required|date',
             'actual_qty'              => 'required|integer|min:' . $part->qty,
-            'photo'                   => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
             'production_notes'        => 'nullable|string|max:500',
-        ], [
+        ];
+
+        if ($request->hasFile('photo')) {
+            $rules['photo'] = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
+        } elseif ($request->filled('photo_base64')) {
+            // Will accept base64 payload instead
+        } else {
+            // Trigger required rule if neither provided
+            $rules['photo'] = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
+        }
+
+        $request->validate($rules, [
             'actual_qty.min' => 'Total Qty Completed cannot be less than Planning PO (' . $part->qty . ' PCS).'
         ]);
 
@@ -331,6 +341,20 @@ class ProductionTrackingController extends Controller
         $photoPath = null;
         if ($request->hasFile('photo')) {
             $photoPath = $request->file('photo')->store('production_proofs', 'public');
+        } elseif ($request->filled('photo_base64')) {
+            $base64 = $request->photo_base64;
+            $decoded = base64_decode($base64);
+            
+            $ext = 'png';
+            $fileName = $request->input('photo_name', 'photo.png');
+            $pathInfo = pathinfo($fileName);
+            if (isset($pathInfo['extension'])) {
+                $ext = strtolower($pathInfo['extension']);
+            }
+            
+            $newFileName = 'production_proofs/' . \Illuminate\Support\Str::random(40) . '.' . $ext;
+            \Illuminate\Support\Facades\Storage::disk('public')->put($newFileName, $decoded);
+            $photoPath = $newFileName;
         }
 
         // Tandai proses ini selesai
@@ -357,7 +381,11 @@ class ProductionTrackingController extends Controller
             return back()->with('success', 'Production sequence complete. Goods successfully submitted to QC!');
         }
 
-        return back()->with('success', 'Process finished! Continue to the next department.');
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Process marked as finished.']);
+        }
+
+        return back()->with('success', 'Process marked as finished.');
     }
 
     public function rollbackSetup(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)

@@ -196,7 +196,79 @@ function closeCompleteModal() {
 document.getElementById('modal-complete').addEventListener('click', function(e) {
     if (e.target === this) closeCompleteModal();
 });
-
+document.getElementById('form-complete').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const btn = form.querySelector('button[type="submit"]');
+    const originalBtnHtml = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+    
+    const actionUrl = form.action;
+    
+    let payload = {
+        _token: form.querySelector('input[name="_token"]').value,
+        process_id: form.querySelector('input[name="process_id"]').value,
+        actual_qty: form.querySelector('input[name="actual_qty"]').value,
+        actual_completion_date: form.querySelector('input[name="actual_completion_date"]').value,
+        production_notes: form.querySelector('textarea[name="production_notes"]').value,
+    };
+    
+    const fileInput = form.querySelector('input[name="photo"]');
+    if (fileInput && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        payload.photo_name = file.name;
+        try {
+            payload.photo_base64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
+        } catch (e) {
+            alert('Failed to read photo file.');
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+            return;
+        }
+    }
+    
+    fetch(actionUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': payload._token,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(async response => {
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            const text = await response.text();
+            let errMsg = 'Submission failed. Server responded with status: ' + response.status;
+            if (response.status === 422) {
+                try {
+                    const errors = JSON.parse(text).errors;
+                    errMsg = Object.values(errors).flat().join('\n');
+                } catch(err) {}
+            }
+            alert(errMsg);
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+            console.error(text);
+        }
+    })
+    .catch(error => {
+        console.error(error);
+        alert('Connection error occurred while submitting.');
+        btn.disabled = false;
+        btn.innerHTML = originalBtnHtml;
+    });
+});
 
 $(document).ready(function() {
     let urlParams = new URLSearchParams(window.location.search);
