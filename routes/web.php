@@ -239,7 +239,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checksheets/{checksheet}/edit', [NpcChecksheetController::class, 'edit'])->name('checksheets.edit')->middleware('menu.access:tracking.qc|tracking.mgm,update');
     Route::post('/checksheets/{checksheet}/sync', [NpcChecksheetController::class, 'sync'])->name('checksheets.sync')->middleware('menu.access:tracking.qc|tracking.mgm,update');
     Route::post('/checksheets/{checksheet}', [NpcChecksheetController::class, 'update'])->name('checksheets.update')->middleware('menu.access:tracking.qc|tracking.mgm,update');
-
+    Route::post('/upload-chunk', [NpcChecksheetController::class, 'uploadChunk'])->name('upload.chunk');
     // Checksheet Approval Routes
     Route::middleware('menu.access')->group(function () {
         Route::get('/checksheet-approvals', [\App\Http\Controllers\NpcChecksheetApprovalController::class, 'index'])->name('checksheet-approvals.index');
