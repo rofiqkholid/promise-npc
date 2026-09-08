@@ -194,7 +194,9 @@ function closeCompleteModal() {
 // Close on backdrop click
 document.getElementById('modal-complete').addEventListener('click', function(e) {
     if (e.target === this) closeCompleteModal();
-});<script>
+});
+</script>
+<script>
 $(document).ready(function() {
     let urlParams = new URLSearchParams(window.location.search);
     
