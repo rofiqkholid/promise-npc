@@ -497,31 +497,44 @@
                         reader.onerror = error => reject(error);
                     });
                     
-                    const chunkSize = 1024 * 1024; // 1MB chunks
+                    const chunkSize = 512 * 1024; // 512KB chunks to safely bypass strict 1MB proxy limits
                     const uniqueName = Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
                     
-                    for (let i = 0; i < base64Str.length; i += chunkSize) {
-                        const chunk = base64Str.substring(i, i + chunkSize);
-                        await fetch('{{ route("upload.chunk") }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({ chunk: chunk, file_name: uniqueName })
-                        });
+                    try {
+                        for (let i = 0; i < base64Str.length; i += chunkSize) {
+                            const chunk = base64Str.substring(i, i + chunkSize);
+                            const response = await fetch('{{ route("upload.chunk") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({ chunk: chunk, file_name: uniqueName })
+                            });
+                            
+                            if (!response.ok) {
+                                throw new Error('Chunk upload failed with status ' + response.status);
+                            }
+                            
+                            if (btn) {
+                                const progress = Math.min(100, Math.round(((i + chunkSize) / base64Str.length) * 100));
+                                btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> Uploading ${progress}%...`;
+                            }
+                        }
+                        
+                        payload.attachment_temp_file = uniqueName;
                         
                         if (btn) {
-                            const progress = Math.min(100, Math.round(((i + chunkSize) / base64Str.length) * 100));
-                            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> Uploading ${progress}%...`;
+                            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Finalizing...';
                         }
-                    }
-                    
-                    payload.attachment_temp_file = uniqueName;
-                    
-                    if (btn) {
-                        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Finalizing...';
+                    } catch (e) {
+                        alert('Upload failed: ' + e.message);
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = originalBtnHtml;
+                        }
+                        return;
                     }
                 }
                 
