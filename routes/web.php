@@ -201,8 +201,8 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Part Routing Routes
-    Route::get('/parts/{part}/routing', [NpcPartProcessController::class, 'edit'])->name('parts.routing.edit')->middleware('menu.access:master.routings.index,update');
-    Route::post('/parts/{part}/routing', [NpcPartProcessController::class, 'update'])->name('parts.routing.update')->middleware('menu.access:master.routings.index,update');
+    Route::get('/parts/{part}/routing', [NpcPartProcessController::class, 'edit'])->name('parts.routing.edit')->middleware('menu.access:master.routings.index|tracking.setup,update');
+    Route::post('/parts/{part}/routing', [NpcPartProcessController::class, 'update'])->name('parts.routing.update')->middleware('menu.access:master.routings.index|tracking.setup,update');
 
     // Production Tracking Route
     Route::middleware('menu.access')->group(function () {
