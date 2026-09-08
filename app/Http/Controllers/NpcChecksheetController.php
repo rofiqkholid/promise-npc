@@ -133,6 +133,27 @@ class NpcChecksheetController extends Controller
     /**
      * Store checksheet inputs (handles both QE/QC and MGM roles).
      */
+    public function uploadChunk(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'chunk' => 'required|string',
+            'file_name' => 'required|string',
+        ]);
+
+        $chunk = $request->input('chunk');
+        $fileName = basename($request->input('file_name'));
+        
+        $dir = storage_path('app/public/tmp_chunks');
+        if (!file_exists($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        
+        $path = $dir . '/' . $fileName;
+        file_put_contents($path, $chunk, FILE_APPEND);
+        
+        return response()->json(['success' => true]);
+    }
+
     public function update(Request $request, NpcChecksheet $checksheet)
     {
         $request->validate([
@@ -168,6 +189,30 @@ class NpcChecksheetController extends Controller
                 }
                 $path = $request->file('attachment_file')->store('npc_checksheets', 'public');
                 $updateData['attachment_path'] = $path;
+            } elseif ($request->filled('attachment_temp_file')) {
+                if ($checksheet->attachment_path) {
+                    Storage::disk('public')->delete($checksheet->attachment_path);
+                }
+                
+                $tmpName = basename($request->attachment_temp_file);
+                $tmpPath = storage_path('app/public/tmp_chunks/' . $tmpName);
+                if (file_exists($tmpPath)) {
+                    $base64 = file_get_contents($tmpPath);
+                    $decoded = base64_decode($base64);
+                    
+                    $ext = 'pdf'; // Default fallback
+                    $fileName = $request->input('attachment_file_name', 'file.pdf');
+                    $pathInfo = pathinfo($fileName);
+                    if (isset($pathInfo['extension'])) {
+                        $ext = strtolower($pathInfo['extension']);
+                    }
+                    
+                    $newFileName = 'npc_checksheets/' . \Illuminate\Support\Str::random(40) . '.' . $ext;
+                    Storage::disk('public')->put($newFileName, $decoded);
+                    
+                    $updateData['attachment_path'] = $newFileName;
+                    unlink($tmpPath);
+                }
             } elseif ($request->filled('attachment_file_base64')) {
                 if ($checksheet->attachment_path) {
                     Storage::disk('public')->delete($checksheet->attachment_path);

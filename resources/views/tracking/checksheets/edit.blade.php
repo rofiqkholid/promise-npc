@@ -490,12 +490,39 @@
                 if (fileInput && fileInput.files.length > 0) {
                     const file = fileInput.files[0];
                     payload.attachment_file_name = file.name;
-                    payload.attachment_file_base64 = await new Promise((resolve, reject) => {
+                    const base64Str = await new Promise((resolve, reject) => {
                         const reader = new FileReader();
                         reader.readAsDataURL(file);
                         reader.onload = () => resolve(reader.result.split(',')[1]);
                         reader.onerror = error => reject(error);
                     });
+                    
+                    const chunkSize = 1024 * 1024; // 1MB chunks
+                    const uniqueName = Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+                    
+                    for (let i = 0; i < base64Str.length; i += chunkSize) {
+                        const chunk = base64Str.substring(i, i + chunkSize);
+                        await fetch('{{ route("upload.chunk") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ chunk: chunk, file_name: uniqueName })
+                        });
+                        
+                        if (btn) {
+                            const progress = Math.min(100, Math.round(((i + chunkSize) / base64Str.length) * 100));
+                            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> Uploading ${progress}%...`;
+                        }
+                    }
+                    
+                    payload.attachment_temp_file = uniqueName;
+                    
+                    if (btn) {
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Finalizing...';
+                    }
                 }
                 
                 fetchOptions = {

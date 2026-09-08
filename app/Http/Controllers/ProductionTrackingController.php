@@ -378,14 +378,21 @@ class ProductionTrackingController extends Controller
                 'production_notes' => $request->production_notes,
             ]);
             
-            return back()->with('success', 'Production sequence complete. Goods successfully submitted to QC!');
+            $msg = 'Production sequence complete. Goods successfully submitted to QC!';
+            if ($request->expectsJson()) {
+                session()->flash('success', $msg);
+                return response()->json(['success' => true, 'message' => $msg]);
+            }
+            return back()->with('success', $msg);
         }
 
+        $msg = 'Process marked as finished.';
         if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'Process marked as finished.']);
+            session()->flash('success', $msg);
+            return response()->json(['success' => true, 'message' => $msg]);
         }
 
-        return back()->with('success', 'Process marked as finished.');
+        return back()->with('success', $msg);
     }
 
     public function rollbackSetup(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
