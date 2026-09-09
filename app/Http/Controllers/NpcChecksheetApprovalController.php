@@ -99,7 +99,12 @@ class NpcChecksheetApprovalController extends Controller
                     if ($checksheet->approval_status === 'APPROVED') {
                         $part = $checksheet->npcPart;
                         $rollbackBtn = '';
-                        if ($part && $part->delivered_qty == 0) {
+                        $user = auth()->user();
+                        $isAdmin = $user && $user->roles->filter(function($role) {
+                            return strtolower($role->code) === 'administrator' || strtolower($role->role_name) === 'administrator';
+                        })->isNotEmpty();
+                        
+                        if ($part && ($part->delivered_qty == 0 || $isAdmin)) {
                             $rollbackUrl = route('tracking.mgm.rollback', $part->hashed_id);
                             $token = csrf_token();
                             $rollbackBtn = '<form action="'.$rollbackUrl.'" method="POST" class="inline m-0 p-0 rollback-form-approval"><input type="hidden" name="_token" value="'.$token.'"><input type="hidden" name="rollback_reason" class="rollback-reason-input"><button type="button" class="inline-flex items-center gap-2 px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold transition shadow-sm" title="Rollback Approval" onclick="confirmRollbackWithReason(event)"><i class="fa-solid fa-rotate-left"></i> Rollback</button></form>';

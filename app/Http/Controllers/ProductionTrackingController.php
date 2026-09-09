@@ -530,8 +530,18 @@ class ProductionTrackingController extends Controller
 
     public function rollbackMgm(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
     {
-        // Only allow rollback if the part is in WAITING_APPROVAL or FINISHED
-        if (!in_array($part->status, ['WAITING_APPROVAL', 'FINISHED'])) {
+        $user = auth()->user();
+        $isAdmin = $user && $user->roles->filter(function($role) {
+            return strtolower($role->code) === 'administrator' || strtolower($role->role_name) === 'administrator';
+        })->isNotEmpty();
+
+        $allowedStatuses = ['WAITING_APPROVAL', 'FINISHED'];
+        if ($isAdmin) {
+            $allowedStatuses = array_merge($allowedStatuses, ['OUTSTANDING', 'CLOSED']);
+        }
+
+        // Only allow rollback if the part is in WAITING_APPROVAL or FINISHED (or Admin)
+        if (!in_array($part->status, $allowedStatuses)) {
             return back()->with('error', 'Only parts in Approval or Finished stock can be rolled back to MGM.');
         }
 
@@ -541,7 +551,7 @@ class ProductionTrackingController extends Controller
         }
 
         // If it's FINISHED, check if it has already started being delivered
-        if ($part->status === 'FINISHED' && $part->delivered_qty > 0) {
+        if ($part->status === 'FINISHED' && $part->delivered_qty > 0 && !$isAdmin) {
             return back()->with('error', 'Cannot rollback because part has already started delivery.');
         }
 
@@ -549,10 +559,16 @@ class ProductionTrackingController extends Controller
             'rollback_reason' => 'required|string|max:500'
         ]);
 
-        $part->update([
+        $partUpdateData = [
             'status' => 'WAITING_MGM_CHECK',
             'rollback_reason' => $request->rollback_reason,
-        ]);
+        ];
+
+        if ($isAdmin && in_array($part->status, ['OUTSTANDING', 'CLOSED']) || ($part->status === 'FINISHED' && $part->delivered_qty > 0)) {
+            $partUpdateData['delivered_qty'] = 0;
+        }
+
+        $part->update($partUpdateData);
 
         if ($part->checksheet) {
             // Delete any NG history recorded from this checksheet during MGM submission
