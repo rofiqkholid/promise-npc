@@ -532,7 +532,9 @@ class ProductionTrackingController extends Controller
     {
         $user = auth()->user();
         $isAdmin = $user && $user->roles->filter(function($role) {
-            return strtolower($role->code) === 'administrator' || strtolower($role->role_name) === 'administrator';
+            $code = strtolower($role->code);
+            $name = strtolower($role->role_name);
+            return $code === 'administrator' || $code === 'npc_admin' || $name === 'administrator';
         })->isNotEmpty();
 
         $allowedStatuses = ['WAITING_APPROVAL', 'FINISHED'];
