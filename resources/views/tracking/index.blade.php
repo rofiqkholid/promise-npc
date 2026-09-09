@@ -339,7 +339,7 @@ $(document).ready(function() {
                                 </div>`;
                     }
                     const deliveryDate = row.delivery_date ? new Date(row.delivery_date.split('T')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }) : '-';
-                    html += `<div class="text-xs text-red-500 font-medium mt-1"><i class="fa-regular fa-calendar md:mr-1"></i> ${deliveryDate}</div>`;
+                    html += `<div class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1"><i class="fa-regular fa-calendar md:mr-1"></i> ${deliveryDate}</div>`;
                     return html;
                 }
             },

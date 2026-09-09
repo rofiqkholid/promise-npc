@@ -431,9 +431,9 @@ $(document).ready(function() {
                 render: function(data, type, row) {
                     const processes = (row.processes || []).slice().sort((a, b) => (a.sequence_order || 0) - (b.sequence_order || 0));
                     if (processes.length === 0) {
-                        return `<span class="text-xs text-orange-500 italic flex items-center gap-1">
+                        return `<div class="inline-flex items-center gap-1.5 px-2 py-1 bg-orange-50 text-orange-700 border border-orange-200 text-[10px] font-medium">
                             <i class="fa-solid fa-triangle-exclamation"></i> No Routing Yet
-                        </span>`;
+                        </div>`;
                     }
                     
                     const activeProcess = processes.find(p => p.status === 'WAITING');
