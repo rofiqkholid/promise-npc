@@ -115,6 +115,9 @@ class ProductionTrackingController extends Controller
                 })
                 ->addColumn('rollback_process_url', function ($part) {
                     return route('tracking.process.rollback', $part->hashed_id);
+                })
+                ->addColumn('hold_process_url', function ($part) {
+                    return route('tracking.process.hold', $part->hashed_id);
                 });
             } elseif ($viewFile === 'tracking.stock') {
                 $dt->addColumn('deliver_url', function ($part) {
@@ -332,13 +335,11 @@ class ProductionTrackingController extends Controller
 
     public function completeProcess(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
     {
-        $actionType = $request->input('action_type_val', 'complete');
-        
         $rules = [
             'process_id'              => 'required',
             'actual_completion_date'  => 'required|date',
             'actual_qty'              => 'required|integer|min:' . $part->qty,
-            'production_notes'        => $actionType === 'hold' ? 'required|string|max:500' : 'nullable|string|max:500',
+            'production_notes'        => 'nullable|string|max:500',
         ];
 
         if ($request->hasFile('photo')) {
@@ -386,23 +387,13 @@ class ProductionTrackingController extends Controller
         }
 
         // Tandai proses ini selesai
-        $actionType = $request->input('action_type_val', 'complete');
-
-        if ($actionType === 'hold') {
-            $process->update([
-                'status' => 'HOLD',
-                'hold_reason' => $request->production_notes,
-                'actual_qty' => $request->actual_qty,
-            ]);
-        } else {
-            $process->update([
-                'status' => 'FINISHED',
-                'actual_completion_date' => $request->actual_completion_date,
-                'actual_qty' => $request->actual_qty,
-                'photo_proof' => $photoPath,
-                'production_notes' => $request->production_notes,
-            ]);
-        }
+        $process->update([
+            'status' => 'FINISHED',
+            'actual_completion_date' => $request->actual_completion_date,
+            'actual_qty' => $request->actual_qty,
+            'photo_proof' => $photoPath,
+            'production_notes' => $request->production_notes,
+        ]);
 
         // Cek apakah part ini masih punya proses yang belum selesai berdasar urutan
         $remainingProcesses = \App\Models\NpcPartProcess::where('npc_part_id', $part->id)
@@ -473,9 +464,9 @@ class ProductionTrackingController extends Controller
 
     public function rollbackProcess(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
     {
-        // Temukan proses terakhir yang sudah FINISHED
+        // Temukan proses terakhir yang sudah FINISHED atau HOLD
         $lastFinishedProcess = \App\Models\NpcPartProcess::where('npc_part_id', $part->id)
-            ->where('status', 'FINISHED')
+            ->whereIn('status', ['FINISHED', 'HOLD'])
             ->orderBy('sequence_order', 'desc')
             ->first();
 
@@ -502,7 +493,8 @@ class ProductionTrackingController extends Controller
             'status' => 'WAITING',
             'actual_completion_date' => null,
             'actual_qty' => null,
-            'photo_proof' => null
+            'photo_proof' => null,
+            'hold_reason' => null
         ]);
 
         $latestProcessActivity = $lastFinishedProcess->activities()->latest()->first();

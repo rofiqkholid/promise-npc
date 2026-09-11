@@ -149,18 +149,14 @@
                     <p class="text-[10px] text-gray-400 mt-1 italic">Max 5 MB (JPG/PNG). Photo of a batch of parts.</p>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Production Notes / Hold Reason <span class="text-gray-400 text-[10px] font-normal">(optional if complete, required if hold)</span></label>
+                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Production Notes <span class="text-gray-400 text-[10px] font-normal">(optional)</span></label>
                     <textarea name="production_notes" rows="3" placeholder="Example: Completed ahead of schedule..."
                         class="w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-amber-500 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"></textarea>
                 </div>
             </div>
             <div class="flex justify-end gap-3 px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-                <input type="hidden" name="action_type_val" value="complete">
                 <button type="button" onclick="closeCompleteModal()" class="px-4 py-2 text-[13px] font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition">Cancel</button>
-                <button type="submit" onclick="this.form.action_type_val.value='hold';" class="px-4 py-2 text-[13px] font-medium text-white bg-red-500 hover:bg-red-600 shadow-sm transition flex items-center gap-1">
-                    <i class="fa-solid fa-pause"></i> Hold Process
-                </button>
-                <button type="submit" onclick="this.form.action_type_val.value='complete';" class="px-4 py-2 text-[13px] font-medium text-white bg-amber-500 hover:bg-amber-600 shadow-sm transition flex items-center gap-1">
+                <button type="submit" class="px-4 py-2 text-[13px] font-medium text-white bg-amber-500 hover:bg-amber-600 shadow-sm transition flex items-center gap-1">
                     <i class="fa-solid fa-check"></i> Complete Process
                 </button>
             </div>
@@ -264,48 +260,126 @@ document.getElementById('form-complete').addEventListener('submit', async functi
                 };
                 reader.onerror = error => reject(error);
             });
-        } catch (e) {
-            alert('Failed to read photo file.');
-            btn.disabled = false;
-            btn.innerHTML = originalBtnHtml;
-            return;
+        } catch (error) {
+            console.error('Error resizing image:', error);
+            // Fallback to original
+            payload.photo_base64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+            });
         }
     }
-    
-    fetch(actionUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': payload._token,
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(async response => {
+
+    try {
+        const response = await fetch(actionUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': payload._token
+            },
+            body: JSON.stringify(payload)
+        });
+
         if (response.ok) {
-            window.location.reload();
+            const result = await response.json();
+            if (result.success) {
+                closeCompleteModal();
+                Swal.fire({
+                    title: 'Success!',
+                    text: result.message || 'Process completed successfully.',
+                    icon: 'success',
+                    confirmButtonColor: '#3b82f6',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    if (window.LaravelDataTables && window.LaravelDataTables["productionTable"]) {
+                        window.LaravelDataTables["productionTable"].ajax.reload(null, false);
+                    } else {
+                        location.reload();
+                    }
+                });
+            } else {
+                alert(result.message || 'Failed to complete process.');
+            }
         } else {
-            const text = await response.text();
             let errMsg = 'Submission failed. Server responded with status: ' + response.status;
-            if (response.status === 422) {
-                try {
-                    const errors = JSON.parse(text).errors;
-                    errMsg = Object.values(errors).flat().join('\n');
-                } catch(err) {}
+            try {
+                const errorData = await response.json();
+                if (errorData.errors) {
+                    errMsg = Object.values(errorData.errors).flat().join('\n');
+                } else if (errorData.message) {
+                    errMsg = errorData.message;
+                }
+            } catch (e) {
+                const text = await response.text();
+                console.error(text);
             }
             alert(errMsg);
-            btn.disabled = false;
-            btn.innerHTML = originalBtnHtml;
-            console.error(text);
         }
-    })
-    .catch(error => {
-        console.error(error);
-        alert('Connection error occurred while submitting.');
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An unexpected error occurred while submitting. Please try again.');
+    } finally {
         btn.disabled = false;
         btn.innerHTML = originalBtnHtml;
-    });
+    }
 });
+
+function promptHoldProcess(processId, actionUrl) {
+    Swal.fire({
+        title: 'Hold Process',
+        text: 'Please enter the reason for holding this process:',
+        input: 'textarea',
+        inputPlaceholder: 'Example: NG part found, machine breakdown...',
+        inputAttributes: {
+            'aria-label': 'Hold reason'
+        },
+        showCancelButton: true,
+        confirmButtonText: '<i class="fa-solid fa-pause"></i> Hold Process',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#9ca3af',
+        preConfirm: (reason) => {
+            if (!reason || reason.trim() === '') {
+                Swal.showValidationMessage('Hold reason is required!');
+                return false;
+            }
+            return reason.trim();
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = actionUrl;
+            
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (csrfToken) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = '_token';
+                csrfInput.value = csrfToken.content;
+                form.appendChild(csrfInput);
+            }
+            
+            const processIdInput = document.createElement('input');
+            processIdInput.type = 'hidden';
+            processIdInput.name = 'process_id';
+            processIdInput.value = processId;
+            form.appendChild(processIdInput);
+            
+            const reasonInput = document.createElement('input');
+            reasonInput.type = 'hidden';
+            reasonInput.name = 'hold_reason';
+            reasonInput.value = result.value;
+            form.appendChild(reasonInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
 
 $(document).ready(function() {
     let urlParams = new URLSearchParams(window.location.search);
@@ -546,11 +620,18 @@ $(document).ready(function() {
                             </form>`;
                         }
                         
-                        return `<button type="button"
-                            onclick="openCompleteModal('${row.hashed_id}', '${activeProcess.hashed_id || activeProcess.id}', '${procName}', '${deptName}', '${targetFormatted}', '${completeUrl}', ${row.qty}, '${partNo}', '${partName}', '${poNo}', '${modelName}')"
-                            class="inline-flex px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white shadow-sm font-bold transition items-center gap-2 text-[11px] mb-2 w-full justify-center" style="background-color: #f59e0b;">
-                            Complete ${procName} <i class="fa-solid fa-forward-step"></i>
-                        </button>
+                        return `<div class="flex gap-2 mb-2 w-full">
+                            <button type="button"
+                                onclick="openCompleteModal('${row.hashed_id}', '${activeProcess.hashed_id || activeProcess.id}', '${procName}', '${deptName}', '${targetFormatted}', '${completeUrl}', ${row.qty}, '${partNo}', '${partName}', '${poNo}', '${modelName}')"
+                                class="inline-flex px-2 py-2 bg-amber-500 hover:bg-amber-600 text-white shadow-sm font-bold transition items-center gap-1 text-[11px] flex-1 justify-center" style="background-color: #f59e0b;">
+                                Complete <i class="fa-solid fa-forward-step"></i>
+                            </button>
+                            <button type="button"
+                                onclick="promptHoldProcess('${activeProcess.hashed_id || activeProcess.id}', '${row.hold_process_url}')"
+                                class="inline-flex px-2 py-2 bg-red-500 hover:bg-red-600 text-white shadow-sm font-bold transition items-center gap-1 text-[11px] flex-1 justify-center" style="background-color: #ef4444;">
+                                Hold <i class="fa-solid fa-pause"></i>
+                            </button>
+                        </div>
                         ${rollbackBtn}
                         <p class="text-[9px] text-gray-400 italic text-right max-w-[150px] mx-auto float-right text-balance mt-1">
                             ${isLast ? 'Click if completed to submit to QC.' : 'Click to move to the next department.'}
