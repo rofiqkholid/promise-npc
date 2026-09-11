@@ -921,8 +921,21 @@ class NpcChecksheetController extends Controller
         $sheet->getStyle('A' . ($headerRow + 1) . ':A' . ($itemRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle('D' . ($headerRow + 1) . ':Q' . ($itemRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         
-        // 8. FOOTER
-        $footerRow = $itemRow + 1;
+        // 8. REMARK ROW
+        $remarkRow = $itemRow + 1;
+        $sheet->mergeCells('A' . $remarkRow . ':B' . $remarkRow);
+        $sheet->setCellValue('A' . $remarkRow, 'Remark');
+        $sheet->getStyle('A' . $remarkRow)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $remarkRow)->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
+        
+        $sheet->mergeCells('C' . $remarkRow . ':Q' . $remarkRow);
+        $sheet->setCellValue('C' . $remarkRow, $checksheet->final_result);
+        $sheet->getStyle('C' . $remarkRow)->getAlignment()->setWrapText(true)->setVertical(Alignment::VERTICAL_TOP);
+        $sheet->getRowDimension($remarkRow)->setRowHeight(40);
+        $sheet->getStyle('A' . $remarkRow . ':Q' . $remarkRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        // 9. FOOTER
+        $footerRow = $remarkRow + 2;
         $sheet->mergeCells('A' . $footerRow . ':B' . $footerRow);
         $sheet->setCellValue('A' . $footerRow, 'Checking Date');
         $sheet->mergeCells('C' . $footerRow . ':D' . $footerRow);

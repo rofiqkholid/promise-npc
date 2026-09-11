@@ -42,6 +42,7 @@ class NpcPartProcess extends Model
         'status',
         'sequence_order',
         'production_notes',
+        'hold_reason',
     ];
 
     public function part()

@@ -303,14 +303,42 @@ class ProductionTrackingController extends Controller
 
         return back()->with('success', 'Part Status successfully updated.');
     }
+    public function holdProcess(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
+    {
+        $request->validate([
+            'process_id'  => 'required',
+            'hold_reason' => 'required|string|max:500',
+        ]);
+
+        $processId = $request->process_id;
+        if (!is_numeric($processId)) {
+            $hashids = new \Hashids\Hashids(env('APP_KEY'), 10);
+            $decodedIds = $hashids->decode($processId);
+            $processId = $decodedIds[0] ?? null;
+        }
+
+        $process = \App\Models\NpcPartProcess::where('id', $processId)
+            ->where('npc_part_id', $part->id)
+            ->firstOrFail();
+
+        $process->update([
+            'status' => 'HOLD',
+            'hold_reason' => $request->hold_reason,
+        ]);
+
+        return back()->with('success', 'Process has been successfully held.');
+    }
+
 
     public function completeProcess(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
     {
+        $actionType = $request->input('action_type_val', 'complete');
+        
         $rules = [
             'process_id'              => 'required',
             'actual_completion_date'  => 'required|date',
             'actual_qty'              => 'required|integer|min:' . $part->qty,
-            'production_notes'        => 'nullable|string|max:500',
+            'production_notes'        => $actionType === 'hold' ? 'required|string|max:500' : 'nullable|string|max:500',
         ];
 
         if ($request->hasFile('photo')) {
@@ -358,13 +386,23 @@ class ProductionTrackingController extends Controller
         }
 
         // Tandai proses ini selesai
-        $process->update([
-            'status' => 'FINISHED',
-            'actual_completion_date' => $request->actual_completion_date,
-            'actual_qty' => $request->actual_qty,
-            'photo_proof' => $photoPath,
-            'production_notes' => $request->production_notes,
-        ]);
+        $actionType = $request->input('action_type_val', 'complete');
+
+        if ($actionType === 'hold') {
+            $process->update([
+                'status' => 'HOLD',
+                'hold_reason' => $request->production_notes,
+                'actual_qty' => $request->actual_qty,
+            ]);
+        } else {
+            $process->update([
+                'status' => 'FINISHED',
+                'actual_completion_date' => $request->actual_completion_date,
+                'actual_qty' => $request->actual_qty,
+                'photo_proof' => $photoPath,
+                'production_notes' => $request->production_notes,
+            ]);
+        }
 
         // Cek apakah part ini masih punya proses yang belum selesai berdasar urutan
         $remainingProcesses = \App\Models\NpcPartProcess::where('npc_part_id', $part->id)

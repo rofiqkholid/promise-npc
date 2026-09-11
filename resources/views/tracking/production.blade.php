@@ -149,14 +149,18 @@
                     <p class="text-[10px] text-gray-400 mt-1 italic">Max 5 MB (JPG/PNG). Photo of a batch of parts.</p>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Production Notes <span class="text-gray-400 text-[10px] font-normal">(optional)</span></label>
+                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Production Notes / Hold Reason <span class="text-gray-400 text-[10px] font-normal">(optional if complete, required if hold)</span></label>
                     <textarea name="production_notes" rows="3" placeholder="Example: Completed ahead of schedule..."
                         class="w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-amber-500 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"></textarea>
                 </div>
             </div>
             <div class="flex justify-end gap-3 px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                <input type="hidden" name="action_type_val" value="complete">
                 <button type="button" onclick="closeCompleteModal()" class="px-4 py-2 text-[13px] font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition">Cancel</button>
-                <button type="submit" class="px-4 py-2 text-[13px] font-medium text-white bg-amber-500 hover:bg-amber-600 shadow-sm transition flex items-center gap-1">
+                <button type="submit" onclick="this.form.action_type_val.value='hold';" class="px-4 py-2 text-[13px] font-medium text-white bg-red-500 hover:bg-red-600 shadow-sm transition flex items-center gap-1">
+                    <i class="fa-solid fa-pause"></i> Hold Process
+                </button>
+                <button type="submit" onclick="this.form.action_type_val.value='complete';" class="px-4 py-2 text-[13px] font-medium text-white bg-amber-500 hover:bg-amber-600 shadow-sm transition flex items-center gap-1">
                     <i class="fa-solid fa-check"></i> Complete Process
                 </button>
             </div>
@@ -214,6 +218,7 @@ document.getElementById('form-complete').addEventListener('submit', async functi
         actual_qty: form.querySelector('input[name="actual_qty"]').value,
         actual_completion_date: form.querySelector('input[name="actual_completion_date"]').value,
         production_notes: form.querySelector('textarea[name="production_notes"]').value,
+        action_type_val: form.querySelector('input[name="action_type_val"]').value,
     };
     
     const fileInput = form.querySelector('input[name="photo"]');
@@ -436,12 +441,13 @@ $(document).ready(function() {
                         </div>`;
                     }
                     
-                    const activeProcess = processes.find(p => p.status === 'WAITING');
+                    const activeProcess = processes.find(p => p.status === 'WAITING' || p.status === 'HOLD');
                     
                     let html = `<div class="flex flex-col gap-2 relative before:absolute before:inset-0 before:ml-[9px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">`;
                     
                     processes.forEach(p => {
                         const isFinished = p.status === 'FINISHED';
+                        const isHold = p.status === 'HOLD';
                         const isActive = activeProcess && activeProcess.id === p.id;
                         
                         let circleColor = 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400';
@@ -452,6 +458,10 @@ $(document).ready(function() {
                             circleColor = 'bg-green-500 text-white ring-4 ring-white dark:ring-gray-800';
                             icon = '<i class="fa-solid fa-check text-[8px]"></i>';
                             textColor = 'text-gray-400 line-through';
+                        } else if (isHold) {
+                            circleColor = 'bg-red-500 text-white ring-4 ring-red-100 dark:ring-red-900 shadow-lg';
+                            icon = '<i class="fa-solid fa-pause text-[8px]"></i>';
+                            textColor = 'text-red-600 dark:text-red-400 font-bold';
                         } else if (isActive) {
                             circleColor = 'bg-amber-500 text-white ring-4 ring-amber-100 dark:ring-amber-900 shadow-lg';
                             icon = '<i class="fa-solid fa-gear fa-spin text-[8px]"></i>';
@@ -476,7 +486,8 @@ $(document).ready(function() {
                                 <div class="flex items-center gap-2">
                                     <span class="text-[9px] text-gray-500 ${isFinished ? 'opacity-50' : ''}"><i class="fa-solid fa-building-user text-[8px] mr-0.5"></i> ${deptName}</span>
                                     <span class="text-[9px] text-gray-500 ${isFinished ? 'opacity-50' : ''}"><i class="fa-regular fa-calendar-check text-[8px] mr-0.5"></i> Target: ${targetStr}</span>
-                                    ${p.production_notes ? `<span class="text-[9px] text-gray-500 dark:text-gray-400 italic truncate max-w-[150px]" title="${p.production_notes.replace(/</g, '&lt;').replace(/>/g, '&gt;')}"><i class="fa-solid fa-note-sticky text-[8px] mr-0.5"></i> ${p.production_notes.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>` : ''}
+                                    ${p.production_notes && isFinished ? `<span class="text-[9px] text-gray-500 dark:text-gray-400 italic truncate max-w-[150px]" title="${p.production_notes.replace(/</g, '&lt;').replace(/>/g, '&gt;')}"><i class="fa-solid fa-note-sticky text-[8px] mr-0.5"></i> ${p.production_notes.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>` : ''}
+                                    ${p.hold_reason && isHold ? `<span class="text-[9px] text-red-500 dark:text-red-400 italic truncate max-w-[150px]" title="${p.hold_reason.replace(/</g, '&lt;').replace(/>/g, '&gt;')}"><i class="fa-solid fa-triangle-exclamation text-[8px] mr-0.5"></i> ${p.hold_reason.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>` : ''}
                                 </div>
                             </div>
                         </div>`;
