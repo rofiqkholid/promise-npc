@@ -41,6 +41,7 @@ class NpcPartProcess extends Model
         'photo_proof',
         'status',
         'sequence_order',
+        'production_notes',
     ];
 
     public function part()

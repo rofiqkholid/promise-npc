@@ -476,6 +476,7 @@ $(document).ready(function() {
                                 <div class="flex items-center gap-2">
                                     <span class="text-[9px] text-gray-500 ${isFinished ? 'opacity-50' : ''}"><i class="fa-solid fa-building-user text-[8px] mr-0.5"></i> ${deptName}</span>
                                     <span class="text-[9px] text-gray-500 ${isFinished ? 'opacity-50' : ''}"><i class="fa-regular fa-calendar-check text-[8px] mr-0.5"></i> Target: ${targetStr}</span>
+                                    ${p.production_notes ? `<span class="text-[9px] text-gray-500 dark:text-gray-400 italic truncate max-w-[150px]" title="${p.production_notes.replace(/</g, '&lt;').replace(/>/g, '&gt;')}"><i class="fa-solid fa-note-sticky text-[8px] mr-0.5"></i> ${p.production_notes.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>` : ''}
                                 </div>
                             </div>
                         </div>`;

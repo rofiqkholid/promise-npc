@@ -349,6 +349,12 @@
                                                         </template>
                                                     </div>
                                                 </div>
+                                                <template x-if="p.production_notes">
+                                                    <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700/50">
+                                                        <span class="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest block mb-1">Production Notes</span>
+                                                        <p class="text-xs text-gray-600 dark:text-gray-300 italic" x-text="p.production_notes"></p>
+                                                    </div>
+                                                </template>
                                             </div>
                                         </div>
                                     </template>

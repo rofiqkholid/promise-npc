@@ -362,7 +362,8 @@ class ProductionTrackingController extends Controller
             'status' => 'FINISHED',
             'actual_completion_date' => $request->actual_completion_date,
             'actual_qty' => $request->actual_qty,
-            'photo_proof' => $photoPath
+            'photo_proof' => $photoPath,
+            'production_notes' => $request->production_notes,
         ]);
 
         // Cek apakah part ini masih punya proses yang belum selesai berdasar urutan
