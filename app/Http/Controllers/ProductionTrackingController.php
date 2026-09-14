@@ -118,6 +118,9 @@ class ProductionTrackingController extends Controller
                 })
                 ->addColumn('hold_process_url', function ($part) {
                     return route('tracking.process.hold', $part->hashed_id);
+                })
+                ->addColumn('resume_process_url', function ($part) {
+                    return route('tracking.process.resume', $part->hashed_id);
                 });
             } elseif ($viewFile === 'tracking.stock') {
                 $dt->addColumn('deliver_url', function ($part) {
@@ -330,6 +333,31 @@ class ProductionTrackingController extends Controller
         ]);
 
         return back()->with('success', 'Process has been successfully held.');
+    }
+
+    public function resumeProcess(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
+    {
+        $request->validate([
+            'process_id' => 'required',
+        ]);
+
+        $processId = $request->process_id;
+        if (!is_numeric($processId)) {
+            $hashids = new \Hashids\Hashids(env('APP_KEY'), 10);
+            $decodedIds = $hashids->decode($processId);
+            $processId = $decodedIds[0] ?? null;
+        }
+
+        $process = \App\Models\NpcPartProcess::where('id', $processId)
+            ->where('npc_part_id', $part->id)
+            ->firstOrFail();
+
+        $process->update([
+            'status' => 'WAITING',
+            'hold_reason' => null,
+        ]);
+
+        return back()->with('success', 'Process has been successfully resumed.');
     }
 
 

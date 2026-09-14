@@ -381,6 +381,42 @@ function promptHoldProcess(processId, actionUrl) {
     });
 }
 
+function promptResumeProcess(processId, actionUrl) {
+    Swal.fire({
+        title: 'Resume Process',
+        text: 'Are you sure you want to resume this process? The process will return to active state.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fa-solid fa-play"></i> Resume Process',
+        confirmButtonColor: '#059669',
+        cancelButtonColor: '#9ca3af',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = actionUrl;
+            
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (csrfToken) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = '_token';
+                csrfInput.value = csrfToken.content;
+                form.appendChild(csrfInput);
+            }
+            
+            const processIdInput = document.createElement('input');
+            processIdInput.type = 'hidden';
+            processIdInput.name = 'process_id';
+            processIdInput.value = processId;
+            form.appendChild(processIdInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
 $(document).ready(function() {
     let urlParams = new URLSearchParams(window.location.search);
     let table = $('#productionTable').DataTable({
@@ -585,14 +621,15 @@ $(document).ready(function() {
                     }
                     
                     const processes = (row.processes || []).slice().sort((a, b) => (a.sequence_order || 0) - (b.sequence_order || 0));
+                    const activeProcess = processes.find(p => p.status === 'WAITING' || p.status === 'HOLD');
                     const waitingProcesses = processes.filter(p => p.status === 'WAITING');
                     const finishedProcesses = processes.filter(p => p.status === 'FINISHED');
-                    const activeProcess = waitingProcesses[0];
                     
                     if (row.status === 'WAITING_DEPT_CONFIRM') {
                         if (!activeProcess) return '';
                         
-                        const isLast = waitingProcesses.length === 1;
+                        const isHold = activeProcess.status === 'HOLD';
+                        const isLast = waitingProcesses.length === 1 && !isHold;
                         const hasFinishedProcess = finishedProcesses.length > 0;
                         const procName = (activeProcess.process?.process_name || 'Process').replace(/'/g, "\\'");
                         const deptName = (activeProcess.department?.name || '').replace(/'/g, "\\'");
@@ -618,6 +655,20 @@ $(document).ready(function() {
                                     <i class="fa-solid fa-rotate-left"></i> Rollback Previous Process
                                 </button>
                             </form>`;
+                        }
+                        
+                        if (isHold) {
+                            return `<div class="flex gap-2 mb-2 w-full">
+                                <button type="button"
+                                    onclick="promptResumeProcess('${activeProcess.hashed_id || activeProcess.id}', '${row.resume_process_url}')"
+                                    class="inline-flex px-2 py-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm font-bold transition items-center gap-1.5 text-[11px] flex-1 justify-center rounded-sm" style="background-color: #059669;">
+                                    <i class="fa-solid fa-play"></i> Resume Process
+                                </button>
+                            </div>
+                            ${rollbackBtn}
+                            <p class="text-[9px] text-red-500 italic text-right max-w-[150px] mx-auto float-right text-balance mt-1">
+                                Process is on hold. Click Resume to continue.
+                            </p>`;
                         }
                         
                         return `<div class="flex gap-2 mb-2 w-full">

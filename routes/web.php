@@ -220,6 +220,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/tracking/{part}/setup-rollback', [\App\Http\Controllers\ProductionTrackingController::class, 'rollbackSetup'])->name('tracking.setup.rollback')->middleware('menu.access:tracking.setup,update');
     Route::post('/tracking/{part}/process-complete', [\App\Http\Controllers\ProductionTrackingController::class, 'completeProcess'])->name('tracking.process.complete')->middleware('menu.access:tracking.production,update');
     Route::post('/tracking/{part}/process-hold', [\App\Http\Controllers\ProductionTrackingController::class, 'holdProcess'])->name('tracking.process.hold')->middleware('menu.access:tracking.production,update');
+    Route::post('/tracking/{part}/process-resume', [\App\Http\Controllers\ProductionTrackingController::class, 'resumeProcess'])->name('tracking.process.resume')->middleware('menu.access:tracking.production,update');
     Route::post('/tracking/{part}/process-rollback', [\App\Http\Controllers\ProductionTrackingController::class, 'rollbackProcess'])->name('tracking.process.rollback')->middleware('menu.access:tracking.production,update');
     Route::post('/tracking/{part}/qc-rollback', [\App\Http\Controllers\ProductionTrackingController::class, 'rollbackQc'])->name('tracking.qc.rollback')->middleware('menu.access:tracking.qc,update');
     Route::post('/tracking/{part}/mgm-rollback', [\App\Http\Controllers\ProductionTrackingController::class, 'rollbackMgm'])->name('tracking.mgm.rollback')->middleware('menu.access:tracking.mgm,update');
