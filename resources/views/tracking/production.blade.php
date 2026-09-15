@@ -214,7 +214,6 @@ document.getElementById('form-complete').addEventListener('submit', async functi
         actual_qty: form.querySelector('input[name="actual_qty"]').value,
         actual_completion_date: form.querySelector('input[name="actual_completion_date"]').value,
         production_notes: form.querySelector('textarea[name="production_notes"]').value,
-        action_type_val: form.querySelector('input[name="action_type_val"]').value,
     };
     
     const fileInput = form.querySelector('input[name="photo"]');
@@ -287,20 +286,11 @@ document.getElementById('form-complete').addEventListener('submit', async functi
             const result = await response.json();
             if (result.success) {
                 closeCompleteModal();
-                Swal.fire({
-                    title: 'Success!',
-                    text: result.message || 'Process completed successfully.',
-                    icon: 'success',
-                    confirmButtonColor: '#3b82f6',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
-                    if (window.LaravelDataTables && window.LaravelDataTables["productionTable"]) {
-                        window.LaravelDataTables["productionTable"].ajax.reload(null, false);
-                    } else {
-                        location.reload();
-                    }
-                });
+                if (window.LaravelDataTables && window.LaravelDataTables["productionTable"]) {
+                    window.LaravelDataTables["productionTable"].ajax.reload(null, false);
+                } else {
+                    location.reload();
+                }
             } else {
                 alert(result.message || 'Failed to complete process.');
             }
