@@ -186,11 +186,11 @@ class ProductionTrackingController extends Controller
     public function index(\Illuminate\Http\Request $request)
     {
         $metrics = [
-            'draft' => \App\Models\NpcPart::whereIn('status', ['PO_REGISTERED', 'WAITING_APPROVAL'])->count(),
-            'part_making' => \App\Models\NpcPart::where('status', 'WAITING_DEPT_CONFIRM')->count(),
+            'draft' => \App\Models\NpcPart::where('status', 'PO_REGISTERED')->count(),
+            'part_making' => \App\Models\NpcPart::whereIn('status', ['WAITING_DEPT_CONFIRM', 'IN_PRODUCTION'])->count(),
             'qe' => \App\Models\NpcPart::where('status', 'WAITING_QE_CHECK')->count(),
-            'mgm' => \App\Models\NpcPart::where('status', 'WAITING_MGM_CHECK')->count(),
-            'delivery' => \App\Models\NpcPart::whereIn('status', ['FINISHED', 'CLOSED'])->count(),
+            'mgm' => \App\Models\NpcPart::whereIn('status', ['WAITING_MGM_CHECK', 'WAITING_APPROVAL'])->count(),
+            'delivery' => \App\Models\NpcPart::whereIn('status', ['FINISHED', 'OUTSTANDING'])->count(), // Note: delivery in filter had FINISHED and OUTSTANDING, CLOSED was separate
         ];
 
         if ($request->ajax()) {
@@ -231,6 +231,59 @@ class ProductionTrackingController extends Controller
                               });
                         });
                     }
+
+                    if ($request->filled('customer_filter') && $request->customer_filter !== 'all') {
+                        $customerFilter = $request->customer_filter;
+                        $query->whereHas('customerCategory.customer', function ($q) use ($customerFilter) {
+                            $q->where('id', $customerFilter);
+                        });
+                    }
+
+                    if ($request->filled('model_filter') && $request->model_filter !== 'all') {
+                        $modelFilter = $request->model_filter;
+                        $query->where('model_id', $modelFilter);
+                    }
+
+                    if ($request->filled('po_filter') && $request->po_filter !== 'all') {
+                        $poFilter = $request->po_filter;
+                        $query->where('po_no', $poFilter);
+                    }
+
+                    if ($request->filled('date_filter')) {
+                        $dateFilter = $request->date_filter;
+                        $query->whereHas('parts', function ($q) use ($dateFilter) {
+                            $q->whereDate('delivery_date', $dateFilter);
+                        });
+                    }
+
+                    if ($request->filled('progress_filter') && $request->progress_filter !== 'all') {
+                        $prog = $request->progress_filter;
+                        if ($prog === 'closed') {
+                            $query->whereDoesntHave('parts', function ($q) {
+                                $q->where('status', '!=', 'CLOSED');
+                            });
+                        } elseif ($prog === 'draft') {
+                            $query->whereHas('parts', function ($q) {
+                                $q->where('status', 'PO_REGISTERED');
+                            });
+                        } elseif ($prog === 'part_making') {
+                            $query->whereHas('parts', function ($q) {
+                                $q->whereIn('status', ['WAITING_DEPT_CONFIRM', 'IN_PRODUCTION']);
+                            });
+                        } elseif ($prog === 'qe') {
+                            $query->whereHas('parts', function ($q) {
+                                $q->where('status', 'WAITING_QE_CHECK');
+                            });
+                        } elseif ($prog === 'mgm') {
+                            $query->whereHas('parts', function ($q) {
+                                $q->whereIn('status', ['WAITING_MGM_CHECK', 'WAITING_APPROVAL']);
+                            });
+                        } elseif ($prog === 'delivery') {
+                            $query->whereHas('parts', function ($q) {
+                                $q->whereIn('status', ['FINISHED', 'OUTSTANDING']);
+                            });
+                        }
+                    }
                 })
                 ->make(true);
         }
@@ -241,6 +294,7 @@ class ProductionTrackingController extends Controller
 
         $customers = \App\Models\Customer::orderBy('name')->get();
         $models = \App\Models\VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
+        $poList = \App\Models\NpcEvent::select('po_no')->whereNotNull('po_no')->distinct()->orderBy('po_no')->get();
         $status_options = collect([]);
 
         return view('tracking.global', [
@@ -252,6 +306,7 @@ class ProductionTrackingController extends Controller
             'metrics' => $metrics,
             'customers' => $customers,
             'models' => $models,
+            'poList' => $poList,
             'status_options' => $status_options
         ]);
     }

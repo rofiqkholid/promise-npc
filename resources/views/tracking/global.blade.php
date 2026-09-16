@@ -80,7 +80,58 @@
 
     <!-- Table -->
     <div class="p-6">
-        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
+        <!-- Filters -->
+        <div class="mb-4 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+            <div class="flex flex-col md:flex-row flex-wrap gap-4 w-full xl:w-auto flex-1">
+                <div class="w-full md:flex-1 xl:w-48">
+                    <select id="customerFilter" class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-md shadow-sm text-sm py-2 px-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">All Customers</option>
+                        @foreach($customers as $customer)
+                            <option value="{{ $customer->id }}">{{ $customer->code }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="w-full md:flex-1 xl:w-48">
+                    <select id="modelFilter" class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-md shadow-sm text-sm py-2 px-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">All Models</option>
+                        @foreach($models as $model)
+                            <option value="{{ $model->id }}">{{ $model->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="w-full md:flex-1 xl:w-48">
+                    <select id="poFilter" class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-md shadow-sm text-sm py-2 px-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">All POs</option>
+                        @foreach($poList as $po)
+                            <option value="{{ $po->po_no }}">{{ $po->po_no }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="w-full md:flex-1 xl:w-40">
+                    <input type="date" id="dateFilter" class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-md shadow-sm text-sm py-2 px-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="dd/mm/yyyy">
+                </div>
+                
+                <div class="w-full md:flex-1 xl:w-48">
+                    <select id="progressFilter" class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-md shadow-sm text-sm py-2 px-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium">
+                        <option value="">All Progress</option>
+                        <option value="draft">Draft</option>
+                        <option value="part_making">Part Making</option>
+                        <option value="qe">QE</option>
+                        <option value="mgm">MGM</option>
+                        <option value="delivery">Delivery</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+
+                <div class="flex items-end w-full md:w-auto mt-1 md:mt-0">
+                    <button type="button" id="resetFilters" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center min-w-[100px]">
+                        <i class="fa-solid fa-arrow-rotate-right"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-md">
             <table id="globalTrackingTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
@@ -562,17 +613,16 @@ function renderGlobalProgress(po) {
         const pCount = passedCounts[idx] || 0;
         const pPct = totalParts > 0 ? Math.round((pCount / totalParts) * 100) : 0;
         
-        const rCountNext = reachedCounts[idx + 1] || 0;
-        const rPctNext = totalParts > 0 ? Math.round((rCountNext / totalParts) * 100) : 0;
-
-        let lineBg = 'bg-gray-200 dark:bg-gray-700';
-        if (rPctNext === 100) lineBg = 'bg-emerald-500';
+        let rCountNext = reachedCounts[idx + 1] || 0;
+        let rPctNext = totalParts > 0 ? Math.round((rCountNext / totalParts) * 100) : 0;
 
         let circleBorder = 'border-gray-200 dark:border-gray-700';
         let fillClass = 'bg-transparent';
         let iconColor = 'text-gray-400';
         let titleClass = 'text-gray-400';
         let showCheck = false;
+        
+        let stepColor = 'bg-gray-200 dark:bg-gray-700';
 
         if (pPct === 100) {
             circleBorder = 'border-emerald-500';
@@ -580,23 +630,27 @@ function renderGlobalProgress(po) {
             iconColor = 'text-white';
             titleClass = 'text-emerald-700 dark:text-emerald-400';
             showCheck = true;
+            stepColor = 'bg-emerald-500';
         } else if (rCount > 0) {
             circleBorder = 'border-amber-500 ring-2 ring-amber-100';
+            stepColor = 'bg-amber-500';
             if (isOverdueAny && pPct < 100) {
                 circleBorder = 'border-red-500 ring-2 ring-red-100';
+                stepColor = 'bg-red-500';
             }
             fillClass = (isOverdueAny && pPct < 100) ? 'bg-red-400' : 'bg-amber-400';
             iconColor = pPct > 50 ? 'text-white' : ((isOverdueAny && pPct < 100) ? 'text-red-700' : 'text-amber-700');
             titleClass = (isOverdueAny && pPct < 100) ? 'text-red-600 font-extrabold' : 'text-amber-600 font-extrabold';
         }
 
+        let lineBg = 'bg-gray-200 dark:bg-gray-700';
+        if (rCountNext > 0) {
+            lineBg = stepColor;
+        }
+
         let nextLine = '';
         if (idx < steps.length - 1) {
-            let fillWidth = '';
-            if (rPctNext > 0 && rPctNext < 100) {
-                fillWidth = `<div class="h-full bg-emerald-500 transition-all duration-700" style="width: ${rPctNext}%"></div>`;
-            }
-            nextLine = `<div class="absolute w-[calc(100%-2.25rem)] top-[14px] left-[calc(50%+1.125rem)] h-[3px] ${lineBg} overflow-hidden">${fillWidth}</div>`;
+            nextLine = `<div class="absolute w-[calc(100%-2.25rem)] top-[14px] left-[calc(50%+1.125rem)] h-[3px] ${lineBg}"></div>`;
         }
 
         let checkBadge = '';
@@ -644,12 +698,41 @@ $(document).ready(function() {
     const initialSearch = urlParams.get('search') || "";
 
     initPromiseDataTable('#globalTrackingTable', {
-        stateSave: initialSearch === "", // Disable stateSave if we want to force a search from URL
+        stateSave: true,
         search: {
             search: initialSearch
         },
+        stateSaveParams: function (settings, data) {
+            data.customFilters = {
+                customer: $('#customerFilter').val(),
+                model: $('#modelFilter').val(),
+                po: $('#poFilter').val(),
+                date: $('#dateFilter').val(),
+                progress: $('#progressFilter').val()
+            };
+        },
+        stateLoadParams: function (settings, data) {
+            let urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('search')) {
+                data.search.search = urlParams.get('search');
+            }
+            if (data.customFilters) {
+                if (data.customFilters.customer !== undefined) $('#customerFilter').val(data.customFilters.customer);
+                if (data.customFilters.model !== undefined) $('#modelFilter').val(data.customFilters.model);
+                if (data.customFilters.po !== undefined) $('#poFilter').val(data.customFilters.po);
+                if (data.customFilters.date !== undefined) $('#dateFilter').val(data.customFilters.date);
+                if (data.customFilters.progress !== undefined) $('#progressFilter').val(data.customFilters.progress);
+            }
+        },
         ajax: {
             url: "{{ route('tracking.index') }}",
+            data: function (d) {
+                d.customer_filter = $('#customerFilter').val();
+                d.model_filter = $('#modelFilter').val();
+                d.po_filter = $('#poFilter').val();
+                d.date_filter = $('#dateFilter').val();
+                d.progress_filter = $('#progressFilter').val();
+            },
             dataSrc: function (json) {
                 (json.data || []).forEach(row => {
                     window.globalPosData[row.id] = row;
@@ -740,6 +823,25 @@ $(document).ready(function() {
                 }
             }
         ]
+    });
+
+    $('#customerFilter, #modelFilter, #poFilter, #dateFilter, #progressFilter').on('change', function() {
+        let table = $('#globalTrackingTable').DataTable();
+        table.state.save();
+        table.ajax.reload();
+    });
+
+    $('#resetFilters').on('click', function(e) {
+        e.preventDefault();
+        $('#customerFilter').val('').trigger('change.select2');
+        $('#modelFilter').val('').trigger('change.select2');
+        $('#poFilter').val('').trigger('change.select2');
+        $('#dateFilter').val('');
+        $('#progressFilter').val('').trigger('change.select2');
+        
+        let table = $('#globalTrackingTable').DataTable();
+        table.state.save();
+        table.search('').ajax.reload();
     });
 });
 </script>
