@@ -74,7 +74,7 @@
             <table id="productionTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 uppercase text-[11px] tracking-wider font-bold">
                     <tr>
-                        <th scope="col" class="px-4 py-3 w-16">#</th>
+                        <th scope="col" class="px-4 py-3 w-16">No</th>
                         <th scope="col" class="px-4 py-3 w-64">WO NO / PART INFO</th>
                         <th scope="col" class="px-4 py-3 text-center w-32">STATUS PO</th>
                         <th scope="col" class="px-4 py-3 text-center">ROUTING EXECUTION OVERVIEW</th>

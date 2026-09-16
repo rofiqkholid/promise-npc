@@ -50,7 +50,7 @@
             <table id="eventPartsTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-gray-100 dark:bg-gray-700/50 text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-gray-600 uppercase text-xs tracking-wider">
                     <tr>
-                        <th scope="col" class="px-4 py-2 font-semibold w-16">#</th>
+                        <th scope="col" class="px-4 py-2 font-semibold w-16">No</th>
                         <th scope="col" class="px-4 py-2 font-semibold">PO No</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Part No</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Model</th>

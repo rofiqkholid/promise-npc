@@ -159,7 +159,7 @@
                             <th scope="col" class="px-4 py-3 text-center w-12">
                                 <input type="checkbox" id="selectAllParts" @change="toggleAll($event)" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
                             </th>
-                            <th scope="col" class="px-4 py-3 w-16">#</th>
+                            <th scope="col" class="px-4 py-3 w-16">No</th>
                             <th scope="col" class="px-4 py-3 w-64">WO NO / PART INFO</th>
                             <th scope="col" class="px-4 py-3 text-center w-32">STATUS PO</th>
                             <th scope="col" class="px-4 py-3 text-center">QC PROGRESS</th>

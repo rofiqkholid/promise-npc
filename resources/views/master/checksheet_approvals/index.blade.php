@@ -80,7 +80,7 @@
             <table id="checksheetApprovalTable" class="w-full text-sm text-left text-slate-600 dark:text-slate-400">
                 <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 uppercase text-[11px] tracking-wider font-bold">
                     <tr>
-                        <th scope="col" class="px-4 py-3 w-12 text-center">#</th>
+                        <th scope="col" class="px-4 py-3 w-12 text-center">No</th>
                         <th scope="col" class="px-4 py-3">CUSTOMER</th>
                         <th scope="col" class="px-4 py-3">MODEL</th>
                         <th scope="col" class="px-4 py-3">PART NO</th>
