@@ -252,6 +252,11 @@ $(document).ready(function() {
                 orderable: false,
                 searchable: false,
                 render: function(data, type, row) {
+                    if (window.UserPermissions && !window.UserPermissions.canUpdate) {
+                        return `<div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full">
+                                    <i class="fa-solid fa-lock text-[8px]"></i> No Update Access
+                                </div>`;
+                    }
                     if (row.status === 'PO_REGISTERED') {
                         return `<a href="${row.routing_edit_url}" class="inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm font-medium transition items-center gap-2 text-xs" style="background-color: #4f46e5;">
                                     <i class="fa-solid fa-route"></i> Set Routing Schedule

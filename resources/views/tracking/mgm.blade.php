@@ -234,6 +234,11 @@ $(document).ready(function() {
                 orderable: false,
                 searchable: false,
                 render: function(data, type, row) {
+                    if (window.UserPermissions && !window.UserPermissions.canUpdate) {
+                        return `<div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full">
+                                    <i class="fa-solid fa-lock text-[8px]"></i> No Update Access
+                                </div>`;
+                    }
                     let html = '<div class="flex flex-col items-end gap-2">';
                     if (['PO_REGISTERED', 'WAITING_DEPT_CONFIRM', 'WAITING_QE_CHECK'].includes(row.status)) {
                         html += `<div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full max-w-[150px]">

@@ -502,6 +502,11 @@ style="display: none;">
                     orderable: false, 
                     searchable: false,
                     render: function(data, type, row) {
+                        if (window.UserPermissions && !window.UserPermissions.canUpdate) {
+                            return `<div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed w-full">
+                                        <i class="fa-solid fa-lock text-[8px]"></i> No Update Access
+                                    </div>`;
+                        }
                         if (['PO_REGISTERED', 'WAITING_DEPT_CONFIRM'].includes(row.status)) {
                             return `<div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-[10px] text-gray-400 italic flex items-center justify-center gap-1.5 cursor-not-allowed">
                                 <i class="fa-solid fa-lock text-[8px]"></i> Not Yet Registered in QC

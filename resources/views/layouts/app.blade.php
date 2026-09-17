@@ -33,6 +33,33 @@
             document.documentElement.style.setProperty('--sidebar-width', isExpanded ? '16rem' : '5rem');
             document.documentElement.classList.toggle('sidebar-collapsed', !isExpanded);
         })();
+
+        @php
+            $currentRoute = Route::currentRouteName();
+            $baseRoute = $currentRoute;
+            
+            if ($currentRoute) {
+                $suffixes = ['.create', '.store', '.show', '.edit', '.update', '.destroy', '.approve', '.reject', '.import.template', '.import.store', '.import'];
+                foreach ($suffixes as $suffix) {
+                    if (\Illuminate\Support\Str::endsWith($currentRoute, $suffix)) {
+                        $baseRoute = str_replace($suffix, '.index', $currentRoute);
+                        break;
+                    }
+                }
+            }
+            
+            $canUpdate = auth()->check() ? auth()->user()->hasMenuAccess($baseRoute, 'update') : false;
+            $canDelete = auth()->check() ? auth()->user()->hasMenuAccess($baseRoute, 'delete') : false;
+            $canCreate = auth()->check() ? auth()->user()->hasMenuAccess($baseRoute, 'create') : false;
+            $canApprove = auth()->check() ? auth()->user()->hasMenuAccess($baseRoute, 'approve') : false;
+        @endphp
+
+        window.UserPermissions = {
+            canUpdate: @json($canUpdate),
+            canDelete: @json($canDelete),
+            canCreate: @json($canCreate),
+            canApprove: @json($canApprove)
+        };
     </script>
 
     @yield('css')
