@@ -320,6 +320,11 @@
         });
 
         $(document).on('submit', 'form', function(e) {
+            // If the form submission was already prevented (e.g. by SweetAlert confirmAction), do nothing
+            if (e.isDefaultPrevented()) {
+                return;
+            }
+
             // If the form fails HTML5 validation, don't show spinner
             if (this.checkValidity && !this.checkValidity()) {
                 return;

@@ -106,13 +106,13 @@
                                             <span x-text="expanded ? 'Hide POs' : 'View POs'"></span>
                                             <i class="fa-solid" :class="expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                                         </button>
-                                        <form action="{{ route('parts.acknowledge-ecn-all', $ep->product_id) }}" method="POST" onsubmit="confirmAction(event, 'Ignore ECN for ALL active POs? The warning will be hidden for all of them.')" class="inline-block m-0">
+                                        <form action="{{ route('parts.acknowledge-ecn-all', $ep->product_id) }}" method="POST" onsubmit="confirmAction(event, 'Ignore ECN for ALL active POs of Part: {{ addslashes(optional($ep->product)->part_no ?? '-') }}? The warning will be hidden for all of them.')" class="inline-block m-0">
                                             @csrf
                                             <button type="submit" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-slate-700 dark:text-gray-200 text-xs font-bold shadow-sm transition-colors flex items-center gap-2 rounded" title="Acknowledge ALL">
                                                 <i class="fa-solid fa-eye-slash"></i> Ignore All
                                             </button>
                                         </form>
-                                        <form action="{{ route('parts.apply-ecn-all', $ep->product_id) }}" method="POST" onsubmit="confirmAction(event, 'Apply latest revision to ALL active POs for this part?')" class="inline-block m-0">
+                                        <form action="{{ route('parts.apply-ecn-all', $ep->product_id) }}" method="POST" onsubmit="confirmAction(event, 'Apply latest revision to ALL active POs of Part: {{ addslashes(optional($ep->product)->part_no ?? '-') }}?')" class="inline-block m-0">
                                             @csrf
                                             <button type="submit" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm transition-colors flex items-center gap-2 rounded" title="Apply to ALL">
                                                 <i class="fa-solid fa-check-double"></i> Apply All
@@ -149,13 +149,13 @@
                                                         </td>
                                                         <td class="py-2 text-right">
                                                             <div class="flex items-center justify-end gap-1.5">
-                                                                <form action="{{ route('parts.acknowledge-ecn', $po->hashed_id) }}" method="POST" class="m-0" onsubmit="confirmAction(event, 'Ignore ECN for this PO? The warning will be hidden.')">
+                                                                <form action="{{ route('parts.acknowledge-ecn', $po->hashed_id) }}" method="POST" class="m-0" onsubmit="confirmAction(event, 'Ignore ECN for PO: {{ addslashes(optional($po->event)->po_no ?? '-') }}? The warning will be hidden.')">
                                                                     @csrf
                                                                     <button type="submit" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-slate-700 dark:text-gray-200 text-[10px] font-bold rounded shadow-sm transition-colors" title="Acknowledge & Ignore">
                                                                         <i class="fa-solid fa-eye-slash"></i> Ignore
                                                                     </button>
                                                                 </form>
-                                                                <form action="{{ route('parts.apply-ecn', $po->hashed_id) }}" method="POST" class="m-0" onsubmit="confirmAction(event, 'Apply ECN to this PO?')">
+                                                                <form action="{{ route('parts.apply-ecn', $po->hashed_id) }}" method="POST" class="m-0" onsubmit="confirmAction(event, 'Apply ECN to PO: {{ addslashes(optional($po->event)->po_no ?? '-') }}?')">
                                                                     @csrf
                                                                     <button type="submit" class="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold rounded shadow-sm transition-colors">
                                                                         <i class="fa-solid fa-check"></i> Apply
