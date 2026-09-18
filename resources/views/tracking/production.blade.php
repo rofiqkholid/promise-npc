@@ -76,6 +76,7 @@
                     <tr>
                         <th scope="col" class="px-4 py-3 w-16">No</th>
                         <th scope="col" class="px-4 py-3 w-64">WO NO / PART INFO</th>
+                        <th scope="col" class="px-4 py-3">ECN / REV</th>
                         <th scope="col" class="px-4 py-3 text-center w-32">STATUS PO</th>
                         <th scope="col" class="px-4 py-3 text-center">ROUTING EXECUTION OVERVIEW</th>
                         <th scope="col" class="px-4 py-3 text-right w-48">ACTIONS</th>
@@ -507,6 +508,18 @@ $(document).ready(function() {
                             <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5 mt-0.5">${partName}</div>
                             <div class="text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-700 px-2 py-0.5 inline-block border border-gray-200 dark:border-gray-600">${modelName}</div>
                             <div class="text-gray-800 dark:text-gray-300 font-black flex items-center gap-1.5 mt-2"><i class="fa-solid fa-boxes-stacked text-gray-400"></i> Initial Target: ${qtyFormatted} <span class="text-xs font-semibold text-gray-500">PCS</span></div>`;
+                }
+            },
+            {
+                data: 'drawing_revision',
+                name: 'drawingRevision.revision_no',
+                className: 'px-4 py-2',
+                orderable: false,
+                render: function(data, type, row) {
+                    const revNo = row.drawing_revision?.revision_no || '-';
+                    const ecnNo = row.drawing_revision?.ecn_no || '-';
+                    return `<div class="text-gray-800 dark:text-gray-200 font-bold text-sm">Rev ${revNo}</div>
+                            <div class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">(${ecnNo})</div>`;
                 }
             },
             { 

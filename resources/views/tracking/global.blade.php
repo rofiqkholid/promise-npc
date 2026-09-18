@@ -194,6 +194,7 @@
                                         <thead class="bg-blue-50/50 dark:bg-blue-900/20 text-slate-700 dark:text-slate-300 border-b border-gray-200 dark:border-gray-700 uppercase tracking-wider">
                                             <tr>
                                                 <th class="px-4 py-3 w-1/4">Part Details</th>
+                                                <th class="px-4 py-3 w-1/6">ECN / REV</th>
                                                 <th class="px-4 py-3 w-1/5">Qty & Target</th>
                                                 <th class="px-4 py-3 text-center">Progress</th>
                                             </tr>
@@ -204,6 +205,10 @@
                                                     <td class="px-4 py-3">
                                                         <div class="font-bold text-gray-800 dark:text-gray-200 text-xs" x-text="part.product?.part_no || '-'"></div>
                                                         <div class="text-[10px] text-gray-500 mt-0.5" x-text="part.product?.part_name || '-'"></div>
+                                                    </td>
+                                                    <td class="px-4 py-3">
+                                                        <div class="font-bold text-gray-800 dark:text-gray-200 text-xs" x-text="'Rev ' + (part.drawing_revision?.revision_no || '-')"></div>
+                                                        <div class="text-[10px] text-gray-500 mt-0.5" x-text="'(' + (part.drawing_revision?.ecn_no || '-') + ')'"></div>
                                                     </td>
                                                     <td class="px-4 py-3">
                                                         <div class="font-bold text-gray-700 dark:text-gray-300" x-text="Number(part.qty || 0).toLocaleString('id-ID') + ' PCS'"></div>

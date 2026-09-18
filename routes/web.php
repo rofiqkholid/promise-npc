@@ -226,6 +226,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/tracking/{part}/mgm-rollback', [\App\Http\Controllers\ProductionTrackingController::class, 'rollbackMgm'])->name('tracking.mgm.rollback')->middleware('menu.access:tracking.mgm,update');
     Route::post('/tracking/{part}/deliver', [\App\Http\Controllers\ProductionTrackingController::class, 'deliver'])->name('tracking.deliver')->middleware('menu.access:tracking.stock,update');
     Route::post('/parts/{part}/apply-ecn', [\App\Http\Controllers\NpcPartController::class, 'applyEcn'])->name('parts.apply-ecn')->middleware('menu.access:events.index,update');
+    Route::post('/products/{product}/apply-ecn-all', [\App\Http\Controllers\NpcPartController::class, 'applyEcnAll'])->name('parts.apply-ecn-all')->middleware('menu.access:events.index,update');
+    Route::post('/parts/{part}/acknowledge-ecn', [\App\Http\Controllers\NpcPartController::class, 'acknowledgeEcn'])->name('parts.acknowledge-ecn')->middleware('menu.access:events.index,update');
+    Route::post('/products/{product}/acknowledge-ecn-all', [\App\Http\Controllers\NpcPartController::class, 'acknowledgeEcnAll'])->name('parts.acknowledge-ecn-all')->middleware('menu.access:events.index,update');
 
     // Quality Checksheet Routes
     Route::get('/tracking/products/{product}/checksheet-setup', [ProductChecksheetSetupController::class, 'edit'])->name('checksheets.setup.edit')->middleware('menu.access:master.checksheets.index,update');

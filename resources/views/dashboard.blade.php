@@ -572,7 +572,7 @@
                                         $targetParams['open_part'] = $part->hashed_id;
                                     }
                                 @endphp
-                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route($targetRoute, $targetParams) }}'">
+                                <div class="py-1.5 px-3 {{ auth()->user()->hasMenuAccess($targetRoute, 'view') ? 'hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer' : '' }}" {!! auth()->user()->hasMenuAccess($targetRoute, 'view') ? 'onclick="window.location.href=\''.route($targetRoute, $targetParams).'\'"' : '' !!}>
                                     <div class="flex justify-between items-start">
                                         <div class="w-full">
                                             <span class="text-[8px] font-bold text-orange-600 bg-orange-100 px-1 uppercase mb-0.5 inline-block">Rolled Back</span>
@@ -646,7 +646,7 @@
                                         $targetParams['open_part'] = $part->hashed_id;
                                     }
                                 @endphp
-                                <div class="py-1.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route($targetRoute, $targetParams) }}'">
+                                <div class="py-1.5 px-3 {{ auth()->user()->hasMenuAccess($targetRoute, 'view') ? 'hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer' : '' }}" {!! auth()->user()->hasMenuAccess($targetRoute, 'view') ? 'onclick="window.location.href=\''.route($targetRoute, $targetParams).'\'"' : '' !!}>
                                     <div class="flex justify-between items-start">
                                         <div class="w-full">
                                             <span class="text-[8px] font-bold text-amber-600 bg-amber-100 px-1 uppercase mb-0.5 inline-block">Delayed</span>

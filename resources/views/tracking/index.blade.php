@@ -128,6 +128,7 @@
                         <th scope="col" class="px-4 py-2 font-semibold">Event</th>
                         <th scope="col" class="px-4 py-2 font-semibold">PO Number</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Part Info</th>
+                        <th scope="col" class="px-4 py-2 font-semibold">ECN / REV</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Qty & Target</th>
                         <th scope="col" class="px-4 py-2 font-semibold text-center">Overall Progress</th>
                         <th scope="col" class="px-4 py-2 font-semibold text-right">System Duration</th>
@@ -322,6 +323,18 @@ $(document).ready(function() {
                     const partName = row.product?.part_name || '';
                     return `<div class="text-gray-800 dark:text-gray-200 font-medium text-sm">${partNo}</div>
                             <div class="text-xs text-gray-500 dark:text-gray-400 font-medium">${partName}</div>`;
+                }
+            },
+            {
+                data: 'drawing_revision',
+                name: 'drawingRevision.revision_no',
+                className: 'px-4 py-2',
+                orderable: false,
+                render: function(data, type, row) {
+                    const revNo = row.drawing_revision?.revision_no || '-';
+                    const ecnNo = row.drawing_revision?.ecn_no || '-';
+                    return `<div class="text-gray-800 dark:text-gray-200 font-bold text-sm">Rev ${revNo}</div>
+                            <div class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">(${ecnNo})</div>`;
                 }
             },
             { 

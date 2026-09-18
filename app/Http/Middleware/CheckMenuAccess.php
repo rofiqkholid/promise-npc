@@ -44,12 +44,7 @@ class CheckMenuAccess
             }
         }
 
-        // BYPASS: If user doesn't have access, but the action is strictly 'view' and URL/Referer contains 'from_dashboard'
-        $referer = (string) $request->headers->get('referer', '');
-        $isFromDashboard = $request->has('from_dashboard') || \Illuminate\Support\Str::contains($referer, 'from_dashboard=1');
-        if (!$hasAccess && $action === 'view' && $isFromDashboard) {
-            $hasAccess = true;
-        }
+        // Bypass removed to strictly enforce menu access permissions
 
         if (!$hasAccess) {
             if ($request->ajax() || $request->wantsJson()) {

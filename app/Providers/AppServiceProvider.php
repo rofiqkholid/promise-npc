@@ -54,6 +54,19 @@ class AppServiceProvider extends ServiceProvider
                         ->whereNotNull('current_revision_id')
                         ->orderByDesc('id')
                         ->limit(1);
+                })
+                ->where(function ($query) {
+                    $query->whereNull('acknowledged_revision_id')
+                          ->orWhere('acknowledged_revision_id', '!=', function ($subquery) {
+                              $subquery->select('current_revision_id')
+                                  ->from('doc_packages')
+                                  ->whereColumn('doc_packages.product_id', 'npc_parts.product_id')
+                                  ->where('is_active', true)
+                                  ->where('is_delete', 0)
+                                  ->whereNotNull('current_revision_id')
+                                  ->orderByDesc('id')
+                                  ->limit(1);
+                          });
                 });
 
             $allEcnParts = $ecnQuery->latest()->get();
@@ -61,6 +74,7 @@ class AppServiceProvider extends ServiceProvider
                 $first = $group->first();
                 $first->po_count = $group->count();
                 $first->po_list = $group->pluck('event.po_no')->filter()->unique()->implode(', ');
+                $first->all_pos = $group;
                 return $first;
             })->values()->take(10);
 

@@ -244,14 +244,60 @@ class NpcPartController extends Controller
         $product = \App\Models\Product::with('docPackage')->find($part->product_id);
         
         if ($product && $product->docPackage) {
+            $part->update([
+                'part_revision_id' => $product->docPackage->current_revision_id,
+                'acknowledged_revision_id' => null
+            ]);
+            return back()->with('success', 'Latest ECN revision successfully applied for PO ' . optional($part->event)->po_no);
+        }
+
+        return back()->with('error', 'Failed to apply ECN revision. Master Data Drawing not found.');
+    }
+
+    public function applyEcnAll(\Illuminate\Http\Request $request, \App\Models\Product $product)
+    {
+        $product->load('docPackage');
+        
+        if ($product && $product->docPackage) {
             \App\Models\NpcPart::where('product_id', $product->id)
                 ->whereNotIn('status', ['FINISHED', 'CLOSED'])
                 ->update([
-                    'part_revision_id' => $product->docPackage->current_revision_id
+                    'part_revision_id' => $product->docPackage->current_revision_id,
+                    'acknowledged_revision_id' => null
                 ]);
             return back()->with('success', 'Latest ECN revision successfully applied for all active POs of part ' . $product->part_no);
         }
 
         return back()->with('error', 'Failed to apply ECN revision. Master Data Drawing not found.');
+    }
+
+    public function acknowledgeEcn(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
+    {
+        $product = \App\Models\Product::with('docPackage')->find($part->product_id);
+        
+        if ($product && $product->docPackage) {
+            $part->update([
+                'acknowledged_revision_id' => $product->docPackage->current_revision_id
+            ]);
+            return back()->with('success', 'ECN revision successfully acknowledged for PO ' . optional($part->event)->po_no);
+        }
+
+        return back()->with('error', 'Failed to acknowledge ECN revision. Master Data Drawing not found.');
+    }
+
+    public function acknowledgeEcnAll(\Illuminate\Http\Request $request, \App\Models\Product $product)
+    {
+        $product->load('docPackage');
+        
+        if ($product && $product->docPackage) {
+            \App\Models\NpcPart::where('product_id', $product->id)
+                ->whereNotIn('status', ['FINISHED', 'CLOSED'])
+                ->update([
+                    'acknowledged_revision_id' => $product->docPackage->current_revision_id
+                ]);
+            return back()->with('success', 'ECN revision successfully acknowledged for all active POs of part ' . $product->part_no);
+        }
+
+        return back()->with('error', 'Failed to acknowledge ECN revision. Master Data Drawing not found.');
     }
 }

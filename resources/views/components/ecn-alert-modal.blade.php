@@ -60,8 +60,8 @@
                                 <th class="px-4 py-3 text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-200 dark:divide-gray-700 text-slate-700 dark:text-gray-300">
-                            @foreach($ecnUpdatedParts as $ep)
+                        @foreach($ecnUpdatedParts as $ep)
+                        <tbody x-data="{ expanded: false }" class="divide-y divide-slate-200 dark:divide-gray-700 text-slate-700 dark:text-gray-300 border-b border-slate-300 dark:border-gray-600">
                             <tr class="hover:bg-slate-50 dark:hover:bg-gray-700/30 transition-colors">
                                 <td class="px-4 py-3">
                                     <div class="font-bold text-blue-600 dark:text-blue-400">{{ optional($ep->product)->part_no }}</div>
@@ -92,8 +92,8 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <span class="px-2 py-1 bg-slate-100 dark:bg-gray-700 text-xs font-semibold border border-slate-200 dark:border-gray-600" title="{{ $ep->po_list ?? optional($ep->event)->po_no }}">
-                                        {{ isset($ep->po_count) && $ep->po_count > 1 ? $ep->po_count . ' Active PO(s)' : (optional($ep->event)->po_no ?? '-') }}
+                                    <span class="px-2 py-1 bg-slate-100 dark:bg-gray-700 text-xs font-semibold border border-slate-200 dark:border-gray-600">
+                                        {{ isset($ep->all_pos) ? count($ep->all_pos) : 0 }} Active PO(s)
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-xs">
@@ -101,16 +101,78 @@
                                     <div class="text-slate-400">{{ $ep->created_at->diffForHumans() }}</div>
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    <form action="{{ route('parts.apply-ecn', $ep->hashed_id) }}" method="POST" onsubmit="confirmAction(event, 'Apply latest revision to this part?')" class="inline-block">
-                                        @csrf
-                                        <button type="submit" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm transition-colors flex items-center gap-2">
-                                            <i class="fa-solid fa-check"></i> Apply
+                                    <div class="flex items-center justify-end gap-2">
+                                        <button type="button" @click="expanded = !expanded" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-slate-700 dark:text-gray-200 text-xs font-bold shadow-sm transition-colors flex items-center gap-2 rounded">
+                                            <span x-text="expanded ? 'Hide POs' : 'View POs'"></span>
+                                            <i class="fa-solid" :class="expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                                         </button>
-                                    </form>
+                                        <form action="{{ route('parts.acknowledge-ecn-all', $ep->product_id) }}" method="POST" onsubmit="confirmAction(event, 'Ignore ECN for ALL active POs? The warning will be hidden for all of them.')" class="inline-block m-0">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-slate-700 dark:text-gray-200 text-xs font-bold shadow-sm transition-colors flex items-center gap-2 rounded" title="Acknowledge ALL">
+                                                <i class="fa-solid fa-eye-slash"></i> Ignore All
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('parts.apply-ecn-all', $ep->product_id) }}" method="POST" onsubmit="confirmAction(event, 'Apply latest revision to ALL active POs for this part?')" class="inline-block m-0">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm transition-colors flex items-center gap-2 rounded" title="Apply to ALL">
+                                                <i class="fa-solid fa-check-double"></i> Apply All
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
-                            @endforeach
+                            <tr x-show="expanded" style="display: none;">
+                                <td colspan="4" class="p-0">
+                                    <div class="px-6 py-4 bg-slate-50/80 dark:bg-gray-800/80 border-t border-slate-200 dark:border-gray-700 shadow-inner">
+                                        <table class="w-full text-left text-xs">
+                                            <thead>
+                                                <tr class="text-slate-500 dark:text-gray-400 border-b border-slate-200 dark:border-gray-700 uppercase tracking-wider">
+                                                    <th class="py-2">PO Number</th>
+                                                    <th class="py-2">Qty</th>
+                                                    <th class="py-2">Current Status</th>
+                                                    <th class="py-2 text-right">Individual Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-100 dark:divide-gray-700">
+                                                @if(isset($ep->all_pos))
+                                                    @foreach($ep->all_pos as $po)
+                                                    <tr class="hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors">
+                                                        <td class="py-2">
+                                                            <div class="font-bold">{{ optional($po->event)->po_no }}</div>
+                                                            <div class="text-[10px] text-slate-500 mt-0.5">
+                                                                {{ optional(optional($po->event)->customerCategory)->name ?? '-' }} | {{ optional(optional($po->event)->deliveryGroup)->name ?? '-' }}
+                                                            </div>
+                                                        </td>
+                                                        <td class="py-2 font-medium">{{ $po->qty }} PCS</td>
+                                                        <td class="py-2">
+                                                            <span class="px-2 py-0.5 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-600 rounded text-[10px]">{{ $po->status }}</span>
+                                                        </td>
+                                                        <td class="py-2 text-right">
+                                                            <div class="flex items-center justify-end gap-1.5">
+                                                                <form action="{{ route('parts.acknowledge-ecn', $po->hashed_id) }}" method="POST" class="m-0" onsubmit="confirmAction(event, 'Ignore ECN for this PO? The warning will be hidden.')">
+                                                                    @csrf
+                                                                    <button type="submit" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-slate-700 dark:text-gray-200 text-[10px] font-bold rounded shadow-sm transition-colors" title="Acknowledge & Ignore">
+                                                                        <i class="fa-solid fa-eye-slash"></i> Ignore
+                                                                    </button>
+                                                                </form>
+                                                                <form action="{{ route('parts.apply-ecn', $po->hashed_id) }}" method="POST" class="m-0" onsubmit="confirmAction(event, 'Apply ECN to this PO?')">
+                                                                    @csrf
+                                                                    <button type="submit" class="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold rounded shadow-sm transition-colors">
+                                                                        <i class="fa-solid fa-check"></i> Apply
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    @endforeach
+                                                @endif
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
+                        @endforeach
                     </table>
                 </div>
             </div>

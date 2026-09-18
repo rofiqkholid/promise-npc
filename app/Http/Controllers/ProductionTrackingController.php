@@ -8,7 +8,7 @@ class ProductionTrackingController extends Controller
 {
     private function buildQuery($statusParam, $search = null)
     {
-        $query = \App\Models\NpcPart::with(['event.customerCategory', 'event.deliveryGroup', 'processes.process', 'processes.department', 'checkpoints', 'checksheet', 'product.vehicleModel.customer']);
+        $query = \App\Models\NpcPart::with(['event.customerCategory', 'event.deliveryGroup', 'processes.process', 'processes.department', 'checkpoints', 'checksheet', 'product.vehicleModel.customer', 'drawingRevision']);
 
         if ($statusParam !== 'all') {
             if ($statusParam === 'CLOSED') {
@@ -74,6 +74,21 @@ class ProductionTrackingController extends Controller
         if (request()->ajax()) {
             $search = request('search')['value'] ?? null; // Datatables sends search in search[value]
             $query = $this->buildQuery($statusParam, $search);
+            
+            if (request('fetch_all_ids') == '1') {
+                $parts = $query->get();
+                $ids = [];
+                foreach ($parts as $part) {
+                    if ($viewFile === 'tracking.qc' || $viewFile === 'tracking.stock') {
+                        if ($part->checksheet && !in_array($part->status, ['PO_REGISTERED', 'WAITING_DEPT_CONFIRM'])) {
+                            $ids[] = $part->hashed_id;
+                        }
+                    } else {
+                        $ids[] = $part->hashed_id;
+                    }
+                }
+                return response()->json(['ids' => $ids]);
+            }
 
             $dt = \Yajra\DataTables\Facades\DataTables::of($query)
                 ->filter(function ($query) {

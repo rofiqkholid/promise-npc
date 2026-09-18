@@ -76,6 +76,7 @@
                         <th scope="col" class="px-4 py-3 w-16">No</th>
                         <th scope="col" class="px-4 py-3">EVENT / PO</th>
                         <th scope="col" class="px-4 py-3">PART INFO</th>
+                        <th scope="col" class="px-4 py-3">ECN / REV</th>
                         <th scope="col" class="px-4 py-3">QTY / DELIVERY TARGET</th>
                         <th scope="col" class="px-4 py-3">ROUTING INFO</th>
                         <th scope="col" class="px-4 py-3 text-right w-48">ACTION SETUP</th>
@@ -187,10 +188,11 @@ $(document).ready(function() {
                 orderable: false,
                 render: function(data, type, row) {
                     const poNo = row.event?.po_no || '';
-                    const eventName = row.event?.customer_category?.name || 'Unknown Event';
+                    const eventName = row.event?.customer_category?.name || '-';
+                    const grName = row.event?.delivery_group?.name ? ' | ' + row.event.delivery_group.name : '';
                     const createdAt = row.created_at ? new Date(row.created_at.split('T')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
                     return `<div class="text-blue-600 dark:text-blue-400 font-bold text-sm">${poNo}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">${eventName}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">${eventName}${grName}</div>
                             <div class="text-[10px] text-gray-400 mt-1"><i class="fa-regular fa-clock"></i> Registered: ${createdAt}</div>`;
                 }
             },
@@ -204,6 +206,18 @@ $(document).ready(function() {
                     const partName = row.product?.part_name || '';
                     return `<div class="text-gray-800 dark:text-gray-200 font-bold text-sm">${partNo}</div>
                             <div class="text-xs text-gray-500 dark:text-gray-400 font-medium">${partName}</div>`;
+                }
+            },
+            {
+                data: 'drawing_revision',
+                name: 'drawingRevision.revision_no',
+                className: 'px-4 py-2',
+                orderable: false,
+                render: function(data, type, row) {
+                    const revNo = row.drawing_revision?.revision_no || '-';
+                    const ecnNo = row.drawing_revision?.ecn_no || '-';
+                    return `<div class="text-gray-800 dark:text-gray-200 font-bold text-sm">Rev ${revNo}</div>
+                            <div class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">(${ecnNo})</div>`;
                 }
             },
             { 

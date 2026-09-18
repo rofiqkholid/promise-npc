@@ -77,6 +77,7 @@
                     <tr>
                         <th scope="col" class="px-4 py-3 w-16">No</th>
                         <th scope="col" class="px-4 py-3 w-72">PRODUCT IDENTITY</th>
+                        <th scope="col" class="px-4 py-3">ECN / REV</th>
                         <th scope="col" class="px-4 py-3 text-center">QUALITY VALIDATION STATUS (QC)</th>
                         <th scope="col" class="px-4 py-3 text-right w-48">FINAL VALIDATION (MGM)</th>
                     </tr>
@@ -206,6 +207,18 @@ $(document).ready(function() {
                                 </div>`;
                     }
                     return html;
+                }
+            },
+            {
+                data: 'drawing_revision',
+                name: 'drawingRevision.revision_no',
+                className: 'px-4 py-2',
+                orderable: false,
+                render: function(data, type, row) {
+                    const revNo = row.drawing_revision?.revision_no || '-';
+                    const ecnNo = row.drawing_revision?.ecn_no || '-';
+                    return `<div class="text-gray-800 dark:text-gray-200 font-bold text-sm">Rev ${revNo}</div>
+                            <div class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">(${ecnNo})</div>`;
                 }
             },
             { 

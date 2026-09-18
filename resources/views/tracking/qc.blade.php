@@ -15,72 +15,7 @@
     </div>
 
     <!-- Bulk Print & Table Container -->
-    <div x-data="{
-        selectedParts: [],
-        selectAll: false,
-        toggleAll(event) {
-            const isChecked = event.target.checked;
-            const checkboxes = document.querySelectorAll('#qcTable .part-checkbox');
-            let ids = [];
-            let idsToRemove = [];
-            checkboxes.forEach(cb => {
-                cb.checked = isChecked;
-                if (isChecked) {
-                    ids.push(cb.value);
-                } else {
-                    idsToRemove.push(cb.value);
-                }
-            });
-
-            if (isChecked) {
-                this.selectedParts = [...new Set([...this.selectedParts, ...ids])];
-            } else {
-                this.selectedParts = this.selectedParts.filter(id => !idsToRemove.includes(id));
-            }
-            this.updateSelectAllState();
-        },
-        syncCheckboxes() {
-            const checkboxes = document.querySelectorAll('#qcTable .part-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = this.selectedParts.includes(cb.value);
-            });
-            this.updateSelectAllState();
-        },
-        updateSelectAllState() {
-            this.$nextTick(() => {
-                const checkboxes = document.querySelectorAll('#qcTable .part-checkbox');
-                const selectAllCb = document.getElementById('selectAllParts');
-                if (checkboxes.length > 0) {
-                    const allChecked = Array.from(checkboxes).every(cb => this.selectedParts.includes(cb.value));
-                    this.selectAll = allChecked;
-                    if (selectAllCb) selectAllCb.checked = allChecked;
-                } else {
-                    this.selectAll = false;
-                    if (selectAllCb) selectAllCb.checked = false;
-                }
-            });
-        },
-        init() {
-            $(document).on('change', '#qcTable .part-checkbox', (e) => {
-                const val = e.target.value;
-                const isChecked = e.target.checked;
-                if (isChecked) {
-                    if (!this.selectedParts.includes(val)) {
-                        this.selectedParts.push(val);
-                    }
-                } else {
-                    this.selectedParts = this.selectedParts.filter(i => i !== val);
-                }
-                this.updateSelectAllState();
-            });
-
-            $('#qcTable').on('draw.dt', () => {
-                this.$nextTick(() => {
-                    this.syncCheckboxes();
-                });
-            });
-        }
-    }">
+    <div x-data="qcTrackingData()">
         <!-- Bulk Print Bar -->
         <div x-show="selectedParts.length > 0" style="display: none;" class="px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 flex justify-between items-center transition-all">
             <span class="text-sm font-medium text-blue-800 dark:text-blue-300">
@@ -161,6 +96,7 @@
                             </th>
                             <th scope="col" class="px-4 py-3 w-16">No</th>
                             <th scope="col" class="px-4 py-3 w-64">WO NO / PART INFO</th>
+                            <th scope="col" class="px-4 py-3">ECN / REV</th>
                             <th scope="col" class="px-4 py-3 text-center w-32">STATUS PO</th>
                             <th scope="col" class="px-4 py-3 text-center">QC PROGRESS</th>
                             <th scope="col" class="px-4 py-3 text-right w-48">ACTION QC</th>
@@ -317,6 +253,94 @@ style="display: none;">
 
 @push('scripts')
 <script>
+    function qcTrackingData() {
+        return {
+            selectedParts: [],
+            selectAll: false,
+            async toggleAll(event) {
+                const isChecked = event.target.checked;
+                if (isChecked) {
+                    event.target.disabled = true;
+                    const originalTitle = event.target.title;
+                    event.target.title = 'Loading all parts...';
+                    try {
+                        const dt = $('#qcTable').DataTable();
+                        const search = dt.search();
+                        const customer = $('#customerFilter').val();
+                        const model = $('#modelFilter').val();
+                        const po = $('#poFilter').val();
+                        const targetDate = $('#targetDateFilter').val();
+                        
+                        const url = new URL('{{ route('tracking.qc') }}', window.location.origin);
+                        url.searchParams.append('fetch_all_ids', '1');
+                        if (search) url.searchParams.append('search[value]', search);
+                        if (customer) url.searchParams.append('customer_filter', customer);
+                        if (model) url.searchParams.append('model_filter', model);
+                        if (po) url.searchParams.append('po_filter', po);
+                        if (targetDate) url.searchParams.append('target_date_filter', targetDate);
+                        
+                        const response = await fetch(url.toString(), {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                        });
+                        const data = await response.json();
+                        if (data.ids) {
+                            this.selectedParts = data.ids;
+                        }
+                    } catch (err) {
+                        console.error('Failed to fetch all IDs', err);
+                    } finally {
+                        event.target.disabled = false;
+                        event.target.title = originalTitle || '';
+                    }
+                } else {
+                    this.selectedParts = [];
+                }
+                this.syncCheckboxes();
+            },
+            syncCheckboxes() {
+                const checkboxes = document.querySelectorAll('#qcTable .part-checkbox');
+                checkboxes.forEach(cb => {
+                    cb.checked = this.selectedParts.includes(cb.value);
+                });
+                this.updateSelectAllState();
+            },
+            updateSelectAllState() {
+                this.$nextTick(() => {
+                    const checkboxes = document.querySelectorAll('#qcTable .part-checkbox');
+                    const selectAllCb = document.getElementById('selectAllParts');
+                    if (checkboxes.length > 0) {
+                        const allChecked = Array.from(checkboxes).every(cb => this.selectedParts.includes(cb.value));
+                        this.selectAll = allChecked;
+                        if (selectAllCb) selectAllCb.checked = allChecked;
+                    } else {
+                        this.selectAll = false;
+                        if (selectAllCb) selectAllCb.checked = false;
+                    }
+                });
+            },
+            init() {
+                $(document).on('change', '#qcTable .part-checkbox', (e) => {
+                    const val = e.target.value;
+                    const isChecked = e.target.checked;
+                    if (isChecked) {
+                        if (!this.selectedParts.includes(val)) {
+                            this.selectedParts.push(val);
+                        }
+                    } else {
+                        this.selectedParts = this.selectedParts.filter(i => i !== val);
+                    }
+                    this.updateSelectAllState();
+                });
+
+                $('#qcTable').on('draw.dt', () => {
+                    this.$nextTick(() => {
+                        this.syncCheckboxes();
+                    });
+                });
+            }
+        };
+    }
+
     window.openProductionReportModal = function(row) {
         window.dispatchEvent(new CustomEvent('open-report-modal', { detail: row }));
     };
@@ -410,10 +434,10 @@ style="display: none;">
                     searchable: false, 
                     className: 'px-4 py-2 text-center align-middle',
                     render: function(data, type, row) {
-                        if (row.checksheet) {
+                        if (row.checksheet && !['PO_REGISTERED', 'WAITING_DEPT_CONFIRM'].includes(row.status)) {
                             return `<input type="checkbox" class="part-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" value="${row.hashed_id}">`;
                         }
-                        return `<input type="checkbox" disabled class="rounded border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-gray-300 w-4 h-4 cursor-not-allowed opacity-30" title="QC Label belum tersedia (Part belum selesai QC)">`;
+                        return ``;
                     }
                 },
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-4 py-2 text-center text-slate-800 dark:text-slate-200 text-[13px] font-medium' },
@@ -437,6 +461,18 @@ style="display: none;">
                                 <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5 mt-0.5">${partName}</div>
                                 <div class="text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-700 px-2 py-0.5 inline-block border border-gray-200 dark:border-gray-600">${modelName}</div>
                                 <div class="text-gray-800 dark:text-gray-300 font-black flex items-center gap-1.5 mt-2"><i class="fa-solid fa-boxes-stacked text-gray-400"></i> Initial Target: ${qtyFormatted} <span class="text-xs font-semibold text-gray-500">PCS</span></div>`;
+                    }
+                },
+                {
+                    data: 'drawing_revision',
+                    name: 'drawingRevision.revision_no',
+                    className: 'px-4 py-2',
+                    orderable: false,
+                    render: function(data, type, row) {
+                        const revNo = row.drawing_revision?.revision_no || '-';
+                        const ecnNo = row.drawing_revision?.ecn_no || '-';
+                        return `<div class="text-gray-800 dark:text-gray-200 font-bold text-sm">Rev ${revNo}</div>
+                                <div class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">(${ecnNo})</div>`;
                     }
                 },
                 { 
