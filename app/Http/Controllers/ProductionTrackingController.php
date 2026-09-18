@@ -450,7 +450,15 @@ class ProductionTrackingController extends Controller
         }
 
         $request->validate($rules, [
-            'actual_qty.min' => 'Total Qty Completed cannot be less than Planning PO (' . $part->qty . ' PCS).'
+            'process_id.required'             => 'Process ID is missing.',
+            'actual_completion_date.required' => 'Actual Completion Date is required.',
+            'actual_completion_date.date'     => 'Actual Completion Date must be a valid date.',
+            'actual_qty.required'             => 'Total Qty Completed is required.',
+            'actual_qty.integer'              => 'Total Qty Completed must be a number.',
+            'actual_qty.min'                  => 'Total Qty Completed cannot be less than Planning PO (' . $part->qty . ' PCS).',
+            'photo.required'                  => 'Photo evidence is required.',
+            'photo.image'                     => 'The photo must be an image.',
+            'photo.max'                       => 'The photo cannot be larger than 5MB.'
         ]);
 
         // Decode process_id (handles both numeric ID and hashed ID)

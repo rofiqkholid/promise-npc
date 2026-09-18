@@ -262,6 +262,12 @@ document.getElementById('form-complete').addEventListener('submit', async functi
             });
         } catch (error) {
             console.error('Error resizing image:', error);
+            if (file.size > 5 * 1024 * 1024) {
+                alert('The image is too large or in an unsupported format (like HEIC) and cannot be resized automatically. Please use a standard JPG/PNG under 5MB.');
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
+                return;
+            }
             // Fallback to original
             payload.photo_base64 = await new Promise((resolve) => {
                 const reader = new FileReader();
