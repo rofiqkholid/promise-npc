@@ -188,9 +188,9 @@ class NpcEventController extends Controller
             // Coba cari produk berdasarkan part_no dan customer_id
             $product = null;
             if (!empty($partData['product_id'])) {
-                $product = \App\Models\Product::with('docPackage')->find($partData['product_id']);
+                $product = \App\Models\Product::with('docPackage', 'siblings.docPackage')->find($partData['product_id']);
             } else {
-                $product = \App\Models\Product::with('docPackage')
+                $product = \App\Models\Product::with('docPackage', 'siblings.docPackage')
                     ->where('part_no', $partData['part_no'])
                     ->where('customer_id', $request->customer_id)
                     ->first();
