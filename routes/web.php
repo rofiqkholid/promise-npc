@@ -229,6 +229,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/products/{product}/apply-ecn-all', [\App\Http\Controllers\NpcPartController::class, 'applyEcnAll'])->name('parts.apply-ecn-all')->middleware('menu.access:events.index,update');
     Route::post('/parts/{part}/acknowledge-ecn', [\App\Http\Controllers\NpcPartController::class, 'acknowledgeEcn'])->name('parts.acknowledge-ecn')->middleware('menu.access:events.index,update');
     Route::post('/products/{product}/acknowledge-ecn-all', [\App\Http\Controllers\NpcPartController::class, 'acknowledgeEcnAll'])->name('parts.acknowledge-ecn-all')->middleware('menu.access:events.index,update');
+    Route::post('/parts/{part}/change-revision', [\App\Http\Controllers\NpcPartController::class, 'changeRevision'])->name('parts.change-revision')->middleware('menu.access:events.index,update');
+    Route::get('/parts/{part}/revisions', [\App\Http\Controllers\NpcPartController::class, 'getRevisions'])->name('parts.revisions')->middleware('menu.access:events.index,view');
 
     // Quality Checksheet Routes
     Route::get('/tracking/products/{product}/checksheet-setup', [ProductChecksheetSetupController::class, 'edit'])->name('checksheets.setup.edit')->middleware('menu.access:master.checksheets.index,update');

@@ -22,4 +22,9 @@ class DocPackage extends Model
     {
         return $this->belongsTo(Product::class, 'product_id');
     }
+
+    public function revisions()
+    {
+        return $this->hasMany(DocPackageRevision::class, 'package_id')->orderBy('id', 'desc');
+    }
 }

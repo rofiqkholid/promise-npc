@@ -149,6 +149,9 @@
                                                         </td>
                                                         <td class="py-2 text-right">
                                                             <div class="flex items-center justify-end gap-1.5">
+                                                                <button type="button" @click="$dispatch('open-change-revision-modal', { partId: '{{ $po->hashed_id }}' })" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 text-blue-700 dark:text-blue-300 text-[10px] font-bold rounded shadow-sm transition-colors" title="Select / Revert Revision">
+                                                                    <i class="fa-solid fa-clock-rotate-left"></i> Revert / Choose
+                                                                </button>
                                                                 <form action="{{ route('parts.acknowledge-ecn', $po->hashed_id) }}" method="POST" class="m-0" onsubmit="confirmAction(event, 'Ignore ECN for PO: {{ addslashes(optional($po->event)->po_no ?? '-') }}? The warning will be hidden.')">
                                                                     @csrf
                                                                     <button type="submit" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-slate-700 dark:text-gray-200 text-[10px] font-bold rounded shadow-sm transition-colors" title="Acknowledge & Ignore">

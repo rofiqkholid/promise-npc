@@ -14,7 +14,7 @@ class NpcPartController extends Controller
     public function index(Request $request, NpcEvent $event)
     {
         if ($request->ajax()) {
-            $query = clone $event->parts()->with('product.vehicleModel', 'event');
+            $query = clone $event->parts()->with(['product.vehicleModel', 'product.docPackage.currentRevision', 'drawingRevision', 'event']);
 
             return \Yajra\DataTables\Facades\DataTables::of($query)
                 ->order(function ($q) {
@@ -65,6 +65,17 @@ class NpcPartController extends Controller
                 ->addColumn('delv_date', function ($part) {
                     return '<span class="text-slate-600 dark:text-slate-400 text-sm font-medium">' . \Carbon\Carbon::parse($part->delivery_date)->format('d M Y') . '</span>';
                 })
+                ->addColumn('ecn_info', function ($part) {
+                    $revNo = optional($part->drawingRevision)->revision_no !== null && optional($part->drawingRevision)->revision_no !== '' ? optional($part->drawingRevision)->revision_no : '-';
+                    $ecnNo = optional($part->drawingRevision)->ecn_no ?: 'No ECN';
+                    
+                    $html = '<div class="text-xs font-semibold text-slate-700 dark:text-gray-200">Rev ' . e($revNo) . '</div>';
+                    $html .= '<div class="text-[10px] text-slate-400">(' . e($ecnNo) . ')</div>';
+                    if ($part->has_ecn_update) {
+                        $html .= '<span class="inline-block mt-0.5 text-[9px] bg-red-100 text-red-600 font-bold px-1 rounded">⚠️ UPDATE</span>';
+                    }
+                    return $html;
+                })
                 ->addColumn('status_label', function ($part) {
                     if ($part->status === 'WAITING_DEPT_CONFIRM') {
                         return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium">WAITING DEPT</span>';
@@ -81,10 +92,11 @@ class NpcPartController extends Controller
                 ->addColumn('action', function ($part) use ($event) {
                     return view('components.datatable-actions', [
                         'editUrl' => route('events.parts.edit', [$event->hashed_id, $part->hashed_id]),
-                        'deleteUrl' => route('events.parts.destroy', [$event->hashed_id, $part->hashed_id])
+                        'deleteUrl' => route('events.parts.destroy', [$event->hashed_id, $part->hashed_id]),
+                        'extraButtons' => '<button type="button" onclick="window.dispatchEvent(new CustomEvent(\'open-change-revision-modal\', { detail: { partId: \'' . $part->hashed_id . '\' } }))" class="text-amber-600 hover:text-amber-800 hover:bg-amber-50 p-2 transition" title="Change / Revert ECN Revision"><i class="fa-solid fa-clock-rotate-left"></i></button>'
                     ])->render();
                 })
-                ->rawColumns(['po_no', 'part_no', 'model', 'part_name', 'qty', 'delv_date', 'status_label', 'action'])
+                ->rawColumns(['po_no', 'part_no', 'model', 'part_name', 'qty', 'delv_date', 'ecn_info', 'status_label', 'action'])
                 ->make(true);
         }
 
@@ -299,5 +311,56 @@ class NpcPartController extends Controller
         }
 
         return back()->with('error', 'Failed to acknowledge ECN revision. Master Data Drawing not found.');
+    }
+
+    public function getRevisions(\App\Models\NpcPart $part)
+    {
+        $part->load(['product.docPackage.revisions', 'drawingRevision', 'event']);
+        $product = $part->product;
+        $docPackage = $product ? $product->getEffectiveDocPackage() : null;
+
+        $revisions = collect();
+        if ($docPackage) {
+            $revisions = \App\Models\DocPackageRevision::where('package_id', $docPackage->id)
+                ->orderBy('id', 'desc')
+                ->get()
+                ->map(function ($rev) use ($docPackage) {
+                    return [
+                        'id' => $rev->id,
+                        'revision_no' => $rev->revision_no !== null && $rev->revision_no !== '' ? $rev->revision_no : '-',
+                        'ecn_no' => $rev->ecn_no ?: 'No ECN',
+                        'is_current' => $rev->id == $docPackage->current_revision_id,
+                        'created_at' => $rev->created_at ? $rev->created_at->format('d M Y H:i') : '-'
+                    ];
+                });
+        }
+
+        return response()->json([
+            'success' => true,
+            'po_no' => optional($part->event)->po_no ?? '-',
+            'part_no' => optional($part->product)->part_no ?? '-',
+            'part_name' => optional($part->product)->part_name ?? '-',
+            'current_revision_id' => $part->part_revision_id,
+            'acknowledged_revision_id' => $part->acknowledged_revision_id,
+            'latest_revision_id' => optional($docPackage)->current_revision_id,
+            'revisions' => $revisions
+        ]);
+    }
+
+    public function changeRevision(\Illuminate\Http\Request $request, \App\Models\NpcPart $part)
+    {
+        $request->validate([
+            'part_revision_id' => 'required|integer|exists:doc_package_revisions,id'
+        ]);
+
+        $part->update([
+            'part_revision_id' => $request->part_revision_id,
+            'acknowledged_revision_id' => null
+        ]);
+
+        $rev = \App\Models\DocPackageRevision::find($request->part_revision_id);
+        $revText = $rev ? "Rev " . ($rev->revision_no ?? '-') . " (" . ($rev->ecn_no ?: 'No ECN') . ")" : '';
+
+        return back()->with('success', 'Drawing revision for PO ' . optional($part->event)->po_no . ' successfully changed to ' . $revText);
     }
 }
