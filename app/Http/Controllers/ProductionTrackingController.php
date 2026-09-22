@@ -441,12 +441,12 @@ class ProductionTrackingController extends Controller
         ];
 
         if ($request->hasFile('photo')) {
-            $rules['photo'] = 'required|image|mimes:jpeg,png,jpg,gif|max:10240';
+            $rules['photo'] = 'required|mimes:jpeg,png,jpg,gif,pdf|max:30720';
         } elseif ($request->filled('photo_base64')) {
             // Will accept base64 payload instead
         } else {
             // Trigger required rule if neither provided
-            $rules['photo'] = 'required|image|mimes:jpeg,png,jpg,gif|max:10240';
+            $rules['photo'] = 'required|mimes:jpeg,png,jpg,gif,pdf|max:30720';
         }
 
         $request->validate($rules, [
@@ -457,8 +457,8 @@ class ProductionTrackingController extends Controller
             'actual_qty.integer'              => 'Total Qty Completed must be a number.',
             'actual_qty.min'                  => 'Total Qty Completed cannot be less than Planning PO (' . $part->qty . ' PCS).',
             'photo.required'                  => 'Photo evidence is required.',
-            'photo.image'                     => 'The photo must be an image.',
-            'photo.max'                       => 'The photo cannot be larger than 10MB.'
+            'photo.mimes'                     => 'The file must be a file of type: jpeg, png, jpg, gif, pdf.',
+            'photo.max'                       => 'The file cannot be larger than 30MB.'
         ]);
 
         // Decode process_id (handles both numeric ID and hashed ID)

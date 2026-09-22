@@ -177,10 +177,18 @@ style="display: none;">
                                 <!-- Image Box -->
                                 <div class="relative w-full aspect-video bg-gray-900 flex items-center justify-center border-b border-gray-100 dark:border-gray-700">
                                     <template x-if="p.photo_proof">
-                                        <div class="w-full h-full relative">
-                                            <img :src="imageUrl(p.photo_proof)" class="w-full h-full object-contain">
+                                        <div class="w-full h-full relative" x-data="{ isPdf: p.photo_proof && p.photo_proof.toLowerCase().endsWith('.pdf') }">
+                                            <template x-if="!isPdf">
+                                                <img :src="imageUrl(p.photo_proof)" class="w-full h-full object-contain">
+                                            </template>
+                                            <template x-if="isPdf">
+                                                <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800">
+                                                    <i class="fa-solid fa-file-pdf text-4xl text-red-500 mb-2"></i>
+                                                    <span class="text-xs font-bold text-gray-700 dark:text-gray-300">PDF Document</span>
+                                                </div>
+                                            </template>
                                             <a :href="imageUrl(p.photo_proof)" target="_blank" class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white font-bold text-sm gap-2 backdrop-blur-[2px]">
-                                                <i class="fa-solid fa-expand"></i> Enlarge Photo
+                                                <i class="fa-solid fa-expand"></i> <span x-text="isPdf ? 'Open PDF' : 'Enlarge Photo'"></span>
                                             </a>
                                         </div>
                                     </template>
