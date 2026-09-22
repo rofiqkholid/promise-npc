@@ -116,7 +116,7 @@ class ProductionTrackingController extends Controller
                     return route('tracking.process.rollback', $part->hashed_id);
                 })
                 ->addColumn('has_checksheet', function ($part) {
-                    return (bool) $part->checksheet;
+                    return $part->checksheet && ($part->checksheet->qe_checked_by !== null || $part->checksheet->accuracy_percentage !== null);
                 })
                 ->addColumn('can_rollback_process', function ($part) {
                     return $part->status === 'WAITING_QE_CHECK';
@@ -441,12 +441,12 @@ class ProductionTrackingController extends Controller
         ];
 
         if ($request->hasFile('photo')) {
-            $rules['photo'] = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
+            $rules['photo'] = 'required|image|mimes:jpeg,png,jpg,gif|max:10240';
         } elseif ($request->filled('photo_base64')) {
             // Will accept base64 payload instead
         } else {
             // Trigger required rule if neither provided
-            $rules['photo'] = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
+            $rules['photo'] = 'required|image|mimes:jpeg,png,jpg,gif|max:10240';
         }
 
         $request->validate($rules, [
@@ -458,7 +458,7 @@ class ProductionTrackingController extends Controller
             'actual_qty.min'                  => 'Total Qty Completed cannot be less than Planning PO (' . $part->qty . ' PCS).',
             'photo.required'                  => 'Photo evidence is required.',
             'photo.image'                     => 'The photo must be an image.',
-            'photo.max'                       => 'The photo cannot be larger than 5MB.'
+            'photo.max'                       => 'The photo cannot be larger than 10MB.'
         ]);
 
         // Decode process_id (handles both numeric ID and hashed ID)

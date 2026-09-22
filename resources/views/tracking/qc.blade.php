@@ -560,11 +560,16 @@ style="display: none;">
                                 </form>`;
                             }
                             
+                            const btnText = row.has_checksheet ? 'Edit Quality Check (QC)' : 'Input Quality (QC)';
+                            const btnIcon = row.has_checksheet ? 'fa-solid fa-pen-to-square' : 'fa-regular fa-clipboard';
+                            const btnBgStyle = row.has_checksheet ? 'background-color: #2563eb;' : 'background-color: #f97316;';
+                            const btnHelpText = row.has_checksheet ? 'Update quality parameters & pass to MGM' : 'Fill quality parameter form & pass to MGM';
+                            
                             return `<div class="flex flex-col items-end w-full">
-                                <a href="${row.create_checksheet_url}" class="inline-flex px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full" style="background-color: #f97316;">
-                                    <i class="fa-regular fa-clipboard"></i> Input Quality (QC)
+                                <a href="${row.create_checksheet_url}" class="inline-flex px-4 py-2 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full" style="${btnBgStyle}">
+                                    <i class="${btnIcon}"></i> ${btnText}
                                 </a>
-                                <p class="text-[9px] text-gray-400 mt-1 italic text-right max-w-[150px] text-balance">Fill quality parameter form & pass to MGM</p>
+                                <p class="text-[9px] text-gray-400 mt-1 italic text-right max-w-[150px] text-balance">${btnHelpText}</p>
                                 ${rollbackBtn}
                             </div>`;
                         }

@@ -144,10 +144,53 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Upload Part Photo Evidence<span class="text-red-500">*</span></label>
-                    <input type="file" name="photo" required accept="image/jpeg,image/png,image/gif"
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                            Upload Part Photo Evidence<span class="text-red-500">*</span>
+                        </label>
+                        <button type="button" onclick="startCompleteCamera()" class="text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-700 px-2.5 py-1 rounded transition flex items-center gap-1 shadow-xs">
+                            <i class="fa-solid fa-camera text-amber-500"></i> Open Camera
+                        </button>
+                    </div>
+
+                    <!-- Live Camera Feed -->
+                    <div id="complete-camera-wrapper" class="hidden mb-3 p-2 bg-slate-900 rounded-lg border border-slate-700 shadow-inner">
+                        <div class="relative rounded overflow-hidden bg-black aspect-video flex items-center justify-center">
+                            <video id="complete-camera-video" autoplay playsinline class="w-full h-full object-contain"></video>
+                            <div id="camera-loading" class="absolute inset-0 flex items-center justify-center bg-black/60 text-white text-xs gap-2">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Setting up camera...
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-2.5 px-1">
+                            <button type="button" onclick="stopCompleteCamera()" class="px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded transition flex items-center gap-1">
+                                <i class="fa-solid fa-xmark"></i> Close
+                            </button>
+                            <button type="button" onclick="captureCompletePhoto()" class="px-4 py-1.5 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded shadow transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-dot text-sm"></i> Take Photo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Input File with capture="environment" -->
+                    <input type="file" id="modal-photo-input" name="photo" required accept="image/*" capture="environment"
+                        onchange="handleCompletePhotoSelect(event)"
                         class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 dark:file:bg-amber-900/30 dark:file:text-amber-400 hover:file:bg-amber-100 uppercase file:cursor-pointer border border-gray-300 dark:border-gray-600">
-                    <p class="text-[10px] text-gray-400 mt-1 italic">Max 5 MB (JPG/PNG). Photo of a batch of parts.</p>
+
+                    <!-- Photo Preview -->
+                    <div id="complete-photo-preview-container" class="hidden mt-2 p-2 bg-amber-50/50 dark:bg-amber-900/20 rounded border border-amber-200/80 dark:border-amber-700/50 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <img id="complete-photo-preview-img" class="h-16 max-w-[100px] w-auto object-contain rounded border border-amber-300 dark:border-amber-600 shadow-xs bg-slate-900/10 dark:bg-slate-900/40">
+                            <div>
+                                <p class="text-xs font-bold text-gray-800 dark:text-gray-200" id="complete-photo-preview-name">Photo Evidence Attached</p>
+                                <p class="text-[10px] text-amber-600 dark:text-amber-400 font-medium">Ready to upload upon process completion</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="resetCompletePhoto()" class="text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 px-2 py-1 bg-red-50 dark:bg-red-900/30 rounded border border-red-200 dark:border-red-800 transition flex items-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i> Delete
+                        </button>
+                    </div>
+
+                    <p class="text-[10px] text-gray-400 mt-1 italic">Max 10 MB (JPG/PNG). Choose file from gallery or take photo directly via camera.</p>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Production Notes <span class="text-gray-400 text-[10px] font-normal">(optional)</span></label>
@@ -168,7 +211,123 @@
 
 @push('scripts')
 <script>
+let activeCameraStream = null;
+
+function startCompleteCamera() {
+    const wrapper = document.getElementById('complete-camera-wrapper');
+    const video = document.getElementById('complete-camera-video');
+    const loading = document.getElementById('camera-loading');
+    
+    wrapper.classList.remove('hidden');
+    if (loading) loading.classList.remove('hidden');
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Your browser does not support direct camera access. Please use the file button to select a photo.");
+        wrapper.classList.add('hidden');
+        return;
+    }
+
+    stopCompleteCameraStreamOnly();
+
+    navigator.mediaDevices.getUserMedia({
+        video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+        }
+    })
+    .then(function(stream) {
+        activeCameraStream = stream;
+        video.srcObject = stream;
+        video.onloadedmetadata = function() {
+            video.play();
+            if (loading) loading.classList.add('hidden');
+        };
+    })
+    .catch(function(err) {
+        console.error("Camera access error:", err);
+        alert("Unable to access camera. Please ensure camera permissions are granted in your browser.");
+        wrapper.classList.add('hidden');
+    });
+}
+
+function stopCompleteCameraStreamOnly() {
+    if (activeCameraStream) {
+        activeCameraStream.getTracks().forEach(track => track.stop());
+        activeCameraStream = null;
+    }
+}
+
+function stopCompleteCamera() {
+    stopCompleteCameraStreamOnly();
+    const wrapper = document.getElementById('complete-camera-wrapper');
+    if (wrapper) wrapper.classList.add('hidden');
+}
+
+function captureCompletePhoto() {
+    const video = document.getElementById('complete-camera-video');
+    if (!video || !video.videoWidth) {
+        alert("Camera is not ready yet.");
+        return;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+    fetch(dataUrl)
+        .then(res => res.blob())
+        .then(blob => {
+            const file = new File([blob], "camera_capture_" + Date.now() + ".jpg", { type: "image/jpeg" });
+            const dt = new DataTransfer();
+            dt.items.add(file);
+
+            const fileInput = document.getElementById('modal-photo-input');
+            fileInput.files = dt.files;
+
+            showPhotoPreviewUI(dataUrl, "Camera Photo (" + file.name + ")");
+            stopCompleteCamera();
+        });
+}
+
+function handleCompletePhotoSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            showPhotoPreviewUI(e.target.result, file.name);
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function showPhotoPreviewUI(dataUrl, filename) {
+    const previewContainer = document.getElementById('complete-photo-preview-container');
+    const previewImg = document.getElementById('complete-photo-preview-img');
+    const previewName = document.getElementById('complete-photo-preview-name');
+    
+    if (previewImg) previewImg.src = dataUrl;
+    if (previewName) previewName.textContent = filename || "Photo Evidence Attached";
+    if (previewContainer) previewContainer.classList.remove('hidden');
+}
+
+function resetCompletePhoto() {
+    const fileInput = document.getElementById('modal-photo-input');
+    if (fileInput) fileInput.value = '';
+    
+    const previewContainer = document.getElementById('complete-photo-preview-container');
+    if (previewContainer) previewContainer.classList.add('hidden');
+    
+    stopCompleteCamera();
+}
+
 function openCompleteModal(partId, processId, processName, departmentName, targetDate, actionUrl, partQty, partNo, partName, poNo, modelName) {
+    resetCompletePhoto();
+
     document.getElementById('form-complete').action = actionUrl;
     document.getElementById('modal-process-id').value = processId;
     document.getElementById('modal-process-name-title').textContent = processName;
@@ -191,6 +350,7 @@ function openCompleteModal(partId, processId, processName, departmentName, targe
     if (!dateInput.value) dateInput.value = new Date().toISOString().substring(0, 10);
 }
 function closeCompleteModal() {
+    stopCompleteCamera();
     document.getElementById('modal-complete').classList.add('hidden');
 }
 // Close on backdrop click
@@ -262,8 +422,8 @@ document.getElementById('form-complete').addEventListener('submit', async functi
             });
         } catch (error) {
             console.error('Error resizing image:', error);
-            if (file.size > 5 * 1024 * 1024) {
-                alert('The image is too large or in an unsupported format (like HEIC) and cannot be resized automatically. Please use a standard JPG/PNG under 5MB.');
+            if (file.size > 10 * 1024 * 1024) {
+                alert('The image is too large or in an unsupported format (like HEIC) and cannot be resized automatically. Please use a standard JPG/PNG under 10MB.');
                 btn.disabled = false;
                 btn.innerHTML = originalBtnHtml;
                 return;
