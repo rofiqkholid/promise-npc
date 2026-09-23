@@ -63,7 +63,23 @@ class ProductionTrackingController extends Controller
 
         if (request()->filled('target_date_filter') && request('target_date_filter') !== 'null' && request('target_date_filter') !== '') {
             $targetDate = request('target_date_filter');
-            $query->whereDate('delivery_date', $targetDate);
+            if ($statusParam === 'WAITING_MGM_CHECK') {
+                $query->where(function($q) use ($targetDate) {
+                    $q->whereDate('mgm_target_date', $targetDate)
+                      ->orWhere(function($subQ) use ($targetDate) {
+                          $subQ->whereNull('mgm_target_date')->whereDate('delivery_date', $targetDate);
+                      });
+                });
+            } elseif ($statusParam === 'WAITING_QE_CHECK') {
+                $query->where(function($q) use ($targetDate) {
+                    $q->whereDate('qc_target_date', $targetDate)
+                      ->orWhere(function($subQ) use ($targetDate) {
+                          $subQ->whereNull('qc_target_date')->whereDate('delivery_date', $targetDate);
+                      });
+                });
+            } else {
+                $query->whereDate('delivery_date', $targetDate);
+            }
         }
         
         return $query;

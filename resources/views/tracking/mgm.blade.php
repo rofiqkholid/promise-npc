@@ -79,6 +79,7 @@
                         <th scope="col" class="px-4 py-3 w-72">PRODUCT IDENTITY</th>
                         <th scope="col" class="px-4 py-3">ECN / REV</th>
                         <th scope="col" class="px-4 py-3 text-center">QUALITY VALIDATION STATUS (QC)</th>
+                        <th scope="col" class="px-4 py-3 text-center">TARGET COMPLETION (MGM)</th>
                         <th scope="col" class="px-4 py-3 text-right w-48">FINAL VALIDATION (MGM)</th>
                     </tr>
                 </thead>
@@ -238,6 +239,57 @@ $(document).ready(function() {
                                     <span class="text-[11px] text-gray-500 font-medium mt-1">Date Input: ${dateInput}</span>
                                 </div>`;
                     }
+                }
+            },
+            { 
+                data: 'mgm_target_date', 
+                name: 'mgm_target_date', 
+                className: 'px-4 py-2 text-center align-middle',
+                orderable: false,
+                searchable: false,
+                render: function(data, type, row) {
+                    const mgmDateRaw = row.mgm_target_date || row.delivery_date;
+                    if (!mgmDateRaw) {
+                        return `<span class="text-xs text-gray-400 font-medium">-</span>`;
+                    }
+
+                    const targetDate = new Date(mgmDateRaw.split('T')[0] + 'T00:00:00');
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const dateFormatted = `${String(targetDate.getDate()).padStart(2, '0')} ${months[targetDate.getMonth()]} ${targetDate.getFullYear()}`;
+                    
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const diffDays = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
+                    
+                    let timeBadge = '';
+                    if (['WAITING_APPROVAL', 'FINISHED', 'CLOSED'].includes(row.status)) {
+                        timeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800">
+                            <i class="fa-solid fa-check"></i> MGM Target Achieved
+                        </span>`;
+                    } else if (diffDays < 0) {
+                        timeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border bg-red-100 text-red-700 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Overdue ${Math.abs(diffDays)} Days
+                        </span>`;
+                    } else if (diffDays === 0) {
+                        timeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800">
+                            <i class="fa-solid fa-clock"></i> Target Today
+                        </span>`;
+                    } else if (diffDays <= 3) {
+                        timeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800">
+                            <i class="fa-solid fa-clock"></i> Remaining ${diffDays} Days
+                        </span>`;
+                    } else {
+                        timeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold border bg-green-100 text-green-700 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800">
+                            <i class="fa-solid fa-clock"></i> Remaining ${diffDays} Days
+                        </span>`;
+                    }
+                    
+                    return `<div class="flex flex-col items-center gap-1">
+                        <div class="text-[11px] text-gray-700 dark:text-gray-200 font-bold">
+                            <i class="fa-solid fa-calendar-check text-gray-400 mr-1"></i> Target MGM: ${dateFormatted}
+                        </div>
+                        ${timeBadge}
+                    </div>`;
                 }
             },
             { 
