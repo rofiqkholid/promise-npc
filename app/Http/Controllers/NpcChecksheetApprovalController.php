@@ -256,10 +256,36 @@ class NpcChecksheetApprovalController extends Controller
                     if ($rowResult === 'NG') {
                         $hasNg = true;
                     }
-                    $detail->update([
+                    $detailUpdate = [
                         'row_result' => $rowResult,
                         'samples' => $data['samples'] ?? null,
-                    ]);
+                    ];
+
+                    if (!empty($data['ng_photo_base64'])) {
+                        $base64Data = $data['ng_photo_base64'];
+                        if ($base64Data === 'REMOVE') {
+                            $detailUpdate['ng_photo_path'] = null;
+                        } elseif (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+                            $imageData = substr($base64Data, strpos($base64Data, ',') + 1);
+                            $ext = strtolower($type[1]);
+                            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                                $ext = 'jpg';
+                            }
+                            $decodedImg = base64_decode($imageData);
+                            if ($decodedImg !== false) {
+                                $filename = 'ng_detail_' . $detail->id . '_' . time() . '.' . $ext;
+                                $path = 'checksheets/ng_evidence/' . $filename;
+                                \Illuminate\Support\Facades\Storage::disk('public')->put($path, $decodedImg);
+                                $detailUpdate['ng_photo_path'] = $path;
+                            }
+                        }
+                    }
+
+                    if (array_key_exists('ng_reason', $data)) {
+                        $detailUpdate['ng_reason'] = $data['ng_reason'];
+                    }
+
+                    $detail->update($detailUpdate);
                 }
             }
             

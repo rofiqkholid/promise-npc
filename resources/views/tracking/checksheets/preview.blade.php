@@ -371,7 +371,8 @@
                         'point' => $detail->point_check,
                         'std' => $detail->standard,
                         'samples' => $detail->samples ?? [],
-                        'result' => $detail->row_result
+                        'result' => $detail->row_result,
+                        'ng_photo' => $detail->ng_photo_path
                     ];
                 }
                 
@@ -412,6 +413,9 @@
                     @endfor
                     <td class="text-center font-bold @if($item['result'] === 'OK') text-green @elseif($item['result'] === 'NG') text-red @endif">
                         {{ $item['result'] }}
+                        @if(!empty($item['ng_photo']))
+                            <a href="{{ url('file/storage/' . ltrim(str_replace('public/', '', $item['ng_photo']), '/')) }}" target="_blank" style="margin-left: 4px; color: #2563EB;" title="View NG Evidence Photo">📷</a>
+                        @endif
                     </td>
                 </tr>
                 @endforeach

@@ -29,7 +29,9 @@ class NpcChecksheetDetail extends Model
         'point_check',
         'standard',
         'samples',
-        'row_result'
+        'row_result',
+        'ng_photo_path',
+        'ng_reason',
     ];
 
     protected $casts = [

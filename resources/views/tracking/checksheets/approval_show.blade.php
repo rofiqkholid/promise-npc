@@ -249,11 +249,39 @@
                                 @endfor
                                 <td class="px-4 py-2 text-center">
                                     <select data-detail-id="{{ $detail->id }}" id="row-result-{{ $detail->id }}" {{ $readonly ? 'disabled' : '' }}
+                                            onchange="onSelectResultChange({{ $detail->id }}, this.value)"
                                             class="w-full text-xs py-1.5 px-2 font-bold border-gray-300 dark:border-gray-600 shadow-sm focus:ring-1 focus:ring-blue-500 bg-gray-100 dark:bg-gray-800 dark:text-white @if($detail->row_result == 'OK') text-green-600 bg-green-50 dark:bg-green-900/20 @elseif($detail->row_result == 'NG') text-red-600 bg-red-50 dark:bg-red-900/20 @endif">
                                         <option value="" class="text-gray-400">- Select -</option>
                                         <option value="OK" class="text-green-600 font-bold" {{ $detail->row_result === 'OK' ? 'selected' : '' }}>OK</option>
                                         <option value="NG" class="text-red-600 font-bold" {{ $detail->row_result === 'NG' ? 'selected' : '' }}>NG</option>
                                     </select>
+                                     <div id="ng-photo-container-{{ $detail->id }}" class="mt-1.5 {{ $detail->row_result === 'NG' ? '' : 'hidden' }}">
+                                        @php
+                                            $ngPhotoUrl = $detail->ng_photo_path ? url('file/storage/' . ltrim(str_replace('public/', '', $detail->ng_photo_path), '/')) : null;
+                                        @endphp
+                                        <input type="hidden" id="ng-reason-val-{{ $detail->id }}" value="{{ $detail->ng_reason }}">
+                                        <div id="ng-reason-display-{{ $detail->id }}" class="text-[10px] text-red-600 dark:text-red-300 font-semibold italic mb-1 max-w-[150px] mx-auto break-words leading-tight {{ $detail->ng_reason ? '' : 'hidden' }}">
+                                            "{{ $detail->ng_reason }}"
+                                        </div>
+                                        <div id="ng-photo-preview-box-{{ $detail->id }}" class="{{ $ngPhotoUrl ? '' : 'hidden' }} flex items-center justify-center gap-1">
+                                            <a href="{{ $ngPhotoUrl ?: '#' }}" target="_blank" id="ng-photo-link-{{ $detail->id }}" class="inline-block relative group">
+                                                <img src="{{ $ngPhotoUrl }}" id="ng-photo-img-{{ $detail->id }}" class="h-8 w-8 object-cover rounded border border-red-300 dark:border-red-700 shadow-2xs hover:scale-110 transition">
+                                            </a>
+                                            @if(!$readonly)
+                                            <button type="button" onclick="openNgPhotoModal({{ $detail->id }}, '{{ e($detail->point_check) }}')" class="text-[10px] text-blue-600 dark:text-blue-400 hover:underline p-0.5" title="Edit Evidence & Reason"><i class="fa-solid fa-pen"></i></button>
+                                            <button type="button" onclick="removeNgPhoto({{ $detail->id }})" class="text-[10px] text-red-600 dark:text-red-400 hover:underline p-0.5" title="Remove Photo"><i class="fa-solid fa-trash"></i></button>
+                                            @endif
+                                        </div>
+                                        <div id="ng-photo-btn-box-{{ $detail->id }}" class="{{ $ngPhotoUrl ? 'hidden' : '' }}">
+                                            @if(!$readonly)
+                                            <button type="button" onclick="openNgPhotoModal({{ $detail->id }}, '{{ e($detail->point_check) }}')" class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-800 rounded hover:bg-red-100 transition whitespace-nowrap">
+                                                <i class="fa-solid fa-camera text-red-500"></i> Evidence & Reason
+                                            </button>
+                                            @else
+                                            <span class="text-[10px] text-gray-400 italic">No Photo</span>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                             @empty
@@ -366,35 +394,23 @@
                 }
 
                 if (newValue === 'NG') {
-                    Swal.fire({
-                        title: 'NG Found',
-                        text: 'Please provide a reason/remark for this NG:',
-                        input: 'textarea',
-                        inputPlaceholder: 'Enter reason here...',
-                        showCancelButton: true,
-                        confirmButtonText: '<i class="fa-solid fa-check"></i> Confirm NG',
-                        cancelButtonText: 'Cancel',
-                        background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-                        color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
-                        inputValidator: (value) => {
-                            if (!value || value.trim() === '') {
-                                return 'Reason is required for NG!';
-                            }
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
+                    openNgPhotoModal(detailId, pointName).then((result) => {
+                        if (result && result.isConfirmed) {
                             input.value = 'NG';
                             iconContainer.innerHTML = iconHtml;
                             calculateRowResult(detailId);
                             
-                            // Append remark
-                            const remarkTextarea = document.querySelector('textarea[name="final_result"]');
-                            if (remarkTextarea) {
-                                let currentRemark = remarkTextarea.value.trim();
-                                let addition = `[${pointName}] NG: ${result.value.trim()}`;
-                                remarkTextarea.value = currentRemark ? currentRemark + '\n' + addition : addition;
-                                // trigger input event in case needed
-                                remarkTextarea.dispatchEvent(new Event('input'));
+                            const reasonText = result.value ? result.value.reason : '';
+                            if (reasonText) {
+                                const remarkTextarea = document.querySelector('textarea[name="final_result"]');
+                                if (remarkTextarea) {
+                                    let currentRemark = remarkTextarea.value.trim();
+                                    let addition = `[${pointName}] NG: ${reasonText}`;
+                                    if (!currentRemark.includes(addition)) {
+                                        remarkTextarea.value = currentRemark ? currentRemark + '\n' + addition : addition;
+                                        remarkTextarea.dispatchEvent(new Event('input'));
+                                    }
+                                }
                             }
                         }
                     });
@@ -453,40 +469,33 @@
             
             select.addEventListener('change', function() {
                 const newValue = this.value;
+                const detailId = this.dataset.detailId;
                 const pointName = this.closest('tr').querySelector('td:nth-child(2)').textContent.trim();
                 
                 if (newValue === 'NG') {
-                    Swal.fire({
-                        title: 'NG Found',
-                        text: 'Please provide a reason/remark for this NG:',
-                        input: 'textarea',
-                        inputPlaceholder: 'Enter reason here...',
-                        showCancelButton: true,
-                        confirmButtonText: '<i class="fa-solid fa-check"></i> Confirm NG',
-                        cancelButtonText: 'Cancel',
-                        background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-                        color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
-                        inputValidator: (value) => {
-                            if (!value || value.trim() === '') {
-                                return 'Reason is required for NG!';
-                            }
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
+                    openNgPhotoModal(detailId, pointName).then((result) => {
+                        if (result && result.isConfirmed) {
                             this.dataset.prevValue = 'NG';
                             updateSelectStyle(this, 'NG');
+                            const container = document.getElementById(`ng-photo-container-${detailId}`);
+                            if (container) container.classList.remove('hidden');
                             checkIfCanApprove();
                             
-                            const remarkTextarea = document.querySelector('textarea[name="final_result"]');
-                            if (remarkTextarea) {
-                                let currentRemark = remarkTextarea.value.trim();
-                                let addition = `[${pointName}] NG: ${result.value.trim()}`;
-                                remarkTextarea.value = currentRemark ? currentRemark + '\n' + addition : addition;
-                                remarkTextarea.dispatchEvent(new Event('input'));
+                            const reasonText = result.value ? result.value.reason : '';
+                            if (reasonText) {
+                                const remarkTextarea = document.querySelector('textarea[name="final_result"]');
+                                if (remarkTextarea) {
+                                    let currentRemark = remarkTextarea.value.trim();
+                                    let addition = `[${pointName}] NG: ${reasonText}`;
+                                    if (!currentRemark.includes(addition)) {
+                                        remarkTextarea.value = currentRemark ? currentRemark + '\n' + addition : addition;
+                                        remarkTextarea.dispatchEvent(new Event('input'));
+                                    }
+                                }
                             }
                         } else {
                             // Revert value
-                            this.value = this.dataset.prevValue;
+                            this.value = this.dataset.prevValue || '';
                             updateSelectStyle(this, this.value);
                             checkIfCanApprove();
                         }
@@ -617,7 +626,7 @@
                     }
                 });
 
-                document.querySelectorAll('input[id^="row-result-"]').forEach(resultInput => {
+                document.querySelectorAll('input[id^="row-result-"], select[id^="row-result-"]').forEach(resultInput => {
                     const detailId = resultInput.dataset.detailId;
                     if (detailId) {
                         if (!details[detailId]) {
@@ -626,10 +635,48 @@
                         details[detailId].row_result = resultInput.value || null;
                     }
                 });
+
+                if (window.ngPhotoStaging) {
+                    Object.keys(window.ngPhotoStaging).forEach(detailId => {
+                        if (!details[detailId]) {
+                            details[detailId] = { samples: {}, row_result: null };
+                        }
+                        details[detailId].ng_photo_base64 = window.ngPhotoStaging[detailId];
+                    });
+                }
+
+                if (window.ngReasonStaging) {
+                    Object.keys(window.ngReasonStaging).forEach(detailId => {
+                        if (!details[detailId]) {
+                            details[detailId] = { samples: {}, row_result: null };
+                        }
+                        details[detailId].ng_reason = window.ngReasonStaging[detailId];
+                    });
+                }
                 
                 submitViaFetch(details);
             });
         }
+
+        window.onSelectResultChange = function(detailId, val) {
+            const container = document.getElementById(`ng-photo-container-${detailId}`);
+            if (container) {
+                if (val === 'NG') {
+                    container.classList.remove('hidden');
+                } else {
+                    container.classList.add('hidden');
+                }
+            }
+            const selectElem = document.getElementById(`row-result-${detailId}`);
+            if (selectElem) {
+                selectElem.classList.remove('text-green-600', 'bg-green-50', 'dark:bg-green-900/20', 'text-red-600', 'bg-red-50', 'dark:bg-red-900/20');
+                if (val === 'OK') {
+                    selectElem.classList.add('text-green-600', 'bg-green-50', 'dark:bg-green-900/20');
+                } else if (val === 'NG') {
+                    selectElem.classList.add('text-red-600', 'bg-red-50', 'dark:bg-red-900/20');
+                }
+            }
+        };
 
         let currentRejectPhotoBase64 = null;
         let currentRejectStream = null;
@@ -649,14 +696,14 @@
                         </div>
                         
                         <div class="border-t border-gray-200 dark:border-gray-700 pt-3">
-                            <label class="block font-bold text-gray-700 dark:text-gray-200 mb-1">Foto Bukti Reject (Opsional / Kamera)</label>
+                            <label class="block font-bold text-gray-700 dark:text-gray-200 mb-1">Rejection Photo Evidence (Optional / Camera)</label>
                             
                             <div class="flex flex-wrap gap-2 mb-2">
                                 <button type="button" id="btn-open-camera" onclick="startRejectCamera()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded shadow-sm transition flex items-center gap-1.5">
-                                    <i class="fa-solid fa-camera"></i> Ambil dari Kamera
+                                    <i class="fa-solid fa-camera"></i> Take Photo from Camera
                                 </button>
                                 <label class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded shadow-sm transition cursor-pointer flex items-center gap-1.5">
-                                    <i class="fa-solid fa-folder-open"></i> Upload File Foto
+                                    <i class="fa-solid fa-folder-open"></i> Upload Photo File
                                     <input type="file" id="swal-reject-file" accept="image/*" capture="environment" class="hidden" onchange="handleRejectFileSelect(event)">
                                 </label>
                             </div>
@@ -666,10 +713,10 @@
                                 <video id="reject-camera-video" autoplay playsinline class="w-full h-48 object-cover"></video>
                                 <div class="p-2 bg-gray-900 flex justify-between items-center">
                                     <button type="button" onclick="snapRejectPhoto()" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded flex items-center gap-1">
-                                        <i class="fa-solid fa-circle-dot text-red-400"></i> Tangkap Foto
+                                        <i class="fa-solid fa-circle-dot text-red-400"></i> Capture Photo
                                     </button>
                                     <button type="button" onclick="stopRejectCamera()" class="px-2.5 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">
-                                        Batal
+                                        Cancel
                                     </button>
                                 </div>
                             </div>
@@ -677,7 +724,7 @@
                             <!-- Photo Preview Container -->
                             <div id="reject-preview-container" class="hidden relative border border-gray-300 dark:border-gray-600 rounded-md p-1 bg-gray-50 dark:bg-gray-800">
                                 <img id="reject-preview-img" class="w-full h-40 object-contain rounded">
-                                <button type="button" onclick="clearRejectPhoto()" class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full text-xs shadow" title="Hapus Foto">
+                                <button type="button" onclick="clearRejectPhoto()" class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full text-xs shadow" title="Remove Photo">
                                     <i class="fa-solid fa-times w-4 h-4 flex items-center justify-center"></i>
                                 </button>
                             </div>
@@ -697,7 +744,7 @@
                 preConfirm: () => {
                     const reason = document.getElementById('swal-reject-reason').value.trim();
                     if (!reason) {
-                        Swal.showValidationMessage('Alasan reject wajib diisi!');
+                        Swal.showValidationMessage('Rejection reason is required!');
                         return false;
                     }
                     return {
@@ -753,7 +800,7 @@
             const container = document.getElementById('reject-camera-container');
             const video = document.getElementById('reject-camera-video');
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert("Browser Anda tidak mendukung akses kamera langsung. Silakan gunakan tombol Upload File Foto.");
+                alert("Your browser does not support direct camera access. Please use the Upload Photo File button.");
                 return;
             }
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
@@ -764,7 +811,7 @@
                 })
                 .catch(err => {
                     console.error("Camera access error:", err);
-                    alert("Gagal mengakses kamera. Pastikan izin kamera telah diberikan.");
+                    alert("Failed to access camera. Please ensure camera permissions are granted.");
                 });
         };
 
@@ -823,7 +870,196 @@
             if (fileInput) fileInput.value = '';
         };
 
+        document.querySelectorAll('select[id^="row-result-"], input[id^="row-result-"]').forEach(resultInput => {
+            const detailId = resultInput.dataset.detailId;
+            if (detailId && resultInput.value === 'NG') {
+                const container = document.getElementById(`ng-photo-container-${detailId}`);
+                if (container) container.classList.remove('hidden');
+            }
+        });
+
         checkIfCanApprove();
     });
+
+    window.ngPhotoStaging = window.ngPhotoStaging || {};
+    window.ngReasonStaging = window.ngReasonStaging || {};
+    let currentNgCameraStream = null;
+
+    window.openNgPhotoModal = function(detailId, pointCheckName) {
+        if (currentNgCameraStream) {
+            currentNgCameraStream.getTracks().forEach(track => track.stop());
+            currentNgCameraStream = null;
+        }
+
+        const existingReason = window.ngReasonStaging[detailId] !== undefined 
+            ? window.ngReasonStaging[detailId] 
+            : (document.getElementById(`ng-reason-val-${detailId}`)?.value || '');
+
+        return Swal.fire({
+            title: 'NG Evidence & Reason',
+            html: `
+                <div class="text-left text-sm space-y-3">
+                    <p class="text-xs text-gray-500 font-semibold">Point: <span class="text-gray-800 dark:text-gray-200 font-bold">${pointCheckName}</span></p>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1"><i class="fa-solid fa-comment-dots text-red-500 mr-1"></i> NG Reason / Description:</label>
+                        <textarea id="swal-ng-reason" rows="2" class="w-full text-xs p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:ring-1 focus:ring-blue-500" placeholder="Explain reason / description for NG finding...">${existingReason}</textarea>
+                    </div>
+
+                    <div class="pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5"><i class="fa-solid fa-camera text-red-500 mr-1"></i> Photo Evidence:</label>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="startNgCamera()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded shadow transition inline-flex items-center gap-1">
+                                <i class="fa-solid fa-video"></i> Use Camera
+                            </button>
+                            <label class="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold rounded shadow transition cursor-pointer inline-flex items-center gap-1">
+                                <i class="fa-solid fa-upload"></i> Upload File
+                                <input type="file" id="swal-ng-file" accept="image/*" class="hidden" onchange="handleNgFileSelect(event)">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="ng-camera-container" class="hidden relative bg-black rounded overflow-hidden">
+                        <video id="ng-camera-video" autoplay playsinline class="w-full h-48 object-cover"></video>
+                        <button type="button" onclick="snapNgPhoto()" class="absolute bottom-2 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-red-600 text-white text-xs font-bold rounded-full shadow-md hover:bg-red-700 transition">
+                            <i class="fa-solid fa-camera"></i> Snap Photo
+                        </button>
+                    </div>
+
+                    <div id="ng-preview-container" class="hidden">
+                        <span class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Photo Preview:</span>
+                        <div class="relative inline-block border rounded overflow-hidden">
+                            <img id="ng-preview-img" src="" class="max-h-48 w-auto rounded">
+                            <button type="button" onclick="clearNgModalPhoto()" class="absolute top-1 right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa-solid fa-check"></i> Save Evidence & Reason',
+            confirmButtonColor: '#10B981',
+            cancelButtonText: 'Cancel',
+            willClose: () => {
+                if (currentNgCameraStream) {
+                    currentNgCameraStream.getTracks().forEach(track => track.stop());
+                    currentNgCameraStream = null;
+                }
+            },
+            preConfirm: () => {
+                const previewImg = document.getElementById('ng-preview-img');
+                const reasonInput = document.getElementById('swal-ng-reason');
+                return {
+                    photo: previewImg ? previewImg.src : null,
+                    reason: reasonInput ? reasonInput.value.trim() : ''
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                const base64Photo = result.value.photo;
+                const reasonText = result.value.reason;
+
+                if (base64Photo && base64Photo !== window.location.href) {
+                    window.ngPhotoStaging[detailId] = base64Photo;
+                }
+                window.ngReasonStaging[detailId] = reasonText;
+
+                const reasonDisp = document.getElementById(`ng-reason-display-${detailId}`);
+                const reasonVal = document.getElementById(`ng-reason-val-${detailId}`);
+                if (reasonVal) reasonVal.value = reasonText;
+                if (reasonDisp) {
+                    reasonDisp.textContent = reasonText ? `"${reasonText}"` : '';
+                    if (reasonText) reasonDisp.classList.remove('hidden'); else reasonDisp.classList.add('hidden');
+                }
+
+                if (base64Photo && base64Photo !== window.location.href) {
+                    const previewBox = document.getElementById(`ng-photo-preview-box-${detailId}`);
+                    const btnBox = document.getElementById(`ng-photo-btn-box-${detailId}`);
+                    const img = document.getElementById(`ng-photo-img-${detailId}`);
+                    const link = document.getElementById(`ng-photo-link-${detailId}`);
+
+                    if (img) img.src = base64Photo;
+                    if (link) link.href = base64Photo;
+                    if (previewBox) previewBox.classList.remove('hidden');
+                    if (btnBox) btnBox.classList.add('hidden');
+                }
+            }
+        });
+    };
+
+    window.startNgCamera = async function() {
+        const cameraContainer = document.getElementById('ng-camera-container');
+        const video = document.getElementById('ng-camera-video');
+        try {
+            if (currentNgCameraStream) {
+                currentNgCameraStream.getTracks().forEach(track => track.stop());
+            }
+            currentNgCameraStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+            });
+            video.srcObject = currentNgCameraStream;
+            cameraContainer.classList.remove('hidden');
+        } catch (err) {
+            alert('Could not access camera: ' + err.message);
+        }
+    };
+
+    window.snapNgPhoto = function() {
+        const video = document.getElementById('ng-camera-video');
+        if (!video || !currentNgCameraStream) return;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const base64 = canvas.toDataURL('image/jpeg', 0.85);
+        
+        currentNgCameraStream.getTracks().forEach(track => track.stop());
+        currentNgCameraStream = null;
+        document.getElementById('ng-camera-container').classList.add('hidden');
+
+        const previewContainer = document.getElementById('ng-preview-container');
+        const previewImg = document.getElementById('ng-preview-img');
+        if (previewContainer && previewImg) {
+            previewImg.src = base64;
+            previewContainer.classList.remove('hidden');
+        }
+    };
+
+    window.handleNgFileSelect = function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const previewContainer = document.getElementById('ng-preview-container');
+                const previewImg = document.getElementById('ng-preview-img');
+                if (previewContainer && previewImg) {
+                    previewImg.src = evt.target.result;
+                    previewContainer.classList.remove('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    window.clearNgModalPhoto = function() {
+        const previewContainer = document.getElementById('ng-preview-container');
+        if (previewContainer) previewContainer.classList.add('hidden');
+        const fileInput = document.getElementById('swal-ng-file');
+        if (fileInput) fileInput.value = '';
+    };
+
+    window.removeNgPhoto = function(detailId) {
+        if (confirm('Are you sure you want to remove this NG evidence photo?')) {
+            window.ngPhotoStaging[detailId] = 'REMOVE';
+            const previewBox = document.getElementById(`ng-photo-preview-box-${detailId}`);
+            const btnBox = document.getElementById(`ng-photo-btn-box-${detailId}`);
+            if (previewBox) previewBox.classList.add('hidden');
+            if (btnBox) btnBox.classList.remove('hidden');
+        }
+    };
 </script>
 @endpush
