@@ -87,6 +87,7 @@
                         <th scope="col" class="px-4 py-3">PART NAME</th>
                         <th scope="col" class="px-4 py-3">ECN</th>
                         <th scope="col" class="px-4 py-3 text-center">MAPPING STATUS</th>
+                        <th scope="col" class="px-4 py-3">REJECT NOTE</th>
                         <th scope="col" class="px-4 py-3 text-right">ACTION</th>
                     </tr>
                 </thead>
@@ -122,6 +123,7 @@
                 { data: 'part_name', name: 'part_name', className: 'px-4 py-2' },
                 { data: 'ecn_info', name: 'ecn_info', className: 'px-4 py-2', orderable: false, searchable: false },
                 { data: 'mapping_status', name: 'mapping_status', className: 'px-4 py-2 text-center', searchable: false, orderable: false },
+                { data: 'reject_note', name: 'reject_note', className: 'px-4 py-2', orderable: false, searchable: false },
                 { data: 'action', name: 'action', orderable: false, searchable: false, className: 'px-4 py-2 text-right align-middle' }
             ],
             pageLength: 10,

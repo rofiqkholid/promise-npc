@@ -15,7 +15,9 @@ class NpcChecksheetApprovalController extends Controller
             $query = NpcChecksheet::with([
                 'npcPart.product.vehicleModel.customer', 
                 'npcPart.event.customerCategory.customer',
-                'npcPart.event.deliveryGroup'
+                'npcPart.event.deliveryGroup',
+                'rejectedBy',
+                'resubmittedBy'
             ])
                 ->whereHas('npcPart', function($q) {
                     $q->whereIn('status', ['WAITING_APPROVAL', 'FINISHED', 'OUTSTANDING', 'CLOSED']);
@@ -83,9 +85,44 @@ class NpcChecksheetApprovalController extends Controller
                     
                     if ($checksheet->approval_status === 'APPROVED') {
                         return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 border border-emerald-200 text-emerald-800 text-[10px] font-bold"><i class="fa-solid fa-check-double"></i> FULLY APPROVED</span>';
-                    } else {
-                        return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-100 border border-yellow-200 text-yellow-800 text-[10px] font-bold tracking-wide"><i class="fa-solid fa-hourglass-half animate-pulse"></i> ' . $levelName . '</span>';
                     }
+
+                    if ($checksheet->reject_reason) {
+                        $fromStage = $levelMap[$checksheet->rejected_from_stage] ?? str_replace('WAITING_', '', $checksheet->rejected_from_stage ?? '');
+                        $byUser = optional($checksheet->rejectedBy)->name;
+                        $byStr = $byUser ? 'by ' . e($byUser) : '';
+                        $fromStr = $fromStage ? ' (' . e($fromStage) . ')' : '';
+
+                        $html = '<div class="flex flex-col items-center gap-1 text-center min-w-[150px]">';
+                        $html .= '<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-100 border border-yellow-200 text-yellow-800 text-[10px] font-bold tracking-wide"><i class="fa-solid fa-hourglass-half animate-pulse"></i> Waiting: ' . e($levelName) . '</span>';
+                        
+                        if ($checksheet->resubmitted_at) {
+                            $resubUser = optional($checksheet->resubmittedBy)->name;
+                            $resubStr = $resubUser ? ' by ' . e($resubUser) : '';
+                            $html .= '<div class="w-full text-left text-xs bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700/60 p-1.5 rounded shadow-2xs">';
+                            $html .= '<div class="font-bold text-[10px] text-emerald-800 dark:text-emerald-300 flex items-center gap-1">';
+                            $html .= '<i class="fa-solid fa-circle-check text-emerald-500"></i> Revised / Resubmitted' . e($resubStr);
+                            $html .= '</div>';
+                            $html .= '</div>';
+                        } else {
+                            $html .= '<div class="w-full text-left text-xs bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800/60 p-1.5 rounded shadow-2xs">';
+                            $html .= '<div class="font-bold flex items-center justify-between gap-1 text-[10px] text-red-800 dark:text-red-300"><span class="flex items-center gap-1"><i class="fa-solid fa-circle-xmark text-red-500"></i> Rejected ' . e($byStr) . e($fromStr) . ':</span>';
+                            
+                            if ($checksheet->reject_photo_path) {
+                                $photoUrl = url('file/storage/' . ltrim(str_replace('public/', '', $checksheet->reject_photo_path), '/'));
+                                $html .= '<a href="' . $photoUrl . '" target="_blank" class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700 px-1.5 py-0.5 rounded hover:bg-blue-100 transition whitespace-nowrap" title="View Reject Photo"><i class="fa-solid fa-camera text-blue-500"></i> Photo</a>';
+                            }
+                            
+                            $html .= '</div>';
+                            $html .= '<div class="text-[11px] text-red-700 dark:text-red-200 whitespace-normal break-words leading-tight mt-0.5">' . nl2br(e($checksheet->reject_reason)) . '</div>';
+                            $html .= '</div>';
+                        }
+                        
+                        $html .= '</div>';
+                        return $html;
+                    }
+
+                    return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-100 border border-yellow-200 text-yellow-800 text-[10px] font-bold tracking-wide"><i class="fa-solid fa-hourglass-half animate-pulse"></i> ' . e($levelName) . '</span>';
                 })
                 ->addColumn('action', function($checksheet) {
                     $url = route('checksheet-approvals.show', $checksheet->hashed_id);
@@ -158,7 +195,7 @@ class NpcChecksheetApprovalController extends Controller
 
     public function show(NpcChecksheet $checksheet)
     {
-        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.event.customerCategory', 'npcPart.event.deliveryGroup', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail');
+        $checksheet->load('details', 'npcPart.product.specChildParts', 'npcPart.event.customerCategory', 'npcPart.event.deliveryGroup', 'npcPart.product.docPackage.currentRevision', 'npcPart.product.vehicleModel', 'npcPart.product.productDetail', 'rejectedBy');
         $part = $checksheet->npcPart;
         
         return view('tracking.checksheets.approval_show', compact('checksheet', 'part'));
@@ -258,13 +295,45 @@ class NpcChecksheetApprovalController extends Controller
             return redirect()->route('checksheet-approvals.show', $checksheet->hashed_id)->with('success', $msg);
         }
         
-
-
         if (!auth()->user()->canApproveChecksheetStage($status)) {
             abort(403, 'You do not have the required Role or Permission to approve/reject at this stage.');
         }
 
         if ($action === 'reject') {
+            $request->validate([
+                'reject_reason' => 'required|string|max:1000'
+            ]);
+
+            $updateData['reject_reason'] = $request->reject_reason;
+            $updateData['rejected_by_id'] = $userId;
+            $updateData['rejected_from_stage'] = $status;
+            $updateData['rejected_at'] = $now;
+            $updateData['resubmitted_by_id'] = null;
+            $updateData['resubmitted_at'] = null;
+
+            if ($request->hasFile('reject_photo')) {
+                $file = $request->file('reject_photo');
+                $filename = 'reject_' . $checksheet->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('checksheets/rejects', $filename, 'public');
+                $updateData['reject_photo_path'] = $path;
+            } elseif ($request->filled('reject_photo_base64')) {
+                $base64Data = $request->input('reject_photo_base64');
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+                    $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+                    $type = strtolower($type[1]);
+                    if (!in_array($type, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                        $type = 'jpg';
+                    }
+                    $base64Data = base64_decode($base64Data);
+                    if ($base64Data !== false) {
+                        $filename = 'reject_' . $checksheet->id . '_' . time() . '.' . $type;
+                        $path = 'checksheets/rejects/' . $filename;
+                        \Illuminate\Support\Facades\Storage::disk('public')->put($path, $base64Data);
+                        $updateData['reject_photo_path'] = $path;
+                    }
+                }
+            }
+
             if ($status === 'WAITING_MGM_MGR') {
                 $updateData['approval_status'] = 'WAITING_QE_MGR';
                 $updateData['qe_mgr_id'] = null;
@@ -297,12 +366,35 @@ class NpcChecksheetApprovalController extends Controller
                     $part->update(['status' => 'WAITING_MGM_CHECK']);
                 }
             } else {
+                if ($request->expectsJson()) {
+                    $request->session()->flash('error', 'Cannot reject at this state.');
+                    return response()->json(['redirect' => route('checksheet-approvals.show', $checksheet->hashed_id)]);
+                }
                 return redirect()->back()->with('error', 'Cannot reject at this state.');
             }
 
             $checksheet->update($updateData);
 
+            if ($request->expectsJson()) {
+                $request->session()->flash('success', 'Checksheet successfully rejected and returned to the previous step.');
+                return response()->json(['redirect' => $redirectUrl]);
+            }
+
             return redirect($redirectUrl)->with('success', 'Checksheet successfully rejected and returned to the previous step.');
+        }
+
+        // If currently approving at or past the stage that originally rejected it, clear active rejection data
+        if ($checksheet->rejected_from_stage && $status === $checksheet->rejected_from_stage) {
+            $updateData['reject_reason'] = null;
+            $updateData['rejected_by_id'] = null;
+            $updateData['rejected_from_stage'] = null;
+            $updateData['rejected_at'] = null;
+            $updateData['reject_photo_path'] = null;
+            $updateData['resubmitted_by_id'] = null;
+            $updateData['resubmitted_at'] = null;
+        } elseif ($checksheet->reject_reason) {
+            $updateData['resubmitted_by_id'] = $userId;
+            $updateData['resubmitted_at'] = $now;
         }
 
         if ($status === 'WAITING_QE_STAFF') {
@@ -337,6 +429,10 @@ class NpcChecksheetApprovalController extends Controller
             $updateData['mgm_mgr_id'] = $userId;
             $updateData['mgm_mgr_date'] = $now;
             $updateData['approval_status'] = 'APPROVED';
+            $updateData['reject_reason'] = null;
+            $updateData['rejected_by_id'] = null;
+            $updateData['rejected_from_stage'] = null;
+            $updateData['rejected_at'] = null;
 
             if ($part && $part->status === 'WAITING_APPROVAL') {
                 $part->update(['status' => 'FINISHED']);

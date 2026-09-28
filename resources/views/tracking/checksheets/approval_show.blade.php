@@ -32,6 +32,74 @@
         </div>
     </div>
 
+    @if($checksheet->reject_reason)
+    @php
+        $levelMap = [
+            'WAITING_QE_STAFF'   => 'QE Staff',
+            'WAITING_MGM_STAFF'  => 'NPC Staff',
+            'WAITING_QE_SPV'     => 'QE SPV',
+            'WAITING_MGM_SPV'    => 'NPC SPV',
+            'WAITING_QE_ASSMAN'  => 'QE Asst Mgr',
+            'WAITING_MGM_ASSMAN' => 'NPC Asst Mgr',
+            'WAITING_QE_MGR'     => 'QE Mgr',
+            'WAITING_MGM_MGR'    => 'NPC Mgr',
+            'APPROVED'           => 'Fully Approved'
+        ];
+        $fromStageName = $levelMap[$checksheet->rejected_from_stage] ?? str_replace('WAITING_', '', $checksheet->rejected_from_stage ?? '');
+    @endphp
+    @if($checksheet->resubmitted_at)
+    <!-- Telah Diperbaiki / Disesuaikan Banner -->
+    <div class="m-4 p-4 bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 rounded-r shadow-sm">
+        <div class="flex items-start gap-3">
+            <div class="text-emerald-500 text-xl font-bold mt-0.5"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="flex-1">
+                <h4 class="text-sm font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-2">
+                    Checksheet Revised & Resubmitted
+                    <span class="px-2 py-0.5 text-[11px] bg-emerald-200 dark:bg-emerald-800/60 text-emerald-900 dark:text-emerald-100 font-bold rounded">Resubmitted to Approver</span>
+                </h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Resubmitted by: <strong>{{ optional($checksheet->resubmittedBy)->name ?? 'User' }}</strong>
+                    on {{ \Carbon\Carbon::parse($checksheet->resubmitted_at)->format('d M Y, H:i') }}
+                </p>
+            </div>
+        </div>
+    </div>
+    @else
+    <!-- Checksheet Previously Rejected Banner -->
+    <div class="m-4 p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-r shadow-sm">
+        <div class="flex items-start gap-3">
+            <div class="text-red-500 text-xl font-bold mt-0.5"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="flex-1">
+                <h4 class="text-sm font-bold text-red-800 dark:text-red-300 uppercase tracking-wider flex items-center gap-2">
+                    Checksheet Previously Rejected (Perlu Perbaikan)
+                    @if($fromStageName)
+                        <span class="px-2 py-0.5 text-[11px] bg-red-200 dark:bg-red-800/60 text-red-900 dark:text-red-100 font-bold rounded">Returned from {{ $fromStageName }}</span>
+                    @endif
+                </h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Rejected by: <strong>{{ optional($checksheet->rejectedBy)->name ?? 'Approver' }}</strong>
+                    @if($checksheet->rejected_at) on {{ \Carbon\Carbon::parse($checksheet->rejected_at)->format('d M Y, H:i') }} @endif
+                </p>
+                <div class="mt-2 text-sm text-red-800 dark:text-red-200 font-medium bg-white dark:bg-gray-800 p-3 rounded border border-red-200 dark:border-red-800/50 shadow-2xs">
+                    <strong>Reason for Rejection:</strong> {{ $checksheet->reject_reason }}
+                </div>
+                @if($checksheet->reject_photo_path)
+                <div class="mt-3 pt-3 border-t border-red-200 dark:border-red-800/50">
+                    <span class="block text-xs font-bold text-red-800 dark:text-red-300 mb-1.5"><i class="fa-solid fa-camera text-red-500 mr-1"></i> Attached Rejection Photo:</span>
+                    <a href="{{ url('file/storage/' . ltrim(str_replace('public/', '', $checksheet->reject_photo_path), '/')) }}" target="_blank" class="inline-block group relative rounded overflow-hidden border border-red-300 dark:border-red-700 shadow-sm hover:shadow-md transition">
+                        <img src="{{ url('file/storage/' . ltrim(str_replace('public/', '', $checksheet->reject_photo_path), '/')) }}" alt="Reject Photo" class="h-32 w-auto object-cover rounded">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i> View Full Image
+                        </div>
+                    </a>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+    @endif
+    @endif
+
     <!-- Part Context Info -->
     <div class="px-4 py-2 grid grid-cols-2 md:grid-cols-5 gap-4 bg-slate-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div>
@@ -217,7 +285,7 @@
                 <button type="submit" name="action" value="save" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm" onclick="confirmAction(event, 'Are you sure you want to save changes? The checksheet will stay at the current approval level.');">
                     <i class="fa-solid fa-floppy-disk"></i> Save Changes
                 </button>
-                <button type="submit" name="action" value="reject" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm" onclick="confirmAction(event, 'Are you sure you want to reject and return to the previous level?');">
+                <button type="button" name="action" value="reject" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm" onclick="confirmRejectAction(event);">
                     <i class="fa-solid fa-rotate-left"></i> Reject
                 </button>
                 <button type="submit" name="action" value="approve" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white transition shadow-sm font-semibold flex items-center gap-2 text-sm" onclick="confirmAction(event, 'Are you sure you want to approve this checksheet as {{ $levelName }}?');">
@@ -489,11 +557,15 @@
             
             // Get action value from the clicked button or hidden input
             const actionInput = document.querySelector('input[name="action"]');
-            const action = actionInput ? actionInput.value : 'approve';
+            const action = window.lastTriggeredAction || (actionInput ? actionInput.value : 'approve');
+            const rejectReasonInput = document.querySelector('input[name="reject_reason"]');
+            const rejectReason = window.lastRejectReason || (rejectReasonInput ? rejectReasonInput.value : '');
             
             const payload = {
                 _token: '{{ csrf_token() }}',
                 action: action,
+                reject_reason: rejectReason,
+                reject_photo_base64: window.lastRejectPhotoBase64 || '',
                 role: '{{ $role ?? "" }}',
                 previous_url: previousUrl,
                 details_json: JSON.stringify(details)
@@ -558,6 +630,198 @@
                 submitViaFetch(details);
             });
         }
+
+        let currentRejectPhotoBase64 = null;
+        let currentRejectStream = null;
+
+        window.confirmRejectAction = function(event) {
+            event.preventDefault();
+            const form = document.getElementById('approval-form');
+            currentRejectPhotoBase64 = null;
+
+            Swal.fire({
+                title: 'Reject Checksheet & Return',
+                html: `
+                    <div class="text-left text-sm space-y-3">
+                        <div>
+                            <label class="block font-bold text-gray-700 dark:text-gray-200 mb-1">Reason for Rejection <span class="text-red-500">*</span></label>
+                            <textarea id="swal-reject-reason" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-800 dark:text-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Type reason for rejection here..."></textarea>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 dark:border-gray-700 pt-3">
+                            <label class="block font-bold text-gray-700 dark:text-gray-200 mb-1">Foto Bukti Reject (Opsional / Kamera)</label>
+                            
+                            <div class="flex flex-wrap gap-2 mb-2">
+                                <button type="button" id="btn-open-camera" onclick="startRejectCamera()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded shadow-sm transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-camera"></i> Ambil dari Kamera
+                                </button>
+                                <label class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded shadow-sm transition cursor-pointer flex items-center gap-1.5">
+                                    <i class="fa-solid fa-folder-open"></i> Upload File Foto
+                                    <input type="file" id="swal-reject-file" accept="image/*" capture="environment" class="hidden" onchange="handleRejectFileSelect(event)">
+                                </label>
+                            </div>
+
+                            <!-- Live Camera Feed Container -->
+                            <div id="reject-camera-container" class="hidden relative mb-2 bg-black rounded-md overflow-hidden border border-gray-700">
+                                <video id="reject-camera-video" autoplay playsinline class="w-full h-48 object-cover"></video>
+                                <div class="p-2 bg-gray-900 flex justify-between items-center">
+                                    <button type="button" onclick="snapRejectPhoto()" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-dot text-red-400"></i> Tangkap Foto
+                                    </button>
+                                    <button type="button" onclick="stopRejectCamera()" class="px-2.5 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">
+                                        Batal
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Photo Preview Container -->
+                            <div id="reject-preview-container" class="hidden relative border border-gray-300 dark:border-gray-600 rounded-md p-1 bg-gray-50 dark:bg-gray-800">
+                                <img id="reject-preview-img" class="w-full h-40 object-contain rounded">
+                                <button type="button" onclick="clearRejectPhoto()" class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full text-xs shadow" title="Hapus Foto">
+                                    <i class="fa-solid fa-times w-4 h-4 flex items-center justify-center"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: '<i class="fa-solid fa-rotate-left mr-1"></i> Confirm Reject',
+                cancelButtonText: 'Cancel',
+                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
+                didClose: () => {
+                    stopRejectCamera();
+                },
+                preConfirm: () => {
+                    const reason = document.getElementById('swal-reject-reason').value.trim();
+                    if (!reason) {
+                        Swal.showValidationMessage('Alasan reject wajib diisi!');
+                        return false;
+                    }
+                    return {
+                        reason: reason,
+                        photoBase64: currentRejectPhotoBase64
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.lastTriggeredAction = 'reject';
+                    window.lastRejectReason = result.value.reason;
+                    window.lastRejectPhotoBase64 = result.value.photoBase64;
+
+                    let hiddenAction = form.querySelector('input[name="action"]');
+                    if (!hiddenAction) {
+                        hiddenAction = document.createElement('input');
+                        hiddenAction.type = 'hidden';
+                        hiddenAction.name = 'action';
+                        form.appendChild(hiddenAction);
+                    }
+                    hiddenAction.value = 'reject';
+
+                    let hiddenReason = form.querySelector('input[name="reject_reason"]');
+                    if (!hiddenReason) {
+                        hiddenReason = document.createElement('input');
+                        hiddenReason.type = 'hidden';
+                        hiddenReason.name = 'reject_reason';
+                        form.appendChild(hiddenReason);
+                    }
+                    hiddenReason.value = result.value.reason;
+
+                    if (result.value.photoBase64) {
+                        let hiddenPhoto = form.querySelector('input[name="reject_photo_base64"]');
+                        if (!hiddenPhoto) {
+                            hiddenPhoto = document.createElement('input');
+                            hiddenPhoto.type = 'hidden';
+                            hiddenPhoto.name = 'reject_photo_base64';
+                            form.appendChild(hiddenPhoto);
+                        }
+                        hiddenPhoto.value = result.value.photoBase64;
+                    }
+
+                    if (typeof form.requestSubmit === 'function') {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                }
+            });
+        };
+
+        window.startRejectCamera = function() {
+            const container = document.getElementById('reject-camera-container');
+            const video = document.getElementById('reject-camera-video');
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("Browser Anda tidak mendukung akses kamera langsung. Silakan gunakan tombol Upload File Foto.");
+                return;
+            }
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(stream => {
+                    currentRejectStream = stream;
+                    video.srcObject = stream;
+                    container.classList.remove('hidden');
+                })
+                .catch(err => {
+                    console.error("Camera access error:", err);
+                    alert("Gagal mengakses kamera. Pastikan izin kamera telah diberikan.");
+                });
+        };
+
+        window.stopRejectCamera = function() {
+            if (currentRejectStream) {
+                currentRejectStream.getTracks().forEach(track => track.stop());
+                currentRejectStream = null;
+            }
+            const container = document.getElementById('reject-camera-container');
+            if (container) container.classList.add('hidden');
+        };
+
+        window.snapRejectPhoto = function() {
+            const video = document.getElementById('reject-camera-video');
+            if (!video || !currentRejectStream) return;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            currentRejectPhotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
+            stopRejectCamera();
+
+            const previewContainer = document.getElementById('reject-preview-container');
+            const previewImg = document.getElementById('reject-preview-img');
+            if (previewContainer && previewImg) {
+                previewImg.src = currentRejectPhotoBase64;
+                previewContainer.classList.remove('hidden');
+            }
+        };
+
+        window.handleRejectFileSelect = function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    currentRejectPhotoBase64 = evt.target.result;
+                    const previewContainer = document.getElementById('reject-preview-container');
+                    const previewImg = document.getElementById('reject-preview-img');
+                    if (previewContainer && previewImg) {
+                        previewImg.src = currentRejectPhotoBase64;
+                        previewContainer.classList.remove('hidden');
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        window.clearRejectPhoto = function() {
+            currentRejectPhotoBase64 = null;
+            const previewContainer = document.getElementById('reject-preview-container');
+            if (previewContainer) previewContainer.classList.add('hidden');
+            const fileInput = document.getElementById('swal-reject-file');
+            if (fileInput) fileInput.value = '';
+        };
 
         checkIfCanApprove();
     });

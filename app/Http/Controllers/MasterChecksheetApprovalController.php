@@ -90,6 +90,18 @@ class MasterChecksheetApprovalController extends Controller
                     }
                     return $html;
                 })
+                ->addColumn('reject_note', function ($product) {
+                    $status = optional($product->productDetail)->master_checksheet_status;
+                    $rejectReason = optional($product->productDetail)->reject_reason;
+                    if ($status === 'REJECTED' && $rejectReason) {
+                        $html = '<div class="text-xs bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800/60 p-2 rounded shadow-2xs min-w-[180px] max-w-[240px] text-left">';
+                        $html .= '<div class="font-bold flex items-center gap-1 text-[11px] mb-0.5 text-red-800 dark:text-red-300"><i class="fa-solid fa-comment-dots text-red-500"></i> Reject Reason:</div>';
+                        $html .= '<div class="text-[11px] text-red-700 dark:text-red-200 whitespace-normal break-words leading-relaxed">' . nl2br(e($rejectReason)) . '</div>';
+                        $html .= '</div>';
+                        return $html;
+                    }
+                    return '<span class="text-xs text-gray-400 font-normal italic">-</span>';
+                })
                 ->addColumn('action', function ($product) {
                     $buttons = '';
                     $status = optional($product->productDetail)->master_checksheet_status ?? 'DRAFT';
@@ -122,7 +134,7 @@ class MasterChecksheetApprovalController extends Controller
                         });
                     }
                 })
-                ->rawColumns(['customer', 'model', 'part_no', 'part_name', 'ecn_info', 'mapping_status', 'action'])
+                ->rawColumns(['customer', 'model', 'part_no', 'part_name', 'ecn_info', 'mapping_status', 'reject_note', 'action'])
                 ->make(true);
         }
 

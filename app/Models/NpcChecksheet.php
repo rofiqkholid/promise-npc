@@ -44,6 +44,13 @@ class NpcChecksheet extends Model
         'mgm_assman_id', 'mgm_assman_date',
         'mgm_mgr_id', 'mgm_mgr_date',
         'approval_status',
+        'reject_reason',
+        'rejected_by_id',
+        'rejected_from_stage',
+        'rejected_at',
+        'reject_photo_path',
+        'resubmitted_by_id',
+        'resubmitted_at',
     ];
 
     public function npcPart()
@@ -104,5 +111,15 @@ class NpcChecksheet extends Model
     public function mgmAssman()
     {
         return $this->belongsTo(User::class, 'mgm_assman_id', 'id');
+    }
+
+    public function rejectedBy()
+    {
+        return $this->belongsTo(User::class, 'rejected_by_id', 'id');
+    }
+
+    public function resubmittedBy()
+    {
+        return $this->belongsTo(User::class, 'resubmitted_by_id', 'id');
     }
 }

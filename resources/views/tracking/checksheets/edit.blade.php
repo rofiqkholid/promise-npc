@@ -47,6 +47,74 @@
         </div>
     </div>
 
+    @if($checksheet->reject_reason)
+    @php
+        $levelMap = [
+            'WAITING_QE_STAFF'   => 'QE Staff',
+            'WAITING_MGM_STAFF'  => 'NPC Staff',
+            'WAITING_QE_SPV'     => 'QE SPV',
+            'WAITING_MGM_SPV'    => 'NPC SPV',
+            'WAITING_QE_ASSMAN'  => 'QE Asst Mgr',
+            'WAITING_MGM_ASSMAN' => 'NPC Asst Mgr',
+            'WAITING_QE_MGR'     => 'QE Mgr',
+            'WAITING_MGM_MGR'    => 'NPC Mgr',
+            'APPROVED'           => 'Fully Approved'
+        ];
+        $fromStageName = $levelMap[$checksheet->rejected_from_stage] ?? str_replace('WAITING_', '', $checksheet->rejected_from_stage ?? '');
+    @endphp
+    @if($checksheet->resubmitted_at)
+    <!-- Telah Diperbaiki / Disesuaikan Banner -->
+    <div class="m-4 p-4 bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 rounded-r shadow-sm">
+        <div class="flex items-start gap-3">
+            <div class="text-emerald-500 text-xl font-bold mt-0.5"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="flex-1">
+                <h4 class="text-sm font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-2">
+                    Checksheet Revised & Resubmitted
+                    <span class="px-2 py-0.5 text-[11px] bg-emerald-200 dark:bg-emerald-800/60 text-emerald-900 dark:text-emerald-100 font-bold rounded">Resubmitted to Approver</span>
+                </h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Resubmitted by: <strong>{{ optional($checksheet->resubmittedBy)->name ?? 'User' }}</strong>
+                    on {{ \Carbon\Carbon::parse($checksheet->resubmitted_at)->format('d M Y, H:i') }}
+                </p>
+            </div>
+        </div>
+    </div>
+    @else
+    <!-- Checksheet Returned / Rejected Banner -->
+    <div class="m-4 p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-r shadow-sm">
+        <div class="flex items-start gap-3">
+            <div class="text-red-500 text-xl font-bold mt-0.5"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="flex-1">
+                <h4 class="text-sm font-bold text-red-800 dark:text-red-300 uppercase tracking-wider flex items-center gap-2">
+                    Checksheet Returned / Rejected (Perlu Perbaikan)
+                    @if($fromStageName)
+                        <span class="px-2 py-0.5 text-[11px] bg-red-200 dark:bg-red-800/60 text-red-900 dark:text-red-100 font-bold rounded">Returned from {{ $fromStageName }}</span>
+                    @endif
+                </h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Rejected by: <strong>{{ optional($checksheet->rejectedBy)->name ?? 'Approver' }}</strong>
+                    @if($checksheet->rejected_at) on {{ \Carbon\Carbon::parse($checksheet->rejected_at)->format('d M Y, H:i') }} @endif
+                </p>
+                <div class="mt-2 text-sm text-red-800 dark:text-red-200 font-medium bg-white dark:bg-gray-800 p-3 rounded border border-red-200 dark:border-red-800/50 shadow-2xs">
+                    <strong>Reason for Rejection:</strong> {{ $checksheet->reject_reason }}
+                </div>
+                @if($checksheet->reject_photo_path)
+                <div class="mt-3 pt-3 border-t border-red-200 dark:border-red-800/50">
+                    <span class="block text-xs font-bold text-red-800 dark:text-red-300 mb-1.5"><i class="fa-solid fa-camera text-red-500 mr-1"></i> Attached Rejection Photo:</span>
+                    <a href="{{ url('file/storage/' . ltrim(str_replace('public/', '', $checksheet->reject_photo_path), '/')) }}" target="_blank" class="inline-block group relative rounded overflow-hidden border border-red-300 dark:border-red-700 shadow-sm hover:shadow-md transition">
+                        <img src="{{ url('file/storage/' . ltrim(str_replace('public/', '', $checksheet->reject_photo_path), '/')) }}" alt="Reject Photo" class="h-32 w-auto object-cover rounded">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i> View Full Image
+                        </div>
+                    </a>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+    @endif
+    @endif
+
     <!-- Part Context Info -->
     <div class="px-4 py-2 grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div>
