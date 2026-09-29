@@ -230,16 +230,31 @@
         .img-wrapper {
             width: 100%;
             text-align: center;
-            margin: 4px 0;
+            margin: 6px 0;
             min-height: 75px;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 16px;
+            padding: 0 16px;
+            box-sizing: border-box;
         }
 
         .part-img {
             max-height: 70px;
-            max-width: 100%;
+            max-width: calc(100% - 90px);
+            object-fit: contain;
+            display: inline-block;
+            flex-shrink: 1;
+            min-width: 0;
+        }
+
+        .qr-code-img {
+            width: 70px;
+            height: 70px;
+            max-height: 70px;
+            max-width: 70px;
+            flex-shrink: 0;
             object-fit: contain;
             display: inline-block;
         }
@@ -258,6 +273,7 @@
         .cols-3 .signature-box { width: 90px !important; height: 50px !important; }
         .cols-3 .img-wrapper { min-height: 45px !important; margin: 2px 0 !important; }
         .cols-3 .part-img { max-height: 40px !important; }
+        .cols-3 .qr-code-img { width: 45px !important; height: 45px !important; max-height: 45px !important; max-width: 45px !important; }
 
         .cols-4 .label-card { padding: 8px; height: 250px; }
         .cols-4 .label-header h1 { font-size: 10px; }
@@ -273,6 +289,7 @@
         .cols-4 .signature-box span { font-size: 5px !important; }
         .cols-4 .img-wrapper { min-height: 35px !important; margin: 2px 0 !important; }
         .cols-4 .part-img { max-height: 30px !important; }
+        .cols-4 .qr-code-img { width: 35px !important; height: 35px !important; max-height: 35px !important; max-width: 35px !important; }
 
         /* ===== PRINT STYLES ===== */
         @media print {
@@ -386,11 +403,11 @@
                     $qrData = route('tracking.scan', ['part' => $part->hashed_id]);
                     $qrCode = (new \chillerlan\QRCode\QRCode)->render($qrData);
                 @endphp
-                <div class="img-wrapper" style="gap: 16px;">
+                <div class="img-wrapper">
                     @if($labelImgUrl)
                     <img src="{{ $labelImgUrl }}" class="part-img" alt="Part Image">
                     @endif
-                    <img src="{{ $qrCode }}" class="part-img" alt="QR Code Checksheet" title="Scan to fill checksheet">
+                    <img src="{{ $qrCode }}" class="qr-code-img" alt="QR Code Checksheet" title="Scan to fill checksheet">
                 </div>
 
                 <div class="label-fields">
