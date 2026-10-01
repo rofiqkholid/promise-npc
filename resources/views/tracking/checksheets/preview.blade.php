@@ -328,17 +328,38 @@
                 $detailsArray = [];
                 
                 $historyItems = [];
+                $checkCount = max(1, min(optional($checksheet->npcPart)->qty ?? 1, 12));
+                $isCompletedOrApproved = in_array(optional($checksheet->npcPart)->status, ['WAITING_MGM_CHECK', 'APPROVED', 'FINISHED', 'COMPLETED']) 
+                    || !empty($checksheet->qe_check_date) 
+                    || !empty($checksheet->mgm_check_date);
+
                 if ($product && $product->historyProblems && $product->historyProblems->count() > 0) {
                     foreach ($product->historyProblems as $hp) {
+                        $pointText = '[' . $hp->created_at->format('d/m/y') . '] ' . $hp->problem_description;
+                        $detailMatch = $checksheet->details->first(function($d) use ($pointText, $hp) {
+                            return $d->point_check === $pointText || str_contains(strtolower($d->point_check), strtolower($hp->problem_description));
+                        });
+
+                        $samples = $detailMatch ? ($detailMatch->samples ?? []) : [];
+                        $result = $detailMatch ? ($detailMatch->row_result ?? '') : '';
+
+                        if (empty($samples) && $isCompletedOrApproved) {
+                            for ($s = 1; $s <= $checkCount; $s++) {
+                                $samples[$s] = 'OK';
+                            }
+                            $result = 'OK';
+                        }
+
                         $historyItems[] = [
                             'cat' => 'History Problem',
-                            'point' => '[' . $hp->created_at->format('d/m/y') . '] ' . $hp->problem_description,
+                            'point' => $pointText,
                             'std' => '',
-                            'samples' => [],
-                            'result' => ''
+                            'samples' => $samples,
+                            'result' => $result
                         ];
                     }
                 }
+
                 while (count($historyItems) < 4) {
                     $historyItems[] = [
                         'cat' => 'History Problem',
@@ -348,6 +369,7 @@
                         'result' => ''
                     ];
                 }
+
                 foreach ($historyItems as $hi) {
                     $detailsArray[] = $hi;
                 }
@@ -355,7 +377,16 @@
                 foreach($checksheet->details as $detail) {
                     $category = 'Quality';
                     $pcLow = trim(strtolower($detail->point_check));
-                    if (str_contains($pcLow, 'history') || str_contains($pcLow, 'problem')) {
+                    if (str_contains($pcLow, 'history') || str_contains($pcLow, 'problem') || str_starts_with($detail->point_check, '[')) {
+                        // Skip if already added in historyItems to prevent duplicates
+                        $alreadyAdded = false;
+                        foreach ($historyItems as $hi) {
+                            if ($hi['point'] === $detail->point_check) {
+                                $alreadyAdded = true;
+                                break;
+                            }
+                        }
+                        if ($alreadyAdded) continue;
                         $category = 'History Problem';
                     } elseif (
                         $pcLow === 'pallet usage' || 
@@ -366,12 +397,22 @@
                     ) {
                         $category = 'Packaging';
                     }
+
+                    $samples = $detail->samples ?? [];
+                    $result = $detail->row_result ?? '';
+                    if (empty($samples) && $category === 'History Problem' && $isCompletedOrApproved) {
+                        for ($s = 1; $s <= $checkCount; $s++) {
+                            $samples[$s] = 'OK';
+                        }
+                        $result = 'OK';
+                    }
+
                     $detailsArray[] = [
                         'cat' => $category,
                         'point' => $detail->point_check,
                         'std' => $detail->standard,
-                        'samples' => $detail->samples ?? [],
-                        'result' => $detail->row_result,
+                        'samples' => $samples,
+                        'result' => $result,
                         'ng_photo' => $detail->ng_photo_path
                     ];
                 }

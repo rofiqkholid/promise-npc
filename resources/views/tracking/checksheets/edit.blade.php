@@ -238,25 +238,75 @@
                     @endif
                 </div>
 
+                @php
+                    $checkCount = max(1, min($part->qty, 12));
+                    $historyDetails = $checksheet->details->filter(function($d) {
+                        $pcLow = trim(strtolower($d->point_check));
+                        return str_contains($pcLow, 'history') || str_contains($pcLow, 'problem') || str_starts_with($d->point_check, '[');
+                    });
+                @endphp
+
                 <div class="mb-4">
                     <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">History Problem</h3>
                     <p class="text-xs text-gray-500 mt-1">List of problems previously found on this Product / Part Number in the past.</p>
                 </div>
 
-                <div class="mb-6 p-4 border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/50">
-                    <!-- Past History (Read-only) -->
-                    <ul class="list-disc pl-5 space-y-1 mb-4 text-sm text-gray-700 dark:text-gray-300">
+                <div class="mb-6 p-4 border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/50 rounded-lg">
+                    <!-- Past History (With Checklists) -->
+                    <div class="space-y-3 mb-4">
                         @forelse(optional($part->product)->historyProblems ?? [] as $history)
-                            <li class="font-medium text-red-700 dark:text-red-400">
-                                {{ $history->problem_description }}
-                                <span class="text-xs text-gray-500 dark:text-gray-500 ml-2 font-normal italic">
-                                    (Found on {{ $history->created_at->format('d M Y') }})
-                                </span>
-                            </li>
+                            @php
+                                $pointText = '[' . $history->created_at->format('d/m/y') . '] ' . $history->problem_description;
+                                $historyDetail = $historyDetails->first(function($d) use ($pointText, $history) {
+                                    return $d->point_check === $pointText || str_contains(strtolower($d->point_check), strtolower($history->problem_description));
+                                });
+                                $detailId = optional($historyDetail)->id;
+                            @endphp
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800/60 rounded-md shadow-2xs">
+                                <div class="flex-1">
+                                    <span class="font-semibold text-red-700 dark:text-red-400 text-sm">
+                                        {{ $history->problem_description }}
+                                    </span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 ml-2 italic">
+                                        (Found on {{ $history->created_at->format('d M Y') }})
+                                    </span>
+                                </div>
+                                @if($detailId)
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Samples:</span>
+                                    <div class="flex items-center gap-1.5 overflow-x-auto">
+                                        @for($i = 1; $i <= $checkCount; $i++)
+                                        @php
+                                            $sampleValue = $historyDetail->samples[$i] ?? '';
+                                            if (empty($sampleValue) && in_array($part->status, ['APPROVED', 'FINISHED', 'COMPLETED'])) {
+                                                $sampleValue = 'OK';
+                                            }
+                                        @endphp
+                                        <div class="flex flex-col items-center">
+                                            <span class="text-[10px] text-gray-400 mb-0.5">{{ $i }}</span>
+                                            <div class="px-2 py-1 border dark:border-gray-700 rounded text-center cursor-pointer sample-cell select-none bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 transition" data-detail-id="{{ $detailId }}" data-sample-index="{{ $i }}">
+                                                <input type="hidden" data-detail-id="{{ $detailId }}" data-sample-index="{{ $i }}" value="{{ $sampleValue }}" class="sample-input-{{ $detailId }}">
+                                                <div class="flex items-center justify-center h-6 w-6 mx-auto icon-container">
+                                                    @if($sampleValue === 'OK')
+                                                        <i class="fa-solid fa-circle text-green-500 text-base"></i>
+                                                    @elseif($sampleValue === 'NG')
+                                                        <i class="fa-solid fa-xmark text-red-500 text-lg"></i>
+                                                    @else
+                                                        <i class="fa-solid fa-minus text-gray-300 dark:text-gray-600"></i>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endfor
+                                        <input type="hidden" data-detail-id="{{ $detailId }}" id="row-result-{{ $detailId }}" value="{{ $historyDetail->row_result ?? 'OK' }}" {{ $readonly ? 'disabled' : '' }}>
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
                         @empty
-                            <li class="text-gray-500 italic text-sm">No defect history yet (History Problem) for this part.</li>
+                            <div class="text-gray-500 italic text-sm">No defect history yet (History Problem) for this part.</div>
                         @endforelse
-                    </ul>
+                    </div>
 
                     <!-- New History Input -->
                     @if(!$readonly)
@@ -264,12 +314,30 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Add New History Problem <span class="text-gray-500 text-xs font-normal">(Fill in if there are defect findings outside the checklist)</span>
                         </label>
-                        <div id="dynamic-history-wrapper" class="space-y-2">
-                            <div class="flex items-center gap-2 history-row">
-                                <input type="text" name="new_history_problems[]" placeholder="Description of new problem..." class="flex-1 text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-800 dark:text-white">
-                                <button type="button" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 transition add-history-btn">
-                                    <i class="fa-solid fa-plus"></i>
-                                </button>
+                        <div id="dynamic-history-wrapper" class="space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800/60 rounded-md shadow-2xs history-row">
+                                <div class="flex-1">
+                                    <input type="text" name="new_history_problems[]" placeholder="Description of new problem..." class="w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-800 dark:text-white rounded-md">
+                                </div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Samples:</span>
+                                    <div class="flex items-center gap-1.5 overflow-x-auto">
+                                        @for($i = 1; $i <= $checkCount; $i++)
+                                        <div class="flex flex-col items-center">
+                                            <span class="text-[10px] text-gray-400 mb-0.5">{{ $i }}</span>
+                                            <div class="px-2 py-1 border dark:border-gray-700 rounded text-center cursor-pointer sample-cell new-history-sample-cell select-none bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 transition" data-sample-index="{{ $i }}">
+                                                <input type="hidden" data-sample-index="{{ $i }}" value="" class="new-history-sample-input">
+                                                <div class="flex items-center justify-center h-6 w-6 mx-auto icon-container">
+                                                    <i class="fa-solid fa-minus text-gray-300 dark:text-gray-600"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endfor
+                                    </div>
+                                    <button type="button" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 transition add-history-btn rounded-md" title="Add another problem row">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -298,9 +366,15 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                            @forelse($checksheet->details as $index => $detail)
+                            @php
+                                $normalDetails = $checksheet->details->reject(function($d) {
+                                    $pcLow = trim(strtolower($d->point_check));
+                                    return str_contains($pcLow, 'history') || str_contains($pcLow, 'problem') || str_starts_with($d->point_check, '[');
+                                });
+                            @endphp
+                            @forelse($normalDetails as $detail)
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                                <td class="px-4 py-3 border-r dark:border-gray-700 text-center text-gray-500">{{ $index + 1 }}</td>
+                                <td class="px-4 py-3 border-r dark:border-gray-700 text-center text-gray-500">{{ $loop->iteration }}</td>
                                 <td class="px-4 py-3 border-r dark:border-gray-700 font-medium text-gray-800 dark:text-gray-200 whitespace-normal min-w-[200px]">
                                     {{ $detail->point_check }}
                                 </td>
@@ -413,6 +487,7 @@
         }
 
         // Dynamic History Problem Inputs
+        const checkCount = {{ $checkCount }};
         const historyWrapper = document.getElementById('dynamic-history-wrapper');
         if (historyWrapper) {
             historyWrapper.addEventListener('click', function(e) {
@@ -420,62 +495,142 @@
                 const removeBtn = e.target.closest('.remove-history-btn');
                 
                 if (addBtn) {
+                    let sampleColsHtml = '';
+                    for (let i = 1; i <= checkCount; i++) {
+                        sampleColsHtml += `
+                            <div class="flex flex-col items-center">
+                                <span class="text-[10px] text-gray-400 mb-0.5">${i}</span>
+                                <div class="px-2 py-1 border dark:border-gray-700 rounded text-center cursor-pointer sample-cell new-history-sample-cell select-none bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 transition" data-sample-index="${i}">
+                                    <input type="hidden" data-sample-index="${i}" value="" class="new-history-sample-input">
+                                    <div class="flex items-center justify-center h-6 w-6 mx-auto icon-container">
+                                        <i class="fa-solid fa-minus text-gray-300 dark:text-gray-600"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
                     const newRow = document.createElement('div');
-                    newRow.className = 'flex items-center gap-2 history-row mt-2';
+                    newRow.className = 'flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800/60 rounded-md shadow-2xs history-row mt-2';
                     newRow.innerHTML = `
-                        <input type="text" name="new_history_problems[]" placeholder="Description of new problem..." class="flex-1 text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-800 dark:text-white">
-                        <button type="button" class="px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-800/60 text-red-700 dark:text-red-400 transition remove-history-btn">
-                            <i class="fa-solid fa-minus"></i>
-                        </button>
+                        <div class="flex-1">
+                            <input type="text" name="new_history_problems[]" placeholder="Description of new problem..." class="w-full text-sm border-gray-300 dark:border-gray-600 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-800 dark:text-white rounded-md">
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Samples:</span>
+                            <div class="flex items-center gap-1.5 overflow-x-auto">
+                                ${sampleColsHtml}
+                            </div>
+                            <button type="button" class="px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-800/60 text-red-700 dark:text-red-400 transition remove-history-btn rounded-md" title="Remove problem row">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                        </div>
                     `;
                     historyWrapper.appendChild(newRow);
                 }
                 
                 if (removeBtn) {
                     removeBtn.closest('.history-row').remove();
+                    updateOverallFormStatus();
                 }
             });
         }
 
-        // Sample Check Toggle Logic
-        document.querySelectorAll('.sample-cell').forEach(cell => {
-            cell.addEventListener('click', function() {
-                const resultElement = this.closest('tr').querySelector('input[id^="row-result-"]');
-                if (!resultElement || resultElement.disabled) return; // Prevent if readonly
-                
-                const detailId = this.dataset.detailId;
-                const input = this.querySelector('input[type="hidden"]');
-                const iconContainer = this.querySelector('.icon-container');
-                
-                let currentValue = input.value;
-                let newValue, iconHtml;
+        // Sample Check Toggle Logic (Using event delegation on document)
+        document.addEventListener('click', function(e) {
+            const cell = e.target.closest('.sample-cell');
+            if (!cell) return;
 
-                if (currentValue === '') {
-                    newValue = 'OK';
-                    iconHtml = '<i class="fa-solid fa-circle text-green-500 text-lg"></i>';
-                } else if (currentValue === 'OK') {
-                    newValue = 'NG';
-                    iconHtml = '<i class="fa-solid fa-xmark text-red-500 text-xl"></i>';
-                } else {
-                    newValue = '';
-                    iconHtml = '<i class="fa-solid fa-minus text-gray-300 dark:text-gray-600"></i>';
+            // Require history problem description to be filled first for new history rows
+            const historyRow = cell.closest('.history-row');
+            if (historyRow) {
+                const textInput = historyRow.querySelector('input[name="new_history_problems[]"]');
+                if (textInput && textInput.value.trim() === '') {
+                    textInput.focus();
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Problem Description Required',
+                            text: 'Please enter the problem description first before filling in sample results!',
+                            confirmButtonColor: '#ea580c'
+                        });
+                    } else {
+                        alert('Please enter the problem description first before filling in sample results!');
+                    }
+                    return;
                 }
+            }
 
-                if (newValue === 'NG') {
-                    const pointName = this.closest('tr').querySelector('td:nth-child(2)').textContent.trim();
+            const detailId = cell.dataset.detailId;
+            if (detailId) {
+                const resultElement = document.getElementById(`row-result-${detailId}`);
+                if (resultElement && resultElement.disabled) return; // Prevent if readonly
+            }
+            
+            const input = cell.querySelector('input[type="hidden"]');
+            const iconContainer = cell.querySelector('.icon-container');
+            if (!input || !iconContainer) return;
+            
+            let currentValue = input.value;
+            let newValue, iconHtml;
+
+            if (currentValue === '') {
+                newValue = 'OK';
+                iconHtml = '<i class="fa-solid fa-circle text-green-500 text-base"></i>';
+            } else if (currentValue === 'OK') {
+                newValue = 'NG';
+                iconHtml = '<i class="fa-solid fa-xmark text-red-500 text-lg"></i>';
+            } else {
+                newValue = '';
+                iconHtml = '<i class="fa-solid fa-minus text-gray-300 dark:text-gray-600"></i>';
+            }
+
+            if (newValue === 'NG') {
+                let pointName = 'History Problem';
+                if (detailId) {
+                    const tr = cell.closest('tr');
+                    if (tr && tr.querySelector('td:nth-child(2)')) {
+                        pointName = tr.querySelector('td:nth-child(2)').textContent.trim();
+                    } else {
+                        const historyBox = cell.closest('.flex-col, .flex');
+                        if (historyBox && historyBox.querySelector('.font-semibold')) {
+                            pointName = historyBox.querySelector('.font-semibold').textContent.trim();
+                        }
+                    }
+
                     openNgPhotoModal(detailId, pointName).then((result) => {
                         if (result && result.isConfirmed) {
                             input.value = 'NG';
                             iconContainer.innerHTML = iconHtml;
                             calculateRowResult(detailId);
+                        } else {
+                            // Revert to previous value if NG modal cancelled
+                            input.value = currentValue;
+                            iconContainer.innerHTML = (currentValue === 'OK') 
+                                ? '<i class="fa-solid fa-circle text-green-500 text-base"></i>' 
+                                : '<i class="fa-solid fa-minus text-gray-300 dark:text-gray-600"></i>';
+                            calculateRowResult(detailId);
                         }
                     });
                 } else {
-                    input.value = newValue;
+                    // For new history problem without detailId yet
+                    const historyRow = cell.closest('.history-row');
+                    const textInput = historyRow ? historyRow.querySelector('input[name="new_history_problems[]"]') : null;
+                    if (textInput && textInput.value.trim() !== '') {
+                        pointName = textInput.value.trim();
+                    }
+                    input.value = 'NG';
                     iconContainer.innerHTML = iconHtml;
-                    calculateRowResult(detailId);
+                    updateOverallFormStatus();
                 }
-            });
+            } else {
+                input.value = newValue;
+                iconContainer.innerHTML = iconHtml;
+                if (detailId) {
+                    calculateRowResult(detailId);
+                } else {
+                    updateOverallFormStatus();
+                }
+            }
         });
 
         function calculateRowResult(detailId) {
@@ -483,7 +638,7 @@
             const resultInput = document.getElementById(`row-result-${detailId}`);
             const resultDisplay = document.getElementById(`row-result-display-${detailId}`);
             const photoContainer = document.getElementById(`ng-photo-container-${detailId}`);
-            if (!resultInput || !resultDisplay) return;
+            if (!resultInput) return;
 
             if (inputs.length > 0) {
                 let hasNg = false;
@@ -498,29 +653,28 @@
 
                 if (hasNg) {
                     resultInput.value = 'NG';
-                    resultDisplay.textContent = 'NG';
-                    updateSelectStyle(resultDisplay, 'NG');
+                    if (resultDisplay) { resultDisplay.textContent = 'NG'; updateSelectStyle(resultDisplay, 'NG'); }
                     if (photoContainer) photoContainer.classList.remove('hidden');
                 } else if (allOk && !hasEmpty) {
                     resultInput.value = 'OK';
-                    resultDisplay.textContent = 'OK';
-                    updateSelectStyle(resultDisplay, 'OK');
+                    if (resultDisplay) { resultDisplay.textContent = 'OK'; updateSelectStyle(resultDisplay, 'OK'); }
                     if (photoContainer) photoContainer.classList.add('hidden');
                 } else {
                     resultInput.value = '';
-                    resultDisplay.textContent = '- Auto -';
-                    updateSelectStyle(resultDisplay, '');
+                    if (resultDisplay) { resultDisplay.textContent = '- Auto -'; updateSelectStyle(resultDisplay, ''); }
                     if (photoContainer) photoContainer.classList.add('hidden');
                 }
             } else {
-                if (resultInput.value === 'NG') {
-                    updateSelectStyle(resultDisplay, 'NG');
-                    if (photoContainer) photoContainer.classList.remove('hidden');
-                } else if (resultInput.value === 'OK') {
-                    updateSelectStyle(resultDisplay, 'OK');
-                    if (photoContainer) photoContainer.classList.add('hidden');
-                } else {
-                    if (photoContainer) photoContainer.classList.add('hidden');
+                if (resultDisplay) {
+                    if (resultInput.value === 'NG') {
+                        updateSelectStyle(resultDisplay, 'NG');
+                        if (photoContainer) photoContainer.classList.remove('hidden');
+                    } else if (resultInput.value === 'OK') {
+                        updateSelectStyle(resultDisplay, 'OK');
+                        if (photoContainer) photoContainer.classList.add('hidden');
+                    } else {
+                        if (photoContainer) photoContainer.classList.add('hidden');
+                    }
                 }
             }
             
@@ -537,6 +691,10 @@
             allSelects.forEach(select => {
                 if (select.value === 'NG') hasNg = true;
                 if (!select.value || select.value === '') hasEmpty = true;
+            });
+
+            document.querySelectorAll('.new-history-sample-input').forEach(sInput => {
+                if (sInput.value === 'NG') hasNg = true;
             });
 
             const btnText = document.getElementById('submit-btn-text');
@@ -584,13 +742,23 @@
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Submitting...';
             }
 
-            // Extract new history problems from the DOM
-            const historyInputs = form.querySelectorAll('input[name="new_history_problems[]"]');
+            // Extract new history problems and samples from the DOM
+            const historyRows = form.querySelectorAll('.history-row');
             let newHistoryProblems = [];
-            if (historyInputs.length > 0) {
-                historyInputs.forEach(input => {
-                    if (input.value.trim() !== '') {
-                        newHistoryProblems.push(input.value.trim());
+            let newHistorySamples = [];
+            if (historyRows.length > 0) {
+                historyRows.forEach(row => {
+                    const textInput = row.querySelector('input[name="new_history_problems[]"]');
+                    if (textInput && textInput.value.trim() !== '') {
+                        newHistoryProblems.push(textInput.value.trim());
+                        let samplesObj = {};
+                        row.querySelectorAll('.new-history-sample-input').forEach(sInput => {
+                            const sIdx = sInput.dataset.sampleIndex;
+                            if (sIdx && sInput.value) {
+                                samplesObj[sIdx] = sInput.value;
+                            }
+                        });
+                        newHistorySamples.push(samplesObj);
                     }
                 });
             }
@@ -603,8 +771,10 @@
                     _token: '{{ csrf_token() }}',
                     role: role,
                     previous_url: previousUrl,
+                    details_json: JSON.stringify(details),
                     accuracy_percentage: form.querySelector('[name="accuracy_percentage"]') ? form.querySelector('[name="accuracy_percentage"]').value : '',
-                    new_history_problems: newHistoryProblems
+                    new_history_problems: newHistoryProblems,
+                    new_history_samples: newHistorySamples
                 };
 
                 const fileInput = form.querySelector('input[name="attachment_file"]');
@@ -676,7 +846,8 @@
                     previous_url: previousUrl,
                     details_json: JSON.stringify(details),
                     final_result: form.querySelector('[name="final_result"]') ? form.querySelector('[name="final_result"]').value : '',
-                    new_history_problems: newHistoryProblems
+                    new_history_problems: newHistoryProblems,
+                    new_history_samples: newHistorySamples
                 };
                 
                 fetchOptions = {
@@ -812,12 +983,12 @@
                     <p class="text-xs text-gray-500 font-semibold">Point: <span class="text-gray-800 dark:text-gray-200 font-bold">${pointCheckName}</span></p>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1"><i class="fa-solid fa-comment-dots text-red-500 mr-1"></i> NG Reason / Description:</label>
-                        <textarea id="swal-ng-reason" rows="2" class="w-full text-xs p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:ring-1 focus:ring-blue-500" placeholder="Explain reason / description for NG finding...">${existingReason}</textarea>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1"><i class="fa-solid fa-comment-dots text-red-500 mr-1"></i> NG Reason / Description <span class="text-red-500 font-bold">*Required</span>:</label>
+                        <textarea id="swal-ng-reason" rows="2" class="w-full text-xs p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:ring-1 focus:ring-blue-500" placeholder="Explain reason / description for NG finding (Required)...">${existingReason}</textarea>
                     </div>
 
                     <div class="pt-2 border-t border-gray-200 dark:border-gray-700">
-                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5"><i class="fa-solid fa-camera text-red-500 mr-1"></i> Photo Evidence:</label>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5"><i class="fa-solid fa-camera text-red-500 mr-1"></i> Photo Evidence <span class="text-gray-400 font-normal">(Optional)</span>:</label>
                         <div class="flex items-center gap-2">
                             <button type="button" onclick="startNgCamera()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded shadow transition inline-flex items-center gap-1">
                                 <i class="fa-solid fa-video"></i> Use Camera
@@ -860,9 +1031,16 @@
             preConfirm: () => {
                 const previewImg = document.getElementById('ng-preview-img');
                 const reasonInput = document.getElementById('swal-ng-reason');
+                const reasonText = reasonInput ? reasonInput.value.trim() : '';
+
+                if (!reasonText) {
+                    Swal.showValidationMessage('NG Reason is required! Please explain the defect finding.');
+                    return false;
+                }
+
                 return {
-                    photo: previewImg ? previewImg.src : null,
-                    reason: reasonInput ? reasonInput.value.trim() : ''
+                    photo: (previewImg && previewImg.src && previewImg.src !== window.location.href) ? previewImg.src : null,
+                    reason: reasonText
                 };
             }
         }).then((result) => {

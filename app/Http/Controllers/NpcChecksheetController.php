@@ -97,6 +97,20 @@ class NpcChecksheetController extends Controller
                 });
             }
         }
+
+        // Auto-create history problem details if product has history problems
+        if ($part->product && $part->product->historyProblems && $part->product->historyProblems->isNotEmpty()) {
+            foreach ($part->product->historyProblems as $hp) {
+                $pointText = '[' . $hp->created_at->format('d/m/y') . '] ' . $hp->problem_description;
+                \Spatie\Activitylog\Facades\Activity::withoutLogs(function() use ($checksheet, $pointText) {
+                    NpcChecksheetDetail::create([
+                        'npc_checksheet_id' => $checksheet->id,
+                        'point_check'       => $pointText,
+                        'standard'          => null,
+                    ]);
+                });
+            }
+        }
     }
 
     /**
@@ -119,8 +133,31 @@ class NpcChecksheetController extends Controller
      */
     public function edit(NpcChecksheet $checksheet)
     {
-        $checksheet->load('details', 'npcPart.checkpoints', 'qeChecker', 'mgmChecker');
+        $checksheet->load('details', 'npcPart.checkpoints', 'qeChecker', 'mgmChecker', 'npcPart.product.historyProblems');
         $part = $checksheet->npcPart;
+
+        // Ensure all product history problems exist in checksheet details
+        if ($part && $part->product && $part->product->historyProblems->isNotEmpty()) {
+            foreach ($part->product->historyProblems as $hp) {
+                $pointText = '[' . $hp->created_at->format('d/m/y') . '] ' . $hp->problem_description;
+                
+                $existingDetail = $checksheet->details->first(function($d) use ($hp, $pointText) {
+                    return $d->point_check === $pointText || 
+                           str_contains(strtolower($d->point_check), strtolower($hp->problem_description));
+                });
+
+                if (!$existingDetail) {
+                    $newDetail = NpcChecksheetDetail::create([
+                        'npc_checksheet_id' => $checksheet->id,
+                        'point_check'       => $pointText,
+                        'standard'          => null,
+                        'samples'           => null,
+                        'row_result'        => null,
+                    ]);
+                    $checksheet->details->push($newDetail);
+                }
+            }
+        }
 
         $previousUrl = url()->previous();
         if ($previousUrl == url()->current()) {
@@ -161,6 +198,122 @@ class NpcChecksheetController extends Controller
         ]);
 
         $part = $checksheet->npcPart;
+
+        // Process details_json if present (for both QC and MGM roles)
+        $detailsInput = [];
+        $base64String = '';
+        
+        if ($request->has('details_json_chunks')) {
+            $base64String = implode('', $request->input('details_json_chunks'));
+        } elseif ($request->filled('details_json')) {
+            $base64String = $request->details_json;
+        }
+
+        if (!empty($base64String)) {
+            // Decode the base64 string first (to bypass WAF rules)
+            $decodedString = base64_decode($base64String, true);
+            $decoded = null;
+            if ($decodedString !== false) {
+                $decoded = json_decode($decodedString, true);
+            }
+            
+            // Fallback if not base64 encoded
+            if (!is_array($decoded)) {
+                $decoded = json_decode($request->details_json, true);
+            }
+            
+            if (is_array($decoded)) {
+                $detailsInput = $decoded;
+            }
+        } elseif ($request->has('details') && is_array($request->details)) {
+            $detailsInput = $request->details;
+        }
+
+        $hasNg = false;
+        $hasEmpty = empty($detailsInput) && $checksheet->details()->count() > 0;
+        $ngDescriptions = [];
+        if (!empty($detailsInput)) {
+            foreach ($detailsInput as $id => $data) {
+                $detail = NpcChecksheetDetail::find($id);
+                if ($detail && $detail->npc_checksheet_id == $checksheet->id) {
+                    $rowResult = $data['row_result'] ?? null;
+                    if ($rowResult === 'NG') {
+                        $hasNg = true;
+                        $ngDescriptions[] = "NG found on point: " . $detail->point_check;
+                    }
+                    if (empty($rowResult)) {
+                        $hasEmpty = true;
+                    }
+                    $detailUpdate = [
+                        'row_result' => $rowResult,
+                        'samples' => $data['samples'] ?? null,
+                    ];
+
+                    if (!empty($data['ng_photo_base64'])) {
+                        $base64Data = $data['ng_photo_base64'];
+                        if ($base64Data === 'REMOVE') {
+                            $detailUpdate['ng_photo_path'] = null;
+                        } elseif (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+                            $imageData = substr($base64Data, strpos($base64Data, ',') + 1);
+                            $ext = strtolower($type[1]);
+                            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                                $ext = 'jpg';
+                            }
+                            $decodedImg = base64_decode($imageData);
+                            if ($decodedImg !== false) {
+                                $filename = 'ng_detail_' . $detail->id . '_' . time() . '.' . $ext;
+                                $path = 'checksheets/ng_evidence/' . $filename;
+                                Storage::disk('public')->put($path, $decodedImg);
+                                $detailUpdate['ng_photo_path'] = $path;
+                            }
+                        }
+                    }
+
+                    if (array_key_exists('ng_reason', $data)) {
+                        $detailUpdate['ng_reason'] = $data['ng_reason'];
+                    }
+
+                    $detail->update($detailUpdate);
+                }
+            }
+        }
+
+        // Save manual history problems first (for both QC and MGM)
+        if ($request->has('new_history_problems') && is_array($request->new_history_problems)) {
+            $problems = array_filter($request->new_history_problems, function($val) {
+                return !empty(trim($val));
+            });
+
+            if (!empty($problems) && $part && $part->product) {
+                $newSamplesMap = $request->input('new_history_samples', []);
+                $checkCount = max(1, min($part->qty, 12));
+
+                foreach ($problems as $index => $probDesc) {
+                    $desc = trim($probDesc);
+                    \App\Models\ProductHistoryProblem::create([
+                        'product_id' => $part->product->id,
+                        'problem_description' => $desc,
+                        'npc_part_id_finder' => $part->id,
+                        'created_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now(),
+                    ]);
+
+                    $pointText = '[' . Carbon::now()->format('d/m/y') . '] ' . $desc;
+                    $sampleData = !empty($newSamplesMap[$index]) ? $newSamplesMap[$index] : null;
+
+                    $rowResult = is_array($sampleData) && in_array('NG', $sampleData) ? 'NG' : (is_array($sampleData) && in_array('OK', $sampleData) ? 'OK' : null);
+
+                    NpcChecksheetDetail::create([
+                        'npc_checksheet_id' => $checksheet->id,
+                        'point_check'       => $pointText,
+                        'standard'          => null,
+                        'samples'           => $sampleData,
+                        'row_result'        => $rowResult,
+                    ]);
+                }
+            }
+        }
 
         if ($request->role === 'QC') {
             $request->validate([
@@ -236,7 +389,7 @@ class NpcChecksheetController extends Controller
 
             $checksheet->update($updateData);
 
-            if ($part->status === 'WAITING_QE_CHECK') {
+            if ($part && $part->status === 'WAITING_QE_CHECK') {
                 $part->update(['status' => 'WAITING_MGM_CHECK']);
             }
 
@@ -257,105 +410,6 @@ class NpcChecksheetController extends Controller
                 'details' => 'nullable|array',
                 'details_json' => 'nullable|string'
             ]);
-
-            // Support both JSON chunks (WAF bypass) and legacy array payload
-            $detailsInput = [];
-            $base64String = '';
-            
-            if ($request->has('details_json_chunks')) {
-                $base64String = implode('', $request->input('details_json_chunks'));
-            } elseif ($request->filled('details_json')) {
-                $base64String = $request->details_json;
-            }
-
-            if (!empty($base64String)) {
-                // Decode the base64 string first (to bypass WAF rules)
-                $decodedString = base64_decode($base64String, true);
-                $decoded = null;
-                if ($decodedString !== false) {
-                    $decoded = json_decode($decodedString, true);
-                }
-                
-                // Fallback if not base64 encoded
-                if (!is_array($decoded)) {
-                    $decoded = json_decode($request->details_json, true);
-                }
-                
-                if (is_array($decoded)) {
-                    $detailsInput = $decoded;
-                }
-            } elseif ($request->has('details') && is_array($request->details)) {
-                $detailsInput = $request->details;
-            }
-
-            $hasNg = false;
-            $hasEmpty = empty($detailsInput) && $checksheet->details()->count() > 0;
-            $ngDescriptions = [];
-            foreach ($detailsInput as $id => $data) {
-                $detail = NpcChecksheetDetail::find($id);
-                if ($detail && $detail->npc_checksheet_id == $checksheet->id) {
-                    $rowResult = $data['row_result'] ?? null;
-                    if ($rowResult === 'NG') {
-                        $hasNg = true;
-                        $ngDescriptions[] = "NG found on point: " . $detail->point_check;
-                    }
-                    if (empty($rowResult)) {
-                        $hasEmpty = true;
-                    }
-                    $detailUpdate = [
-                        'row_result' => $rowResult,
-                        'samples' => $data['samples'] ?? null,
-                    ];
-
-                    if (!empty($data['ng_photo_base64'])) {
-                        $base64Data = $data['ng_photo_base64'];
-                        if ($base64Data === 'REMOVE') {
-                            $detailUpdate['ng_photo_path'] = null;
-                        } elseif (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
-                            $imageData = substr($base64Data, strpos($base64Data, ',') + 1);
-                            $ext = strtolower($type[1]);
-                            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
-                                $ext = 'jpg';
-                            }
-                            $decodedImg = base64_decode($imageData);
-                            if ($decodedImg !== false) {
-                                $filename = 'ng_detail_' . $detail->id . '_' . time() . '.' . $ext;
-                                $path = 'checksheets/ng_evidence/' . $filename;
-                                \Illuminate\Support\Facades\Storage::disk('public')->put($path, $decodedImg);
-                                $detailUpdate['ng_photo_path'] = $path;
-                            }
-                        }
-                    }
-
-                    if (array_key_exists('ng_reason', $data)) {
-                        $detailUpdate['ng_reason'] = $data['ng_reason'];
-                    }
-
-                    $detail->update($detailUpdate);
-                }
-            }
-
-            // Save manual history problems first
-            if ($request->has('new_history_problems') && is_array($request->new_history_problems)) {
-                $problems = array_filter($request->new_history_problems, function($val) {
-                    return !empty(trim($val));
-                });
-
-                if (!empty($problems) && $part->product) {
-                    $insertData = [];
-                    foreach ($problems as $probDesc) {
-                        $insertData[] = [
-                            'product_id' => $part->product->id,
-                            'problem_description' => trim($probDesc),
-                            'npc_part_id_finder' => $part->id,
-                            'created_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
-                            'created_at' => Carbon::now(),
-                            'updated_at' => Carbon::now(),
-                        ];
-                    }
-                    \App\Models\ProductHistoryProblem::insert($insertData);
-                }
-            }
 
             if ($hasNg || $hasEmpty) {
                 $checksheet->update([
@@ -413,14 +467,15 @@ class NpcChecksheetController extends Controller
                 'approval_status' => 'WAITING_MGM_STAFF' // Enter Approval Phase
             ]);
 
-            // Instead of FINISHED, move part to WAITING_APPROVAL
-            if ($part->status === 'WAITING_MGM_CHECK') {
-                $part->update([
-                    'status' => 'WAITING_APPROVAL',
-                    'rollback_reason' => null
-                ]);
-            } else {
-                $part->update(['rollback_reason' => null]);
+            if ($part) {
+                if ($part->status === 'WAITING_MGM_CHECK') {
+                    $part->update([
+                        'status' => 'WAITING_APPROVAL',
+                        'rollback_reason' => null
+                    ]);
+                } else {
+                    $part->update(['rollback_reason' => null]);
+                }
             }
 
             $redirectUrl = $request->input('previous_url') ? base64_decode($request->input('previous_url')) : route('tracking.index');
@@ -835,17 +890,38 @@ class NpcChecksheetController extends Controller
         
         // Add minimum 4 history problems
         $historyItems = [];
+        $checkCount = max(1, min(optional($checksheet->npcPart)->qty ?? 1, 12));
+        $isCompletedOrApproved = in_array(optional($checksheet->npcPart)->status, ['WAITING_MGM_CHECK', 'APPROVED', 'FINISHED', 'COMPLETED']) 
+            || !empty($checksheet->qe_check_date) 
+            || !empty($checksheet->mgm_check_date);
+
         if ($product && $product->historyProblems && $product->historyProblems->count() > 0) {
             foreach ($product->historyProblems as $hp) {
+                $pointText = '[' . $hp->created_at->format('d/m/y') . '] ' . $hp->problem_description;
+                $detailMatch = $checksheet->details->first(function($d) use ($pointText, $hp) {
+                    return $d->point_check === $pointText || str_contains(strtolower($d->point_check), strtolower($hp->problem_description));
+                });
+
+                $samples = $detailMatch ? ($detailMatch->samples ?? []) : [];
+                $result = $detailMatch ? ($detailMatch->row_result ?? '') : '';
+
+                if (empty($samples) && $isCompletedOrApproved) {
+                    for ($s = 1; $s <= $checkCount; $s++) {
+                        $samples[$s] = 'OK';
+                    }
+                    $result = 'OK';
+                }
+
                 $historyItems[] = [
                     'cat' => 'History Problem',
-                    'point' => '[' . $hp->created_at->format('d/m/y') . '] ' . $hp->problem_description,
+                    'point' => $pointText,
                     'std' => '',
-                    'samples' => [],
-                    'result' => ''
+                    'samples' => $samples,
+                    'result' => $result
                 ];
             }
         }
+
         while (count($historyItems) < 4) {
             $historyItems[] = [
                 'cat' => 'History Problem',
@@ -855,6 +931,7 @@ class NpcChecksheetController extends Controller
                 'result' => ''
             ];
         }
+
         foreach ($historyItems as $hi) {
             $itemsToPrint[] = $hi;
         }
@@ -862,7 +939,16 @@ class NpcChecksheetController extends Controller
         foreach ($checksheet->details as $detail) {
             $category = 'Quality';
             $pcLow = trim(strtolower($detail->point_check));
-            if (str_contains($pcLow, 'history') || str_contains($pcLow, 'problem')) {
+            if (str_contains($pcLow, 'history') || str_contains($pcLow, 'problem') || str_starts_with($detail->point_check, '[')) {
+                // Skip if already in historyItems to prevent duplication
+                $alreadyAdded = false;
+                foreach ($historyItems as $hi) {
+                    if ($hi['point'] === $detail->point_check) {
+                        $alreadyAdded = true;
+                        break;
+                    }
+                }
+                if ($alreadyAdded) continue;
                 $category = 'History Problem';
             } elseif (
                 $pcLow === 'pallet usage' || 
@@ -873,12 +959,22 @@ class NpcChecksheetController extends Controller
             ) {
                 $category = 'Packaging';
             }
+            
+            $samples = $detail->samples ?? [];
+            $result = $detail->row_result ?? '';
+            if (empty($samples) && $category === 'History Problem' && $isCompletedOrApproved) {
+                for ($s = 1; $s <= $checkCount; $s++) {
+                    $samples[$s] = 'OK';
+                }
+                $result = 'OK';
+            }
+
             $itemsToPrint[] = [
                 'cat' => $category,
                 'point' => $detail->point_check,
                 'std' => $detail->standard,
-                'samples' => $detail->samples ?? [],
-                'result' => $detail->row_result
+                'samples' => $samples,
+                'result' => $result
             ];
         }
 

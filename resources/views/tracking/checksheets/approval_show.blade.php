@@ -177,36 +177,71 @@
 
 
                 <div class="mb-4">
+                @php
+                    $checkCount = max(1, min($part->qty, 12));
+                    $historyDetails = $checksheet->details->filter(function($d) {
+                        $pcLow = trim(strtolower($d->point_check));
+                        return str_contains($pcLow, 'history') || str_contains($pcLow, 'problem') || str_starts_with($d->point_check, '[');
+                    });
+                @endphp
+
+                <div class="mb-4">
                     <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">History Problem</h3>
                     <p class="text-xs text-gray-500 mt-1">List of problems previously found on this Product / Part Number in the past.</p>
                 </div>
 
-                <div class="mb-6 p-4 border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/50">
-                    <!-- Past History (Read-only) -->
-                    <ul class="list-disc pl-5 space-y-1 mb-4 text-sm text-gray-700 dark:text-gray-300">
+                <div class="mb-6 p-4 border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/50 rounded-lg">
+                    <!-- Past History (With Checklists) -->
+                    <div class="space-y-3">
                         @forelse(optional($part->product)->historyProblems ?? [] as $history)
-                            <li class="font-medium text-red-700 dark:text-red-400">
-                                {{ $history->problem_description }}
-                                <span class="text-xs text-gray-500 dark:text-gray-500 ml-2 font-normal italic">
-                                    (Found on {{ $history->created_at->format('d M Y') }})
-                                </span>
-                            </li>
+                            @php
+                                $pointText = '[' . $history->created_at->format('d/m/y') . '] ' . $history->problem_description;
+                                $historyDetail = $historyDetails->first(function($d) use ($pointText, $history) {
+                                    return $d->point_check === $pointText || str_contains(strtolower($d->point_check), strtolower($history->problem_description));
+                                });
+                            @endphp
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800/60 rounded-md shadow-2xs">
+                                <div class="flex-1">
+                                    <span class="font-semibold text-red-700 dark:text-red-400 text-sm">
+                                        {{ $history->problem_description }}
+                                    </span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 ml-2 italic">
+                                        (Found on {{ $history->created_at->format('d M Y') }})
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Samples:</span>
+                                    <div class="flex items-center gap-1.5 overflow-x-auto">
+                                        @for($i = 1; $i <= $checkCount; $i++)
+                                        @php
+                                            $sampleValue = optional($historyDetail)->samples[$i] ?? '';
+                                            if (empty($sampleValue)) {
+                                                $sampleValue = 'OK';
+                                            }
+                                        @endphp
+                                        <div class="flex flex-col items-center">
+                                            <span class="text-[10px] text-gray-400 mb-0.5">{{ $i }}</span>
+                                            <div class="px-2 py-1 border dark:border-gray-700 rounded text-center bg-gray-50 dark:bg-gray-700/50 select-none">
+                                                <div class="flex items-center justify-center h-6 w-6 mx-auto">
+                                                    @if($sampleValue === 'OK')
+                                                        <i class="fa-solid fa-circle text-green-500 text-base"></i>
+                                                    @elseif($sampleValue === 'NG')
+                                                        <i class="fa-solid fa-xmark text-red-500 text-lg"></i>
+                                                    @else
+                                                        <i class="fa-solid fa-minus text-gray-300 dark:text-gray-600"></i>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endfor
+                                    </div>
+                                </div>
+                            </div>
                         @empty
-                            <li class="text-gray-500 italic text-sm">No defect history yet (History Problem) for this part.</li>
+                            <div class="text-gray-500 italic text-sm">No defect history yet (History Problem) for this part.</div>
                         @endforelse
-                    </ul>
-
-                    <!-- New History Input hidden in approval -->
+                    </div>
                 </div>
-
-                <div class="mb-4 mt-8">
-                    <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Form Validation Management (24 Point)</h3>
-                    <p class="text-xs text-gray-500 mt-1">Only shows points mapped to this part during PO registration.</p>
-                </div>
-
-                @php
-                    $checkCount = max(1, min($part->qty, 12));
-                @endphp
                 <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
                     <table class="min-w-full text-left text-sm whitespace-nowrap">
                         <thead class="bg-gray-100 dark:bg-gray-700/80 text-gray-700 dark:text-gray-300 uppercase text-xs font-semibold">
@@ -221,9 +256,15 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                            @forelse($checksheet->details as $index => $detail)
+                            @php
+                                $normalDetails = $checksheet->details->reject(function($d) {
+                                    $pcLow = trim(strtolower($d->point_check));
+                                    return str_contains($pcLow, 'history') || str_contains($pcLow, 'problem') || str_starts_with($d->point_check, '[');
+                                });
+                            @endphp
+                            @forelse($normalDetails as $detail)
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                                <td class="px-4 py-3 border-r dark:border-gray-700 text-center text-gray-500">{{ $index + 1 }}</td>
+                                <td class="px-4 py-3 border-r dark:border-gray-700 text-center text-gray-500">{{ $loop->iteration }}</td>
                                 <td class="px-4 py-3 border-r dark:border-gray-700 font-medium text-gray-800 dark:text-gray-200 whitespace-normal min-w-[200px]">
                                     {{ $detail->point_check }}
                                 </td>
@@ -902,12 +943,12 @@
                     <p class="text-xs text-gray-500 font-semibold">Point: <span class="text-gray-800 dark:text-gray-200 font-bold">${pointCheckName}</span></p>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1"><i class="fa-solid fa-comment-dots text-red-500 mr-1"></i> NG Reason / Description:</label>
-                        <textarea id="swal-ng-reason" rows="2" class="w-full text-xs p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:ring-1 focus:ring-blue-500" placeholder="Explain reason / description for NG finding...">${existingReason}</textarea>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1"><i class="fa-solid fa-comment-dots text-red-500 mr-1"></i> NG Reason / Description <span class="text-red-500 font-bold">*Required</span>:</label>
+                        <textarea id="swal-ng-reason" rows="2" class="w-full text-xs p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:ring-1 focus:ring-blue-500" placeholder="Explain reason / description for NG finding (Required)...">${existingReason}</textarea>
                     </div>
 
                     <div class="pt-2 border-t border-gray-200 dark:border-gray-700">
-                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5"><i class="fa-solid fa-camera text-red-500 mr-1"></i> Photo Evidence:</label>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5"><i class="fa-solid fa-camera text-red-500 mr-1"></i> Photo Evidence <span class="text-gray-400 font-normal">(Optional)</span>:</label>
                         <div class="flex items-center gap-2">
                             <button type="button" onclick="startNgCamera()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded shadow transition inline-flex items-center gap-1">
                                 <i class="fa-solid fa-video"></i> Use Camera
@@ -950,9 +991,16 @@
             preConfirm: () => {
                 const previewImg = document.getElementById('ng-preview-img');
                 const reasonInput = document.getElementById('swal-ng-reason');
+                const reasonText = reasonInput ? reasonInput.value.trim() : '';
+
+                if (!reasonText) {
+                    Swal.showValidationMessage('NG Reason is required! Please explain the defect finding.');
+                    return false;
+                }
+
                 return {
-                    photo: previewImg ? previewImg.src : null,
-                    reason: reasonInput ? reasonInput.value.trim() : ''
+                    photo: (previewImg && previewImg.src && previewImg.src !== window.location.href) ? previewImg.src : null,
+                    reason: reasonText
                 };
             }
         }).then((result) => {
