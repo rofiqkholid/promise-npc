@@ -8,6 +8,7 @@
     $readonly = request()->has('readonly') || in_array(optional($part)->status, ['WAITING_APPROVAL', 'FINISHED', 'CLOSED', 'OUTSTANDING']);
     $isMGM = $part ? ($part->status === 'WAITING_MGM_CHECK' || $readonly) : false;
     $role = $readonly ? 'READONLY' : ($isMGM ? 'MGM' : 'QC');
+    $checkCount = max(1, min(optional($part)->qty ?? 1, 12));
 @endphp
 
 <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 max-w-5xl mx-auto">
@@ -497,7 +498,7 @@
         }
 
         // Dynamic History Problem Inputs
-        const checkCount = {{ $checkCount }};
+        const checkCount = {{ max(1, min(optional($part)->qty ?? 1, 12)) }};
         const historyWrapper = document.getElementById('dynamic-history-wrapper');
         if (historyWrapper) {
             historyWrapper.addEventListener('click', function(e) {
