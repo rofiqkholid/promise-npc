@@ -234,6 +234,7 @@ class NpcChecksheetController extends Controller
         $ngDescriptions = [];
         if (!empty($detailsInput)) {
             foreach ($detailsInput as $id => $data) {
+                if (empty($id) || $id === 'undefined' || !is_numeric($id)) continue;
                 $detail = NpcChecksheetDetail::find($id);
                 if ($detail && $detail->npc_checksheet_id == $checksheet->id) {
                     $rowResult = $data['row_result'] ?? null;

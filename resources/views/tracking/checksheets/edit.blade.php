@@ -902,6 +902,8 @@
                 
                 document.querySelectorAll('.sample-cell').forEach(cell => {
                     const detailId = cell.dataset.detailId;
+                    if (!detailId || detailId === 'undefined') return;
+                    
                     const sampleIndex = cell.dataset.sampleIndex;
                     const input = cell.querySelector('input[type="hidden"]');
                     
