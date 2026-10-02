@@ -726,9 +726,6 @@ class ProductionTrackingController extends Controller
         $part->update($partUpdateData);
 
         if ($part->checksheet) {
-            // Delete any NG history recorded from this checksheet during MGM submission
-            \App\Models\ProductHistoryProblem::where('npc_part_id_finder', $part->id)->delete();
-            
             // Reset MGM and Approval fields but PRESERVE the checksheet and QC inputs
             $part->checksheet->update([
                 'mgm_checked_by' => null,

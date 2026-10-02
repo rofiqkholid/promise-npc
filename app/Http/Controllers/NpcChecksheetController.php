@@ -291,27 +291,50 @@ class NpcChecksheetController extends Controller
 
                 foreach ($problems as $index => $probDesc) {
                     $desc = trim($probDesc);
-                    \App\Models\ProductHistoryProblem::create([
-                        'product_id' => $part->product->id,
-                        'problem_description' => $desc,
-                        'npc_part_id_finder' => $part->id,
-                        'created_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
-                        'created_at' => Carbon::now(),
-                        'updated_at' => Carbon::now(),
-                    ]);
+                    $cleanDesc = strtolower($desc);
+
+                    // Avoid duplicate ProductHistoryProblem for this product
+                    $existingHp = \App\Models\ProductHistoryProblem::where('product_id', $part->product->id)
+                        ->whereRaw('LOWER(problem_description) = ?', [$cleanDesc])
+                        ->first();
+
+                    if (!$existingHp) {
+                        \App\Models\ProductHistoryProblem::create([
+                            'product_id' => $part->product->id,
+                            'problem_description' => $desc,
+                            'npc_part_id_finder' => $part->id,
+                            'created_by' => auth()->check() ? auth()->user()->getAttribute('id') : 1,
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now(),
+                        ]);
+                    }
 
                     $pointText = '[' . Carbon::now()->format('d/m/y') . '] ' . $desc;
                     $sampleData = !empty($newSamplesMap[$index]) ? $newSamplesMap[$index] : null;
 
                     $rowResult = is_array($sampleData) && in_array('NG', $sampleData) ? 'NG' : (is_array($sampleData) && in_array('OK', $sampleData) ? 'OK' : null);
 
-                    NpcChecksheetDetail::create([
-                        'npc_checksheet_id' => $checksheet->id,
-                        'point_check'       => $pointText,
-                        'standard'          => null,
-                        'samples'           => $sampleData,
-                        'row_result'        => $rowResult,
-                    ]);
+                    // Avoid duplicate NpcChecksheetDetail for this checksheet
+                    $existingDetail = NpcChecksheetDetail::where('npc_checksheet_id', $checksheet->id)
+                        ->where(function($q) use ($pointText, $cleanDesc) {
+                            $q->where('point_check', $pointText)
+                              ->orWhereRaw("LOWER(REPLACE(point_check, '[', '')) LIKE ?", ['%' . $cleanDesc . '%']);
+                        })->first();
+
+                    if (!$existingDetail) {
+                        NpcChecksheetDetail::create([
+                            'npc_checksheet_id' => $checksheet->id,
+                            'point_check'       => $pointText,
+                            'standard'          => null,
+                            'samples'           => $sampleData,
+                            'row_result'        => $rowResult,
+                        ]);
+                    } else {
+                        $existingDetail->update([
+                            'samples'    => $sampleData ?: $existingDetail->samples,
+                            'row_result' => $rowResult ?: $existingDetail->row_result,
+                        ]);
+                    }
                 }
             }
         }
@@ -891,6 +914,7 @@ class NpcChecksheetController extends Controller
         
         // Add minimum 4 history problems
         $historyItems = [];
+        $addedDescriptions = [];
         $checkCount = max(1, min(optional($checksheet->npcPart)->qty ?? 1, 12));
         $isCompletedOrApproved = in_array(optional($checksheet->npcPart)->status, ['WAITING_MGM_CHECK', 'APPROVED', 'FINISHED', 'COMPLETED']) 
             || !empty($checksheet->qe_check_date) 
@@ -898,9 +922,16 @@ class NpcChecksheetController extends Controller
 
         if ($product && $product->historyProblems && $product->historyProblems->count() > 0) {
             foreach ($product->historyProblems as $hp) {
+                $cleanDesc = trim(strtolower($hp->problem_description));
+                if (in_array($cleanDesc, $addedDescriptions)) {
+                    continue;
+                }
+                $addedDescriptions[] = $cleanDesc;
+
                 $pointText = '[' . $hp->created_at->format('d/m/y') . '] ' . $hp->problem_description;
-                $detailMatch = $checksheet->details->first(function($d) use ($pointText, $hp) {
-                    return $d->point_check === $pointText || str_contains(strtolower($d->point_check), strtolower($hp->problem_description));
+                $detailMatch = $checksheet->details->first(function($d) use ($cleanDesc) {
+                    $dClean = trim(strtolower(preg_replace('/^\[.*?\]\s*/', '', $d->point_check)));
+                    return $dClean === $cleanDesc;
                 });
 
                 $samples = $detailMatch ? ($detailMatch->samples ?? []) : [];
@@ -940,16 +971,13 @@ class NpcChecksheetController extends Controller
         foreach ($checksheet->details as $detail) {
             $category = 'Quality';
             $pcLow = trim(strtolower($detail->point_check));
+            $cleanDetail = trim(strtolower(preg_replace('/^\[.*?\]\s*/', '', $detail->point_check)));
+
             if (str_contains($pcLow, 'history') || str_contains($pcLow, 'problem') || str_starts_with($detail->point_check, '[')) {
-                // Skip if already in historyItems to prevent duplication
-                $alreadyAdded = false;
-                foreach ($historyItems as $hi) {
-                    if ($hi['point'] === $detail->point_check) {
-                        $alreadyAdded = true;
-                        break;
-                    }
+                if (in_array($cleanDetail, $addedDescriptions)) {
+                    continue;
                 }
-                if ($alreadyAdded) continue;
+                $addedDescriptions[] = $cleanDetail;
                 $category = 'History Problem';
             } elseif (
                 $pcLow === 'pallet usage' || 
@@ -1185,5 +1213,47 @@ class NpcChecksheetController extends Controller
         }
 
         return view('tracking.checksheets.label_print', compact('parts'));
+    }
+
+    /**
+     * Delete a history problem from checksheet and database upon user request.
+     */
+    public function deleteHistoryProblem(\Illuminate\Http\Request $request, NpcChecksheet $checksheet)
+    {
+        $historyId = $request->input('history_id');
+        $problemDescription = $request->input('problem_description');
+
+        if ($historyId) {
+            $hp = \App\Models\ProductHistoryProblem::find($historyId);
+            if ($hp) {
+                $problemDescription = $problemDescription ?: $hp->problem_description;
+                $hp->delete();
+            }
+        }
+
+        if ($problemDescription) {
+            $cleanDesc = strtolower(trim($problemDescription));
+            
+            // Delete matching ProductHistoryProblem for this product
+            if ($checksheet->npcPart && $checksheet->npcPart->product) {
+                \App\Models\ProductHistoryProblem::where('product_id', $checksheet->npcPart->product->id)
+                    ->whereRaw('LOWER(problem_description) = ?', [$cleanDesc])
+                    ->delete();
+            }
+
+            // Delete matching NpcChecksheetDetail on this checksheet
+            $details = $checksheet->details()->get();
+            foreach ($details as $detail) {
+                $cleanPoint = strtolower(trim(preg_replace('/^\[.*?\]\s*/', '', $detail->point_check)));
+                if ($cleanPoint === $cleanDesc || str_contains(strtolower($detail->point_check), $cleanDesc)) {
+                    $detail->delete();
+                }
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'History problem successfully deleted.'
+        ]);
     }
 }

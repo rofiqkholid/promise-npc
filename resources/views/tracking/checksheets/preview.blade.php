@@ -328,6 +328,7 @@
                 $detailsArray = [];
                 
                 $historyItems = [];
+                $addedDescriptions = [];
                 $checkCount = max(1, min(optional($checksheet->npcPart)->qty ?? 1, 12));
                 $isCompletedOrApproved = in_array(optional($checksheet->npcPart)->status, ['WAITING_MGM_CHECK', 'APPROVED', 'FINISHED', 'COMPLETED']) 
                     || !empty($checksheet->qe_check_date) 
@@ -335,9 +336,16 @@
 
                 if ($product && $product->historyProblems && $product->historyProblems->count() > 0) {
                     foreach ($product->historyProblems as $hp) {
+                        $cleanDesc = trim(strtolower($hp->problem_description));
+                        if (in_array($cleanDesc, $addedDescriptions)) {
+                            continue;
+                        }
+                        $addedDescriptions[] = $cleanDesc;
+
                         $pointText = '[' . $hp->created_at->format('d/m/y') . '] ' . $hp->problem_description;
-                        $detailMatch = $checksheet->details->first(function($d) use ($pointText, $hp) {
-                            return $d->point_check === $pointText || str_contains(strtolower($d->point_check), strtolower($hp->problem_description));
+                        $detailMatch = $checksheet->details->first(function($d) use ($cleanDesc) {
+                            $dClean = trim(strtolower(preg_replace('/^\[.*?\]\s*/', '', $d->point_check)));
+                            return $dClean === $cleanDesc;
                         });
 
                         $samples = $detailMatch ? ($detailMatch->samples ?? []) : [];
@@ -377,16 +385,13 @@
                 foreach($checksheet->details as $detail) {
                     $category = 'Quality';
                     $pcLow = trim(strtolower($detail->point_check));
+                    $cleanDetail = trim(strtolower(preg_replace('/^\[.*?\]\s*/', '', $detail->point_check)));
+
                     if (str_contains($pcLow, 'history') || str_contains($pcLow, 'problem') || str_starts_with($detail->point_check, '[')) {
-                        // Skip if already added in historyItems to prevent duplicates
-                        $alreadyAdded = false;
-                        foreach ($historyItems as $hi) {
-                            if ($hi['point'] === $detail->point_check) {
-                                $alreadyAdded = true;
-                                break;
-                            }
+                        if (in_array($cleanDetail, $addedDescriptions)) {
+                            continue;
                         }
-                        if ($alreadyAdded) continue;
+                        $addedDescriptions[] = $cleanDetail;
                         $category = 'History Problem';
                     } elseif (
                         $pcLow === 'pallet usage' || 

@@ -254,7 +254,7 @@
                 <div class="mb-6 p-4 border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/50 rounded-lg">
                     <!-- Past History (With Checklists) -->
                     <div class="space-y-3 mb-4">
-                        @forelse(optional($part->product)->historyProblems ?? [] as $history)
+                        @forelse(optional($part->product)->historyProblems ? $part->product->historyProblems->unique(function($h) { return trim(strtolower($h->problem_description)); }) : [] as $history)
                             @php
                                 $pointText = '[' . $history->created_at->format('d/m/y') . '] ' . $history->problem_description;
                                 $historyDetail = $historyDetails->first(function($d) use ($pointText, $history) {
@@ -262,14 +262,24 @@
                                 });
                                 $detailId = optional($historyDetail)->id;
                             @endphp
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800/60 rounded-md shadow-2xs">
-                                <div class="flex-1">
-                                    <span class="font-semibold text-red-700 dark:text-red-400 text-sm">
-                                        {{ $history->problem_description }}
-                                    </span>
-                                    <span class="text-xs text-gray-500 dark:text-gray-400 ml-2 italic">
-                                        (Found on {{ $history->created_at->format('d M Y') }})
-                                    </span>
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800/60 rounded-md shadow-2xs" id="history-card-{{ $history->id }}">
+                                <div class="flex-1 flex items-center justify-between">
+                                    <div>
+                                        <span class="font-semibold text-red-700 dark:text-red-400 text-sm">
+                                            {{ $history->problem_description }}
+                                        </span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-2 italic">
+                                            (Found on {{ $history->created_at->format('d M Y') }})
+                                        </span>
+                                    </div>
+                                    @if(!$readonly)
+                                    <button type="button" 
+                                            onclick="deleteHistoryProblem('{{ route('checksheets.delete-history-problem', $checksheet->hashed_id) }}', {{ $history->id }}, '{{ addslashes($history->problem_description) }}', 'history-card-{{ $history->id }}')" 
+                                            class="ml-2 px-2.5 py-1 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded transition text-xs font-medium inline-flex items-center gap-1.5" 
+                                            title="Delete this history problem">
+                                        <i class="fa-solid fa-trash text-xs"></i> Delete
+                                    </button>
+                                    @endif
                                 </div>
                                 @if($detailId)
                                 <div class="flex items-center gap-2 flex-wrap">
@@ -1143,12 +1153,118 @@
     };
 
     window.removeNgPhoto = function(detailId) {
-        if (confirm('Are you sure you want to remove this NG evidence photo?')) {
+        const doRemove = () => {
             window.ngPhotoStaging[detailId] = 'REMOVE';
             const previewBox = document.getElementById(`ng-photo-preview-box-${detailId}`);
             const btnBox = document.getElementById(`ng-photo-btn-box-${detailId}`);
             if (previewBox) previewBox.classList.add('hidden');
             if (btnBox) btnBox.classList.remove('hidden');
+        };
+
+        if (window.Swal) {
+            Swal.fire({
+                title: 'Remove Photo?',
+                text: 'Are you sure you want to remove this NG evidence photo?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, Remove',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    doRemove();
+                }
+            });
+        } else {
+            if (confirm('Are you sure you want to remove this NG evidence photo?')) {
+                doRemove();
+            }
+        }
+    };
+
+    window.deleteHistoryProblem = function(url, historyId, description, elementId) {
+        const doDelete = () => {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    history_id: historyId,
+                    problem_description: description
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const card = document.getElementById(elementId);
+                    if (card) {
+                        card.style.transition = 'all 0.3s ease';
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateY(-10px)';
+                        setTimeout(() => card.remove(), 300);
+                    }
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: 'History problem has been removed.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    }
+                } else {
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Delete Failed',
+                            text: data.message || 'Failed to delete history problem.'
+                        });
+                    } else {
+                        alert(data.message || 'Failed to delete history problem.');
+                    }
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred while deleting the history problem.'
+                    });
+                } else {
+                    alert('An error occurred while deleting the history problem.');
+                }
+            });
+        };
+
+        if (window.Swal) {
+            Swal.fire({
+                title: 'Delete History Problem?',
+                html: `Are you sure you want to delete problem history "<strong>${description}</strong>"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, Delete',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    doDelete();
+                }
+            });
+        } else {
+            if (confirm(`Are you sure you want to delete problem history "${description}"?`)) {
+                doDelete();
+            }
         }
     };
 </script>

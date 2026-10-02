@@ -193,7 +193,7 @@
                 <div class="mb-6 p-4 border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/50 rounded-lg">
                     <!-- Past History (With Checklists) -->
                     <div class="space-y-3">
-                        @forelse(optional($part->product)->historyProblems ?? [] as $history)
+                        @forelse(optional($part->product)->historyProblems ? $part->product->historyProblems->unique(function($h) { return trim(strtolower($h->problem_description)); }) : [] as $history)
                             @php
                                 $pointText = '[' . $history->created_at->format('d/m/y') . '] ' . $history->problem_description;
                                 $historyDetail = $historyDetails->first(function($d) use ($pointText, $history) {
