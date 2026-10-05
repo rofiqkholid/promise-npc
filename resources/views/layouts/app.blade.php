@@ -195,7 +195,14 @@
                         });
                     }
 
-                    form.submit();
+                    if (typeof form.requestSubmit === 'function') {
+                        form.requestSubmit(targetElement.tagName === 'BUTTON' || targetElement.tagName === 'INPUT' ? targetElement : undefined);
+                    } else {
+                        const submitEvent = new Event('submit', { cancelable: true, bubbles: true });
+                        if (form.dispatchEvent(submitEvent)) {
+                            form.submit();
+                        }
+                    }
                 }
             });
         }

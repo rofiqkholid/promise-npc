@@ -610,6 +610,8 @@
             const action = window.lastTriggeredAction || (actionInput ? actionInput.value : 'approve');
             const rejectReasonInput = document.querySelector('input[name="reject_reason"]');
             const rejectReason = window.lastRejectReason || (rejectReasonInput ? rejectReasonInput.value : '');
+            const finalResultInput = document.querySelector('textarea[name="final_result"]');
+            const finalResult = finalResultInput ? finalResultInput.value : '';
             
             const payload = {
                 _token: '{{ csrf_token() }}',
@@ -618,7 +620,8 @@
                 reject_photo_base64: window.lastRejectPhotoBase64 || '',
                 role: '{{ $role ?? "" }}',
                 previous_url: previousUrl,
-                details_json: JSON.stringify(details)
+                details_json: JSON.stringify(details),
+                final_result: finalResult
             };
             
             fetch(actionUrl, {
@@ -634,6 +637,13 @@
                 if (response.redirected) {
                     window.location.href = response.url;
                 } else if (response.ok) {
+                    try {
+                        const data = await response.json();
+                        if (data && data.redirect) {
+                            window.location.href = data.redirect;
+                            return;
+                        }
+                    } catch (e) {}
                     window.location.href = atob(previousUrl);
                 } else {
                     const text = await response.text();
