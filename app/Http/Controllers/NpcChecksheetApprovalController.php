@@ -473,6 +473,18 @@ class NpcChecksheetApprovalController extends Controller
 
         $checksheet->update($updateData);
 
+        // Kirim Notifikasi Email Thread PO untuk Approval
+        try {
+            $nextStage = $updateData['approval_status'] ?? 'APPROVED';
+            $recipients = \App\Services\NotificationRecipientService::getRecipientsForApproval($checksheet, $nextStage);
+            if (!empty($recipients)) {
+                \Illuminate\Support\Facades\Mail::to($recipients)
+                    ->queue(new \App\Mail\PoApprovalNotificationMail($checksheet, 'APPROVED', null));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Failed sending PO approval email notification: ' . $e->getMessage());
+        }
+
         if ($request->expectsJson()) {
             $request->session()->flash('success', 'Checksheet successfully approved.');
             return response()->json(['redirect' => $redirectUrl]);

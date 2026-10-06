@@ -517,6 +517,22 @@ class ProductionTrackingController extends Controller
             'production_notes' => $request->production_notes,
         ]);
 
+        // Kirim Notifikasi Email Thread PO ke Penerima di Process Selanjutnya
+        $nextProcess = \App\Models\NpcPartProcess::where('npc_part_id', $part->id)
+            ->where('sequence_order', '>', $process->sequence_order)
+            ->orderBy('sequence_order', 'asc')
+            ->first();
+
+        try {
+            $recipients = \App\Services\NotificationRecipientService::getRecipientsForNextProcess($nextProcess);
+            if (!empty($recipients)) {
+                \Illuminate\Support\Facades\Mail::to($recipients)
+                    ->queue(new \App\Mail\PoProcessNotificationMail($process, $nextProcess));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Failed sending PO process email notification: ' . $e->getMessage());
+        }
+
         // Cek apakah part ini masih punya proses yang belum selesai berdasar urutan
         $remainingProcesses = \App\Models\NpcPartProcess::where('npc_part_id', $part->id)
             ->where('status', 'WAITING')

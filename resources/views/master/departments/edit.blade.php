@@ -52,6 +52,25 @@
                         class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
                         style="padding-left: 2.5rem;" placeholder="Example: PUD (Painting etc.)">
                 </div>
+            <div class="space-y-1">
+                <label for="sso_department_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Mapped SSO User Department <span class="text-xs text-gray-500">(Automatic Email Recipient Mapping)</span>
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <i class="fa-solid fa-users text-xs"></i>
+                    </div>
+                    <select id="sso_department_id" name="sso_department_id"
+                        class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                        style="padding-left: 2.5rem;">
+                        <option value="">-- No Mapping / Auto Match by Name --</option>
+                        @foreach($ssoDepartments as $ssoDept)
+                            <option value="{{ $ssoDept->id }}" {{ old('sso_department_id', $department->sso_department_id) == $ssoDept->id ? 'selected' : '' }}>
+                                {{ $ssoDept->name }} {{ isset($ssoDept->code) ? "({$ssoDept->code})" : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
             <div class="flex items-center gap-2">

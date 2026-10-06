@@ -45,7 +45,8 @@ class NpcMasterDepartmentController extends Controller
      */
     public function create()
     {
-        return view('master.departments.create');
+        $ssoDepartments = \Illuminate\Support\Facades\DB::table('departments')->orderBy('name')->get();
+        return view('master.departments.create', compact('ssoDepartments'));
     }
 
     /**
@@ -56,6 +57,7 @@ class NpcMasterDepartmentController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:npc_departments,name',
             'full_name' => 'nullable|string|max:255',
+            'sso_department_id' => 'nullable|integer',
             'is_active' => 'boolean'
         ]);
 
@@ -77,7 +79,8 @@ class NpcMasterDepartmentController extends Controller
      */
     public function edit(NpcDepartment $department)
     {
-        return view('master.departments.edit', compact('department'));
+        $ssoDepartments = \Illuminate\Support\Facades\DB::table('departments')->orderBy('name')->get();
+        return view('master.departments.edit', compact('department', 'ssoDepartments'));
     }
 
     /**
@@ -88,6 +91,7 @@ class NpcMasterDepartmentController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:npc_departments,name,' . $department->id,
             'full_name' => 'nullable|string|max:255',
+            'sso_department_id' => 'nullable|integer',
             'is_active' => 'nullable' // Checkbox might be missing
         ]);
 

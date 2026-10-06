@@ -150,6 +150,20 @@ class NpcPartProcessController extends Controller
                     'qc_target_date' => $request->qc_target_date,
                     'mgm_target_date' => $request->mgm_target_date,
                 ]);
+
+                // Kirim notifikasi email ke Departemen Step 1 bahwa Part siap diproses
+                $firstProcess = $part->processes()->first();
+                if ($firstProcess) {
+                    try {
+                        $recipients = \App\Services\NotificationRecipientService::getRecipientsForNextProcess($firstProcess);
+                        if (!empty($recipients)) {
+                            \Illuminate\Support\Facades\Mail::to($recipients)
+                                ->queue(new \App\Mail\PoProcessNotificationMail($firstProcess, $firstProcess));
+                        }
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::error('Failed sending initial PO process email notification: ' . $e->getMessage());
+                    }
+                }
             } else {
                 $part->update([
                     'qc_target_date' => $request->qc_target_date,

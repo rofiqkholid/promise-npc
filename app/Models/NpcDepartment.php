@@ -24,7 +24,7 @@ class NpcDepartment extends Model
 
     use HasHashedId;
 
-    protected $fillable = ['name', 'full_name', 'is_active'];
+    protected $fillable = ['name', 'full_name', 'is_active', 'sso_department_id'];
 
     public function processes()
     {
