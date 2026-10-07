@@ -26,6 +26,9 @@ class PoProcessNotificationMail extends Mailable implements ShouldQueue
     public string $nextDepartmentName;
     public string $completedBy;
     public string $actionUrl;
+    public string $messageText;
+    public string $boxHeaderTitle;
+    public string $targetDateFormatted;
 
     /**
      * Create a new message instance.
@@ -45,8 +48,8 @@ class PoProcessNotificationMail extends Mailable implements ShouldQueue
         $this->partNo = $part->product->part_no ?? $part->part_no ?? 'N/A';
         $this->customerName = $customer->name ?? $customer->code ?? 'N/A';
 
-        $this->completedProcessName = $partProcess->process->process_name ?? 'Process';
         $this->completedBy = auth()->user()->name ?? 'Operator';
+        $isInitialSetup = ($partProcess && $nextProcess && $partProcess->id === $nextProcess->id);
 
         if ($nextProcess) {
             $this->nextProcessName = $nextProcess->process->process_name ?? 'Next Step';
@@ -55,6 +58,33 @@ class PoProcessNotificationMail extends Mailable implements ShouldQueue
             $this->nextProcessName = 'Final QC / Completed';
             $this->nextDepartmentName = 'Quality Assurance';
         }
+
+        $this->boxHeaderTitle = 'PROCESS TO BE ACTIONED';
+
+        if ($isInitialSetup) {
+            $this->completedProcessName = 'PO Setup & Routing';
+        } else {
+            $this->completedProcessName = $partProcess->process->process_name ?? 'Process';
+        }
+
+        $rawTargetDate = null;
+        if ($nextProcess && $nextProcess->target_completion_date) {
+            $rawTargetDate = $nextProcess->target_completion_date;
+        } elseif ($part) {
+            $rawTargetDate = $part->qc_target_date ?? $part->delivery_date;
+        }
+
+        if ($rawTargetDate) {
+            try {
+                $this->targetDateFormatted = \Carbon\Carbon::parse($rawTargetDate)->locale('en')->translatedFormat('d F Y');
+            } catch (\Throwable $e) {
+                $this->targetDateFormatted = (string) $rawTargetDate;
+            }
+        } else {
+            $this->targetDateFormatted = '-';
+        }
+
+        $this->messageText = "Please immediately action and process the <strong>{$this->nextProcessName}</strong> stage for the part below (updated by <strong>{$this->completedBy}</strong>).";
 
         $this->actionUrl = route('tracking.production');
     }
@@ -65,7 +95,7 @@ class PoProcessNotificationMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "[PROMISE-NPC] Progress PO #{$this->poNo} - {$this->partName}",
+            subject: "[PROMISE-NPC] PO Progress #{$this->poNo} - {$this->partName}",
         );
     }
 
