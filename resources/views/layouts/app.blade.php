@@ -152,9 +152,14 @@
          * Global SweetAlert Confirmation Wrapper
          */
         window.confirmAction = function(event, message) {
-            event.preventDefault();
             const targetElement = event.currentTarget;
             const form = targetElement.tagName === 'FORM' ? targetElement : targetElement.closest('form');
+            
+            if (form && form.dataset.confirmed === 'true') {
+                return true;
+            }
+
+            event.preventDefault();
             
             Swal.fire({
                 title: 'Confirmation',
@@ -170,6 +175,8 @@
                 color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
             }).then((result) => {
                 if (result.isConfirmed && form) {
+                    form.dataset.confirmed = 'true';
+
                     let $btn = null;
                     if (targetElement.tagName === 'BUTTON' || targetElement.tagName === 'INPUT') {
                         $btn = $(targetElement);
@@ -198,10 +205,7 @@
                     if (typeof form.requestSubmit === 'function') {
                         form.requestSubmit(targetElement.tagName === 'BUTTON' || targetElement.tagName === 'INPUT' ? targetElement : undefined);
                     } else {
-                        const submitEvent = new Event('submit', { cancelable: true, bubbles: true });
-                        if (form.dispatchEvent(submitEvent)) {
-                            form.submit();
-                        }
+                        form.submit();
                     }
                 }
             });
