@@ -162,17 +162,10 @@
             isRestoring = true;
             const targetScroll = parseInt(savedScroll, 10);
             sidebarNav.scrollTop = targetScroll;
-
-            let attempts = 0;
-            const interval = setInterval(() => {
+            requestAnimationFrame(() => {
                 sidebarNav.scrollTop = targetScroll;
-                attempts++;
-                
-                if (sidebarNav.scrollTop === targetScroll || attempts >= 15) {
-                    clearInterval(interval);
-                    setTimeout(() => { isRestoring = false; }, 50);
-                }
-            }, 20);
+                setTimeout(() => { isRestoring = false; }, 50);
+            });
         } else {
             isRestoring = true;
             document.addEventListener('DOMContentLoaded', () => {

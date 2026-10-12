@@ -9,8 +9,8 @@
     $readonly = !$canApprove;
 @endphp
 
-<div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 max-w-5xl mx-auto">
-    <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
+<div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 w-full max-w-5xl mx-auto min-w-0">
+    <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex flex-wrap justify-between items-center gap-2 bg-gray-50/50 dark:bg-gray-800/50">
         <div>
             <h2 class="text-xl font-semibold text-gray-800 dark:text-white">
                 <i class="fa-solid fa-clipboard-check text-blue-500 mr-2"></i> PART EVENT DELIVERY CHECKSHEET
@@ -242,7 +242,7 @@
                         @endforelse
                     </div>
                 </div>
-                <div class="overflow-x-auto border border-gray-200 dark:border-gray-700">
+                <div class="overflow-x-auto border border-gray-200 dark:border-gray-700 w-full">
                     <table class="min-w-full text-left text-sm whitespace-nowrap">
                         <thead class="bg-gray-100 dark:bg-gray-700/80 text-gray-700 dark:text-gray-300 uppercase text-xs font-semibold">
                             <tr>
@@ -346,7 +346,7 @@
             </div>
         </div>
 
-        <div class="px-4 py-2 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+        <div class="px-4 py-2 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex flex-wrap justify-end gap-3">
             <a href="{{ route('checksheet-approvals.index') }}" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm text-[13px] font-medium">
                 Cancel
             </a>

@@ -1,6 +1,6 @@
 <!-- Footer -->
-<footer class="bg-white dark:bg-gray-800 py-5 mt-4 text-center border border-gray-200 dark:border-gray-700">
-    <p class="text-[14px] text-gray-500 dark:text-gray-400 tracking-widest">
+<footer class="bg-white dark:bg-gray-800 py-3 text-center border-t border-slate-200 dark:border-gray-700 flex-shrink-0 z-10">
+    <p class="text-[13px] text-gray-500 dark:text-gray-400 tracking-wider">
         &copy; {{ date('Y') }} PROMISE - Inventory System. All rights reserved.
     </p>
 </footer>

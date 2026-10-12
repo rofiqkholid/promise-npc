@@ -67,6 +67,9 @@
 </head>
 
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans antialiased overflow-hidden">
+    <!-- Global Full-Page Preloader Overlay -->
+    @include('components.page-loader')
+
     <!-- Tailwind CSS Safelist for dynamic classes (e.g. DataTables stripeClasses) -->
     <div class="hidden odd:bg-white even:bg-slate-100 bg-slate-100 bg-slate-50 dark:odd:bg-slate-800 dark:even:bg-slate-800/50"></div>
 
@@ -90,23 +93,23 @@
         "
         class="flex h-screen overflow-hidden">
 
-        <aside class="fixed inset-y-0 left-0 z-50 bg-sidebar dark:bg-gray-800 border-r border-slate-200 dark:border-gray-700 transition-all duration-300 ease-in-out w-[var(--sidebar-width)]"
-            :class="{ 'w-64': sidebarExpanded && window.innerWidth >= 1024, 'w-20': !sidebarExpanded && window.innerWidth >= 1024, 'translate-x-0 w-64': sidebarMobileOpen, '-translate-x-full lg:translate-x-0': !sidebarMobileOpen }">
+        <aside class="fixed inset-y-0 left-0 z-50 bg-sidebar dark:bg-gray-800 border-r border-slate-200 dark:border-gray-700 transition-[width,transform] duration-300 ease-in-out w-[var(--sidebar-width)] will-change-[width,transform]"
+            :class="{ 'translate-x-0 w-64': sidebarMobileOpen, '-translate-x-full lg:translate-x-0': !sidebarMobileOpen }">
             @include('layouts.sidebar')
         </aside>
 
-        <div class="flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-300 lg:pl-[var(--sidebar-width)]"
-            :class="{ 'lg:pl-64': sidebarExpanded, 'lg:pl-20': !sidebarExpanded }">
+        <div class="flex flex-col flex-1 min-w-0 overflow-hidden transition-[padding] duration-300 lg:pl-[var(--sidebar-width)]">
 
             @include('layouts.header')
 
-            <main class="flex-1 overflow-y-auto scroll-smooth flex flex-col relative">
-                <div class="flex-grow p-4 md:p-6 lg:p-8 flex flex-col">
+            <main class="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth flex flex-col relative min-w-0 w-full">
+                <div class="flex-grow p-4 md:p-6 lg:p-8 flex flex-col min-w-0 w-full max-w-full">
                     @include('components.toast')
                     @yield('content')
                 </div>
-                @include('layouts.footer')
             </main>
+
+            @include('layouts.footer')
         </div>
 
         <div x-show="sidebarMobileOpen" @click="sidebarMobileOpen = false" x-transition.opacity

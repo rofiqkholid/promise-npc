@@ -11,7 +11,7 @@
     $checkCount = max(1, min(optional($part)->qty ?? 1, 12));
 @endphp
 
-<div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 max-w-5xl mx-auto">
+<div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 w-full max-w-5xl mx-auto min-w-0">
     <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50 dark:bg-gray-800/50">
         <div class="flex-1 min-w-0 pr-4">
             <h2 class="text-xl font-semibold text-gray-800 dark:text-white flex flex-wrap items-center gap-2">
