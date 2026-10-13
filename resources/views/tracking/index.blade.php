@@ -130,7 +130,7 @@
                         <th scope="col" class="px-4 py-2 font-semibold">Part Info</th>
                         <th scope="col" class="px-4 py-2 font-semibold">ECN / REV</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Qty & Target</th>
-                        <th scope="col" class="px-4 py-2 font-semibold text-center">Overall Progress</th>
+                        <th scope="col" class="px-4 py-2 font-semibold text-center min-w-[340px]">Overall Progress</th>
                         <th scope="col" class="px-4 py-2 font-semibold text-right">System Duration</th>
                     </tr>
                 </thead>
@@ -359,7 +359,8 @@ $(document).ready(function() {
             { 
                 data: 'status', 
                 name: 'status', 
-                className: 'px-4 py-2 font-medium align-middle',
+                className: 'px-4 py-2 font-medium align-middle min-w-[340px]',
+                width: '340px',
                 orderable: false,
                 render: function(data, type, row) {
                     const phases = ['PO_REGISTERED', 'WAITING_DEPT_CONFIRM', 'WAITING_QE_CHECK', 'WAITING_MGM_CHECK', 'FINISHED', 'CLOSED'];
@@ -379,43 +380,46 @@ $(document).ready(function() {
                         { icon: 'fa-boxes-stacked', title: 'Stock' }
                     ];
                     
-                    let html = '<div class="flex items-start justify-center w-full max-w-sm pt-2"><div class="flex w-full">';
+                    let html = '<div class="flex items-start justify-center w-full min-w-[300px] max-w-[380px] pt-1 pb-1 mx-auto group/stepper"><div class="flex w-full relative">';
                     
                     steps.forEach((step, idx) => {
                         const isFinished = currentIndex > idx;
                         const isActive = (currentIndex === idx);
                         
-                        let circleClass = "text-gray-400 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800";
-                        let lineClass = "bg-gray-200 dark:bg-gray-700";
-                        let titleClass = "text-gray-400";
+                        let nodeClass = "text-slate-300 dark:text-gray-600 border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800/80 shadow-2xs";
+                        let lineClass = "bg-slate-200 dark:bg-gray-700";
+                        let titleClass = "text-slate-400 dark:text-gray-500 font-semibold";
                         
                         if (isFinished) {
-                            circleClass = "text-white bg-emerald-500 border-emerald-500 shadow-sm";
-                            lineClass = "bg-emerald-500";
-                            titleClass = "text-emerald-700 dark:text-emerald-400";
+                            nodeClass = "text-white bg-gradient-to-br from-emerald-500 via-emerald-500 to-teal-600 border border-emerald-400/50 shadow-md shadow-emerald-500/25";
+                            lineClass = "bg-gradient-to-r from-emerald-500 to-teal-500";
+                            titleClass = "text-emerald-700 dark:text-emerald-400 font-bold";
                         } else if (isActive) {
                             if (isOverdue) {
-                                circleClass = "text-red-600 border-red-500 bg-red-50 dark:bg-red-900/30 ring-4 ring-red-100 dark:ring-red-900/40";
-                                titleClass = "text-red-700 dark:text-red-400 font-extrabold";
+                                nodeClass = "text-rose-600 dark:text-rose-400 border-2 border-rose-500 bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-950/60 dark:to-rose-900/30 ring-4 ring-rose-500/15 shadow-md shadow-rose-500/20";
+                                titleClass = "text-rose-600 dark:text-rose-400 font-black";
                             } else {
-                                circleClass = "text-amber-600 border-amber-500 bg-amber-50 dark:bg-amber-900/30 ring-4 ring-amber-100 dark:ring-amber-900/40";
-                                titleClass = "text-amber-700 dark:text-amber-400 font-extrabold";
+                                nodeClass = "text-amber-600 dark:text-amber-400 border-2 border-amber-500 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/60 dark:to-amber-900/30 ring-4 ring-amber-500/15 shadow-md shadow-amber-500/20";
+                                titleClass = "text-amber-600 dark:text-amber-400 font-black";
                             }
                         }
                         
-                        html += `<div class="flex flex-col items-center flex-1 relative group">`;
+                        const displayTitle = step.title === 'Part Making' ? 'Part<br>Making' : step.title;
+                        html += `<div class="flex flex-col items-center flex-1 min-w-0 basis-0 relative group">`;
                         if (idx < steps.length - 1) {
-                            html += `<div class="absolute w-[calc(100%-1.75rem)] top-3.5 left-[calc(50%+0.875rem)] h-[3px] ${lineClass}"></div>`;
+                            html += `<div class="absolute w-full top-4 left-1/2 h-[2.5px] ${lineClass} transition-colors duration-300 z-0"></div>`;
                         }
-                        html += `<div class="z-10 relative ${circleClass} border-2 w-7 h-7 flex items-center justify-center text-[10px] transition-all duration-300">
+                        html += `<div class="z-10 relative ${nodeClass} rounded-xl w-8 h-8 flex items-center justify-center text-[12px] transition-all duration-300 group-hover:scale-105">
                                     <i class="fa-solid ${step.icon}"></i>`;
                         if (isFinished) {
-                            html += `<div class="absolute -bottom-1 -right-1.5 bg-white dark:bg-gray-800 w-3.5 h-3.5 flex items-center justify-center leading-none">
-                                        <i class="fa-solid fa-circle-check text-emerald-600 text-[12px]"></i>
+                            html += `<div class="absolute -bottom-1 -right-1 bg-white dark:bg-gray-900 w-3.5 h-3.5 rounded-full border border-emerald-500 text-emerald-600 flex items-center justify-center text-[8px] leading-none shadow-xs">
+                                        <i class="fa-solid fa-check font-bold"></i>
                                     </div>`;
                         }
                         html += `</div>
-                                <span class="text-[9px] mt-1.5 font-bold uppercase tracking-wider text-center ${titleClass}">${step.title}</span>
+                                <div class="h-7 flex items-start justify-center mt-1.5 w-full">
+                                    <span class="text-[9px] font-bold uppercase tracking-tight text-center ${titleClass} leading-tight block">${displayTitle}</span>
+                                </div>
                             </div>`;
                     });
                     

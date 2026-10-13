@@ -222,28 +222,32 @@
                                                         </div>
                                                     </td>
                                                     <td class="px-4 py-3 align-middle">
-                                                        <div class="flex items-start w-full min-w-[200px] pt-1">
+                                                        <div class="flex items-start w-full min-w-[220px] pt-1">
                                                             <template x-for="(step, sIdx) in getPartSteps(part)" :key="sIdx">
-                                                                <div class="flex flex-col items-center flex-1 relative">
+                                                                <div class="flex flex-col items-center flex-1 min-w-0 basis-0 relative group">
                                                                     <template x-if="sIdx < 4">
-                                                                        <div class="absolute h-[2px]" :class="step.isPast ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-700'" style="width: calc(100% - 24px); left: calc(50% + 12px); top: 11px;"></div>
+                                                                        <div class="absolute h-[2.5px] z-0" 
+                                                                             :class="step.isPast ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-slate-200 dark:bg-gray-700'" 
+                                                                             style="width: 100%; left: 50%; top: 14px;"></div>
                                                                     </template>
                                                                     
                                                                     <div @click="step.title === 'Part Making' ? (expandedPM = (expandedPM === part.id ? null : part.id)) : null"
                                                                          :class="[
-                                                                            'z-10 relative border-2 w-6 h-6 flex items-center justify-center text-[10px] transition-all duration-300',
+                                                                            'z-10 relative w-7 h-7 flex items-center justify-center text-[11px] transition-all duration-300',
                                                                             step.circleClass,
-                                                                            step.title === 'Part Making' ? 'cursor-pointer hover:scale-125 hover:shadow-md' : ''
+                                                                            step.title === 'Part Making' ? 'cursor-pointer hover:scale-110 hover:shadow-md' : ''
                                                                          ]"
                                                                          :title="step.title === 'Part Making' ? 'Click to view Part Making Route Details' : ''">
                                                                         <i class="fa-solid" :class="step.icon"></i>
-                                                                        <template x-if="step.isPast || (step.isReached && sIdx === 4 && part.status === 'CLOSED')">
-                                                                            <div class="absolute -bottom-1 -right-1 bg-white dark:bg-gray-800 w-3 h-3 flex items-center justify-center text-[8px] text-emerald-600 shadow-sm">
-                                                                                <i class="fa-solid fa-circle-check"></i>
+                                                                        <template x-if="step.isFinished">
+                                                                            <div class="absolute -bottom-1 -right-1 bg-white dark:bg-gray-900 w-3.5 h-3.5 rounded-full border border-emerald-500 text-emerald-600 flex items-center justify-center text-[8px] shadow-xs">
+                                                                                <i class="fa-solid fa-check font-bold"></i>
                                                                             </div>
                                                                         </template>
                                                                     </div>
-                                                                    <span class="text-[8px] font-bold uppercase tracking-wider text-center mt-1.5 whitespace-nowrap" :class="step.textClass" x-text="step.title"></span>
+                                                                    <div class="h-6 flex items-start justify-center mt-1.5 w-full">
+                                                                        <span class="text-[9px] font-bold uppercase tracking-tight text-center leading-tight block" :class="step.textClass" x-html="step.title === 'Part Making' ? 'Part<br>Making' : step.title"></span>
+                                                                    </div>
                                                                 </div>
                                                             </template>
                                                         </div>
@@ -496,26 +500,27 @@ function globalTrackingComponent() {
                 const isReached = pIndex >= sIdx;
                 const isActive = pIndex === sIdx;
                 const isPast = pIndex > sIdx;
+                const isFinished = isPast || (isReached && sIdx === 4 && part.status === 'CLOSED');
 
-                let circleClass = 'border-gray-200 bg-white dark:bg-gray-800 text-gray-400';
-                if (isPast || (isReached && sIdx === 4 && part.status === 'CLOSED')) {
-                    circleClass = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600';
-                    if (isActive) circleClass += ' ring-2 ring-emerald-100';
+                let circleClass = 'border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800/80 text-slate-300 dark:text-gray-600 rounded-lg shadow-2xs';
+                if (isFinished) {
+                    circleClass = 'border border-emerald-400/50 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-lg shadow-sm shadow-emerald-500/20';
                 } else if (isActive) {
                     if (isLate) {
-                        circleClass = 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-600 ring-2 ring-red-100 shadow-sm';
+                        circleClass = 'border-2 border-rose-500 bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-950/60 dark:to-rose-900/40 text-rose-600 rounded-lg ring-2 ring-rose-500/20 shadow-sm';
                     } else {
-                        circleClass = 'border-amber-500 bg-amber-50 dark:bg-amber-900/30 text-amber-600 ring-2 ring-amber-100 shadow-sm';
+                        circleClass = 'border-2 border-amber-500 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/60 dark:to-amber-900/40 text-amber-600 rounded-lg ring-2 ring-amber-500/20 shadow-sm';
                     }
                 }
 
-                let textClass = isActive ? (isLate ? 'text-red-600' : 'text-amber-600') : (isReached ? 'text-emerald-600' : 'text-gray-400');
+                let textClass = isActive ? (isLate ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-amber-600 dark:text-amber-400 font-bold') : (isFinished ? 'text-emerald-700 dark:text-emerald-400 font-semibold' : 'text-slate-400 dark:text-gray-500 font-medium');
 
                 return {
                     ...step,
                     isReached,
                     isActive,
                     isPast,
+                    isFinished,
                     circleClass,
                     textClass
                 };
@@ -619,7 +624,8 @@ function calculatePoProgress(po) {
 function renderGlobalProgress(po) {
     const { steps, reachedCounts, passedCounts, totalParts, isOverdueAny } = calculatePoProgress(po);
     
-    let html = `<div class="flex w-full items-start justify-center min-w-[300px] cursor-pointer hover:scale-105 transition-transform" onclick="window.triggerPoModal(${po.id})" title="Click to view part details">`;
+    let html = `<div class="flex w-full items-start justify-center min-w-[320px] max-w-[380px] mx-auto py-1 px-1 cursor-pointer group/stepper hover:scale-[1.02] transition-transform duration-200" onclick="window.triggerPoModal(${po.id})" title="Click to view PO Part Details">
+        <div class="flex w-full relative">`;
     
     steps.forEach((step, idx) => {
         const rCount = reachedCounts[idx] || 0;
@@ -627,75 +633,93 @@ function renderGlobalProgress(po) {
         const pPct = totalParts > 0 ? Math.round((pCount / totalParts) * 100) : 0;
         
         let rCountNext = reachedCounts[idx + 1] || 0;
-        let rPctNext = totalParts > 0 ? Math.round((rCountNext / totalParts) * 100) : 0;
+        let pCountNext = passedCounts[idx + 1] || 0;
+        let pPctNext = totalParts > 0 ? Math.round((pCountNext / totalParts) * 100) : 0;
 
-        let circleBorder = 'border-gray-200 dark:border-gray-700';
+        let nodeBorder = 'border-slate-200 dark:border-gray-700';
+        let nodeBg = 'bg-slate-50/80 dark:bg-gray-800/80';
         let fillClass = 'bg-transparent';
-        let iconColor = 'text-gray-400';
-        let titleClass = 'text-gray-400';
+        let iconColor = 'text-slate-300 dark:text-gray-600';
+        let titleClass = 'text-slate-400 dark:text-gray-500 font-semibold';
         let showCheck = false;
-        
-        let stepColor = 'bg-gray-200 dark:bg-gray-700';
+        let shadowClass = 'shadow-2xs';
 
         if (pPct === 100) {
-            circleBorder = 'border-emerald-500';
+            nodeBorder = 'border-emerald-400/60 dark:border-emerald-500/40';
+            nodeBg = 'bg-gradient-to-br from-emerald-500 via-emerald-500 to-teal-600';
             fillClass = 'bg-emerald-500';
-            iconColor = 'text-white';
-            titleClass = 'text-emerald-700 dark:text-emerald-400';
+            iconColor = 'text-white drop-shadow-xs';
+            titleClass = 'text-emerald-700 dark:text-emerald-400 font-bold';
             showCheck = true;
-            stepColor = 'bg-emerald-500';
+            shadowClass = 'shadow-md shadow-emerald-500/25';
         } else if (rCount > 0) {
-            circleBorder = 'border-amber-500 ring-2 ring-amber-100';
-            stepColor = 'bg-amber-500';
             if (isOverdueAny && pPct < 100) {
-                circleBorder = 'border-red-500 ring-2 ring-red-100';
-                stepColor = 'bg-red-500';
+                nodeBorder = 'border-2 border-rose-500';
+                nodeBg = 'bg-gradient-to-br from-rose-50 to-rose-100/90 dark:from-rose-950/60 dark:to-rose-900/30 ring-4 ring-rose-500/15';
+                fillClass = 'bg-gradient-to-t from-rose-500/80 to-rose-400/60';
+                iconColor = pPct > 50 ? 'text-white drop-shadow-xs' : 'text-rose-600 dark:text-rose-400';
+                titleClass = 'text-rose-600 dark:text-rose-400 font-black';
+                shadowClass = 'shadow-md shadow-rose-500/20';
+            } else {
+                nodeBorder = 'border-2 border-amber-500';
+                nodeBg = 'bg-gradient-to-br from-amber-50 to-amber-100/90 dark:from-amber-950/60 dark:to-amber-900/30 ring-4 ring-amber-500/15';
+                fillClass = 'bg-gradient-to-t from-amber-500/80 to-amber-400/60';
+                iconColor = pPct > 50 ? 'text-white drop-shadow-xs' : 'text-amber-600 dark:text-amber-400';
+                titleClass = 'text-amber-600 dark:text-amber-400 font-black';
+                shadowClass = 'shadow-md shadow-amber-500/20';
             }
-            fillClass = (isOverdueAny && pPct < 100) ? 'bg-red-400' : 'bg-amber-400';
-            iconColor = pPct > 50 ? 'text-white' : ((isOverdueAny && pPct < 100) ? 'text-red-700' : 'text-amber-700');
-            titleClass = (isOverdueAny && pPct < 100) ? 'text-red-600 font-extrabold' : 'text-amber-600 font-extrabold';
         }
 
-        let lineBg = 'bg-gray-200 dark:bg-gray-700';
-        if (rCountNext > 0) {
-            lineBg = stepColor;
+        // Connecting Line Logic
+        let lineBg = 'bg-slate-200 dark:bg-gray-700';
+        if (pPct === 100 && rCountNext > 0) {
+            if (pPctNext === 100) {
+                lineBg = 'bg-gradient-to-r from-emerald-500 to-teal-500';
+            } else if (isOverdueAny) {
+                lineBg = 'bg-gradient-to-r from-emerald-500 to-rose-500';
+            } else {
+                lineBg = 'bg-gradient-to-r from-emerald-500 to-amber-500';
+            }
         }
 
         let nextLine = '';
         if (idx < steps.length - 1) {
-            nextLine = `<div class="absolute w-[calc(100%-2.25rem)] top-[14px] left-[calc(50%+1.125rem)] h-[3px] ${lineBg}"></div>`;
+            nextLine = `<div class="absolute w-full top-4 sm:top-[18px] left-1/2 h-[3px] ${lineBg} transition-colors duration-300 z-0"></div>`;
         }
 
         let checkBadge = '';
         if (showCheck) {
-            checkBadge = `<div class="absolute -bottom-1 -right-1.5 bg-white dark:bg-gray-800 w-4 h-4 flex items-center justify-center z-30 leading-none shadow-sm">
-                <i class="fa-solid fa-circle-check text-emerald-600 text-[12px]"></i>
+            checkBadge = `<div class="absolute -bottom-1 -right-1 bg-white dark:bg-gray-900 w-4 h-4 rounded-full border border-emerald-500 text-emerald-600 flex items-center justify-center z-20 shadow-xs text-[9px] leading-none">
+                <i class="fa-solid fa-check font-bold"></i>
             </div>`;
         }
 
-        let pctLabel = '';
+        let pctBadge = '';
         if (rCount > 0 && pPct < 100) {
-            pctLabel = `<span class="text-[9px] font-black ${isOverdueAny ? 'text-red-600' : 'text-amber-600'} mt-0.5">${pPct}%</span>`;
+            const badgeBg = isOverdueAny 
+                ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-200 dark:border-rose-800' 
+                : 'bg-amber-100 text-amber-700 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-200 dark:border-amber-800';
+            pctBadge = `<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black tracking-tight ${badgeBg} mt-1 shadow-2xs">${pPct}%</span>`;
         }
 
         html += `
-        <div class="flex flex-col items-center flex-1 relative group">
+        <div class="flex flex-col items-center flex-1 min-w-0 basis-0 relative group">
             ${nextLine}
-            <div class="relative w-8 h-8 z-10">
-                <div class="relative w-full h-full bg-white dark:bg-gray-800 border-2 ${circleBorder} flex items-center justify-center text-[12px] overflow-hidden shadow-sm transition-all duration-300">
-                    <div class="absolute bottom-0 left-0 right-0 ${fillClass} transition-all duration-700 ease-out opacity-90" style="height: ${pPct}%; z-index:0;"></div>
+            <div class="relative w-8 h-8 sm:w-9 sm:h-9 z-10 transition-transform duration-200 group-hover:scale-105">
+                <div class="relative w-full h-full ${nodeBg} ${nodeBorder} rounded-xl flex items-center justify-center text-[12px] sm:text-[13px] overflow-hidden ${shadowClass} transition-all duration-300">
+                    <div class="absolute bottom-0 left-0 right-0 ${fillClass} transition-all duration-700 ease-out" style="height: ${pPct}%; z-index:0;"></div>
                     <i class="fa-solid ${step.icon} relative z-10 ${iconColor}"></i>
                 </div>
                 ${checkBadge}
             </div>
-            <div class="flex flex-col items-center mt-2 h-8">
-                <span class="text-[9px] font-bold uppercase tracking-wider text-center ${titleClass} leading-tight block">${step.title}</span>
-                ${pctLabel}
+            <div class="flex flex-col items-center mt-1.5 min-h-[32px] w-full">
+                <span class="text-[9px] font-bold uppercase tracking-tight text-center ${titleClass} leading-tight block">${step.title === 'Part Making' ? 'Part<br>Making' : step.title}</span>
+                ${pctBadge}
             </div>
         </div>`;
     });
 
-    html += `</div>`;
+    html += `</div></div>`;
     return html;
 }
 

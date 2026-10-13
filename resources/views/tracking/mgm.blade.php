@@ -322,7 +322,7 @@ $(document).ready(function() {
                                     <i class="fa-solid fa-user-check"></i> MGM Checksheet Form
                                 </a>`;
                         if (row.export_checksheet_url) {
-                            html += `<a href="${row.export_checksheet_url}" class="inline-flex px-4 py-2 bg-green-500 hover:bg-green-600 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
+                            html += `<a href="${row.export_checksheet_url}" data-no-loader="true" download class="inline-flex px-4 py-2 bg-green-500 hover:bg-green-600 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
                                         <i class="fa-solid fa-file-excel"></i> Export Excel
                                     </a>`;
                         }
@@ -346,7 +346,7 @@ $(document).ready(function() {
                             }
                         }
                         if (row.export_checksheet_url) {
-                            html += `<a href="${row.export_checksheet_url}" class="inline-flex px-4 py-2 bg-green-500 hover:bg-green-600 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
+                            html += `<a href="${row.export_checksheet_url}" data-no-loader="true" download class="inline-flex px-4 py-2 bg-green-500 hover:bg-green-600 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full max-w-[150px]">
                                         <i class="fa-solid fa-file-excel"></i> Export Excel
                                     </a>`;
                         }

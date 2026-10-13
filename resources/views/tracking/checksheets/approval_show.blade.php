@@ -23,7 +23,7 @@
             <a href="{{ route('checksheets.preview', $checksheet->hashed_id) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition">
                 <i class="fa-solid fa-print"></i> Preview Report
             </a>
-            <a href="{{ route('checksheets.export', $checksheet->hashed_id) }}" class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold shadow-sm transition">
+            <a href="{{ route('checksheets.export', $checksheet->hashed_id) }}" data-no-loader="true" download class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold shadow-sm transition">
                 <i class="fa-regular fa-file-excel"></i> Export Excel
             </a>
             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-800 text-sm font-semibold shadow-sm border border-blue-200">
