@@ -336,17 +336,21 @@ class DashboardController extends Controller
 
         $applyFilterCallback($queryEvents);
 
-        $queryEvents->addSelect(['nearest_delivery_date' => NpcPart::select('delivery_date')
-            ->whereColumn('npc_event_id', 'npc_events.id')
-            ->whereNotNull('delivery_date')
-            ->orderBy('delivery_date', 'asc')
-            ->limit(1)
+        $queryEvents->addSelect([
+            'nearest_delivery_date' => NpcPart::select('delivery_date')
+                ->whereColumn('npc_event_id', 'npc_events.id')
+                ->whereNotNull('delivery_date')
+                ->orderBy('delivery_date', 'asc')
+                ->limit(1),
+            'has_active_parts' => NpcPart::selectRaw('CASE WHEN count(*) > 0 THEN 1 ELSE 0 END')
+                ->whereColumn('npc_event_id', 'npc_events.id')
+                ->whereNotIn('status', ['FINISHED', 'CLOSED', 'OUTSTANDING'])
         ]);
 
-        $recentEvents = $queryEvents->orderBy('nearest_delivery_date', 'asc')
-        ->whereHas('parts') // Include all POs (active and closed)
-        ->take(20)
-        ->get();
+        $recentEvents = $queryEvents->orderByDesc('has_active_parts')
+            ->orderBy('nearest_delivery_date', 'asc')
+            ->whereHas('parts')
+            ->get();
 
         $chunks = [];
         $currentChunk = [];

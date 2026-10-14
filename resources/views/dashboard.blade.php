@@ -822,7 +822,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         maintainAspectRatio: false,
                         plugins: {
                             datalabels: {
-                                color: isDark ? '#ffffff' : '#000000',
+                                color: '#0f172a',
+                                backgroundColor: 'rgba(255, 255, 255, 0.88)',
+                                borderRadius: 0,
+                                padding: {
+                                    top: 2,
+                                    bottom: 2,
+                                    left: 4,
+                                    right: 4
+                                },
                                 font: function(context) {
                                     const val = context.dataset.data[context.dataIndex];
                                     return { weight: 'bold', size: val < 10 ? 8 : 9 };
@@ -830,9 +838,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 formatter: function(value) { 
                                     return value > 0 ? value + '%' : ''; 
                                 },
+                                display: function(context) {
+                                    const val = context.dataset.data[context.dataIndex];
+                                    return val > 0;
+                                },
                                 anchor: 'center',
-                                align: 'center',
-                                display: true
+                                align: 'center'
                             },
                             legend: {
                                 position: 'top',
@@ -982,11 +993,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         maintainAspectRatio: false,
                         plugins: {
                             datalabels: {
-                                color: function(context) {
-                                    return context.dataset.label === 'Delivered' ? '#ffffff' : '#000000';
+                                color: '#0f172a',
+                                backgroundColor: 'rgba(255, 255, 255, 0.88)',
+                                borderRadius: 0,
+                                padding: {
+                                    top: 2,
+                                    bottom: 2,
+                                    left: 4,
+                                    right: 4
                                 },
                                 font: { weight: 'bold', size: 9 },
                                 formatter: function(value) { return value > 0 ? value : ''; },
+                                display: function(context) {
+                                    const val = context.dataset.data[context.dataIndex];
+                                    return val > 0;
+                                },
                                 anchor: 'center',
                                 align: 'center'
                             },
@@ -1152,7 +1173,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Update datalabels
                     if (chart.options.plugins && chart.options.plugins.datalabels) {
-                        chart.options.plugins.datalabels.color = isDark ? '#ffffff' : '#000000';
+                        chart.options.plugins.datalabels.color = '#0f172a';
+                        chart.options.plugins.datalabels.backgroundColor = 'rgba(255, 255, 255, 0.88)';
                     }
 
                     chart.update();
