@@ -147,6 +147,9 @@
         window.addEventListener('pageshow', hideLoader);
         window.addEventListener('focus', hideLoader);
 
+        // Flag untuk mencegah beforeunload memicu loader saat blob download
+        window.isExportingBlob = false;
+
         // Fungsi pengecekan link export / download
         function isDownloadOrExportLink(link) {
             if (!link) return false;
@@ -164,14 +167,161 @@
             return false;
         }
 
+        // Pengecekan spesifik apakah link ini merupakan unduhan file/export yang valid
+        function isActualExportDownload(link) {
+            if (!link) return false;
+            // Abaikan link temporary bypass yang sengaja dibuat untuk memicu unduhan browser
+            if (link.hasAttribute('data-bypass-loader') || link.dataset.bypassLoader === 'true') {
+                return false;
+            }
+            const href = link.getAttribute('href');
+            if (!href || href === '#' || href.startsWith('#') || href.startsWith('javascript:')) {
+                return false;
+            }
+            if (link.hasAttribute('download')) {
+                return true;
+            }
+            const hrefLower = href.toLowerCase();
+            if (/(export|download|\.xlsx|\.xls|\.csv|\.pdf|\.zip|\.doc|\.docx)($|\?|\/)/i.test(hrefLower)) {
+                return true;
+            }
+            const textLower = (link.textContent || '').trim().toLowerCase();
+            if (textLower.includes('export') || textLower.includes('download')) {
+                return true;
+            }
+            return false;
+        }
+
+        // Handler tombol export dengan fetch blob: spinner aktif selama pembuatan file dan langsung berhenti saat unduhan siap
+        async function handleExportButtonClick(link, e) {
+            if (!isActualExportDownload(link)) return;
+
+            // Jika sedang proses download pada tombol ini, cegah klik ganda
+            if (link.dataset.isDownloading === 'true') {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                return;
+            }
+
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            link.dataset.isDownloading = 'true';
+            const originalHtml = link.innerHTML;
+            link.dataset.originalHtml = originalHtml;
+
+            // Kunci tombol agar tidak bisa diklik berulang kali selama proses
+            link.style.pointerEvents = 'none';
+            link.classList.add('opacity-85', 'cursor-wait');
+
+            // Tampilkan spinner pada tombol
+            link.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Exporting...</span>`;
+
+            // Mencegah beforeunload memicu overlay loader
+            window.isExportingBlob = true;
+
+            try {
+                const response = await fetch(link.href, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Export failed with HTTP status ${response.status}`);
+                }
+
+                // Cek jika response ternyata halaman HTML (misal sesi expired / redirect login)
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('text/html')) {
+                    window.location.href = response.url || link.href;
+                    return;
+                }
+
+                // Ambil nama file dari header Content-Disposition
+                let filename = '';
+                const disposition = response.headers.get('content-disposition');
+                if (disposition && disposition.indexOf('filename=') !== -1) {
+                    const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+                    if (matches != null && matches[1]) {
+                        filename = matches[1].replace(/['"]/g, '').trim();
+                    }
+                }
+                if (!filename) {
+                    filename = link.getAttribute('download') || ('Checksheet_Export_' + Date.now() + '.xlsx');
+                }
+
+                // Konversi response stream menjadi file Blob
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+
+                // Buat link download sementara dengan bypass loader agar tidak dicegat
+                const tempLink = document.createElement('a');
+                tempLink.style.display = 'none';
+                tempLink.href = blobUrl;
+                tempLink.download = filename;
+                tempLink.setAttribute('data-bypass-loader', 'true');
+                document.body.appendChild(tempLink);
+                tempLink.click();
+
+                // Bersihkan object URL dan elemen sementara setelah browser memproses download
+                setTimeout(function() {
+                    window.URL.revokeObjectURL(blobUrl);
+                    tempLink.remove();
+                }, 1000);
+
+                // Segera ubah status tombol menjadi Downloaded! dengan ikon centang
+                link.innerHTML = `<i class="fa-solid fa-check text-white"></i> <span>Downloaded!</span>`;
+
+                setTimeout(function() {
+                    restoreExportButton(link, originalHtml);
+                    window.isExportingBlob = false;
+                }, 1200);
+
+            } catch (err) {
+                console.error('Export download error:', err);
+                link.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-yellow-300"></i> <span>Export Failed</span>`;
+
+                setTimeout(function() {
+                    restoreExportButton(link, originalHtml);
+                    window.isExportingBlob = false;
+                }, 2000);
+            }
+        }
+
+        function restoreExportButton(link, originalHtml) {
+            if (!link) return;
+            link.innerHTML = originalHtml;
+            link.style.pointerEvents = '';
+            link.classList.remove('opacity-85', 'cursor-wait');
+            delete link.dataset.isDownloading;
+            delete link.dataset.originalHtml;
+        }
+
         // Tampilkan loader saat klik link menu internal
         document.addEventListener('click', function(e) {
             const link = e.target.closest('a');
             if (!link) return;
 
-            // Jika link export / download, jangan pernah tampilkan loader
+            // Jika link download sementara internal kita, izinkan aksi native browser dan jangan diintervensi
+            if (link.hasAttribute('data-bypass-loader') || link.dataset.bypassLoader === 'true') {
+                return;
+            }
+
+            // Jika link export / download:
+            // 1. Jangan pernah tampilkan full-page overlay loader
+            // 2. Berikan spinner interaktif di tombol itu sendiri hingga selesai
             if (isDownloadOrExportLink(link)) {
                 hideLoader();
+                if (isActualExportDownload(link)) {
+                    handleExportButtonClick(link, e);
+                }
                 return;
             }
 
@@ -211,6 +361,7 @@
 
         // Tampilkan loader saat refresh atau sebelum unload halaman
         window.addEventListener('beforeunload', function() {
+            if (window.isExportingBlob) return;
             showLoader();
         });
     })();

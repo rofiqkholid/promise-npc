@@ -1159,11 +1159,20 @@ class NpcChecksheetController extends Controller
             ob_end_clean();
         }
         
-        return response()->streamDownload(function() use ($writer) {
+        $response = response()->streamDownload(function() use ($writer) {
             $writer->save('php://output');
         }, $fileName, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Access-Control-Expose-Headers' => 'Content-Disposition',
         ]);
+
+        if (request()->has('download_token')) {
+            $response->headers->setCookie(
+                new \Symfony\Component\HttpFoundation\Cookie('download_token', request('download_token'), 0, '/', null, false, false, false, 'Lax')
+            );
+        }
+
+        return $response;
     }
 
     /**
