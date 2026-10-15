@@ -65,8 +65,8 @@
                 </div>
             </div>
 
-            <div class="flex items-end w-full md:w-auto shrink-0 gap-2">
-                <div class="relative w-full md:w-[320px]">
+            <div class="flex items-end w-full md:w-[350px] shrink-0">
+                <div class="relative w-full">
                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
                         <i class="fa-solid fa-magnifying-glass text-sm"></i>
                     </div>
@@ -79,10 +79,6 @@
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-                <button type="button" class="btn-scan-qr-trigger p-2 px-3 bg-white hover:bg-blue-50 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 text-blue-600 dark:text-blue-400 text-sm font-medium transition shadow-sm flex items-center gap-1.5 whitespace-nowrap cursor-pointer" title="Buka Kamera untuk Scan QR Quality Label">
-                    <i class="fa-solid fa-qrcode text-base"></i>
-                    <span class="hidden md:inline">Scan QR</span>
-                </button>
             </div>
         </div>
 
