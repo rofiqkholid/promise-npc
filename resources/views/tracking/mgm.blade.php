@@ -5,13 +5,21 @@
 
 @section('content')
 <div class="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-    <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-        <h2 class="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
-            <i class="fa-solid {{ $pageIcon ?? 'fa-user-tie' }} text-blue-500"></i> {{ $pageTitle ?? 'Management Check' }}
-        </h2>
-        @if(isset($pageDesc))
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-7">{{ $pageDesc }}</p>
-        @endif
+    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                <i class="fa-solid {{ $pageIcon ?? 'fa-user-tie' }} text-blue-500"></i> {{ $pageTitle ?? 'Management Check' }}
+            </h2>
+            @if(isset($pageDesc))
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-7">{{ $pageDesc }}</p>
+            @endif
+        </div>
+        <div class="flex items-center gap-2">
+            <button type="button" class="btn-scan-qr-trigger inline-flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white shadow-sm font-medium text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
+                <i class="fa-solid fa-camera"></i>
+                <span>Scan Quality Label</span>
+            </button>
+        </div>
     </div>
 
     <!-- Table -->
@@ -54,7 +62,7 @@
             </div>
         </div>
 
-        <div class="flex items-end w-full xl:w-auto">
+        <div class="flex items-end w-full xl:w-auto gap-2">
             <div class="relative w-full sm:w-80 xl:w-80">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
                     <i class="fa-solid fa-magnifying-glass text-sm"></i>
@@ -68,6 +76,10 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
+            <button type="button" class="btn-scan-qr-trigger p-2 px-3 bg-white hover:bg-blue-50 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 text-blue-600 dark:text-blue-400 text-sm font-medium transition shadow-sm flex items-center gap-1.5 whitespace-nowrap cursor-pointer" title="Buka Kamera untuk Scan QR Quality Label">
+                <i class="fa-solid fa-qrcode text-base"></i>
+                <span class="hidden md:inline">Scan QR</span>
+            </button>
         </div>
     </div>
 
@@ -90,7 +102,7 @@
         </div>
     </div>
 
-
+    @include('components.scanner-modal', ['mode' => 'mgm', 'scanButtonId' => '.btn-scan-qr-trigger'])
 </div>
 @endsection
 

@@ -20,18 +20,62 @@ class NpcChecksheetController extends Controller
     /**
      * Show options when QR code is scanned.
      */
-    public function scan(NpcPart $part)
+    public function scan(NpcPart $part, Request $request)
     {
         $user = auth()->user();
         
-        $canMgm = $user->hasMenuAccess('tracking.mgm', 'create');
-        $canApproval = $user->hasMenuAccess('checksheet-approvals.index', 'view');
+        $canMgm = $user && $user->hasMenuAccess('tracking.mgm', 'create');
+        $canApproval = $user && $user->hasMenuAccess('checksheet-approvals.index', 'view');
 
         if (!$canMgm && !$canApproval) {
+            if ($request->expectsJson() || $request->query('format') === 'json') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke halaman ini (MGM Check / Checksheet Approval).'
+                ], 403);
+            }
             abort(403, 'Anda tidak memiliki akses ke halaman ini (MGM Check / Checksheet Approval).');
         }
 
         $checksheet = $part->checksheet;
+        $isInApprovalPhase = $checksheet && in_array($part->status, ['WAITING_APPROVAL', 'FINISHED', 'CLOSED', 'OUTSTANDING']);
+
+        if ($request->expectsJson() || $request->query('format') === 'json') {
+            return response()->json([
+                'success' => true,
+                'part' => [
+                    'hashed_id' => $part->hashed_id,
+                    'part_no' => optional($part->product)->part_no ?? '-',
+                    'part_name' => optional($part->product)->part_name ?? '-',
+                    'po_no' => optional($part->event)->po_no ?? '-',
+                    'status' => $part->status,
+                ],
+                'has_checksheet' => $checksheet !== null,
+                'is_in_approval' => $isInApprovalPhase,
+                'checksheet_hashed_id' => $checksheet ? $checksheet->hashed_id : null,
+                'mgm_url' => route('checksheets.create', $part->hashed_id),
+                'approval_url' => ($checksheet && $isInApprovalPhase) ? route('checksheet-approvals.show', $checksheet->hashed_id) : null,
+                'can_mgm' => $canMgm,
+                'can_approval' => $canApproval,
+            ]);
+        }
+
+        if ($request->query('action') === 'mgm') {
+            if (!$canMgm) {
+                return redirect()->route('tracking.mgm')->with('error', 'Anda tidak memiliki akses untuk Input MGM Check.');
+            }
+            return redirect()->route('checksheets.create', $part->hashed_id);
+        }
+
+        if ($request->query('action') === 'approval') {
+            if (!$canApproval) {
+                return redirect()->route('checksheet-approvals.index')->with('error', 'Anda tidak memiliki akses untuk Checksheet Approval.');
+            }
+            if ($checksheet && $isInApprovalPhase) {
+                return redirect()->route('checksheet-approvals.show', $checksheet->hashed_id);
+            }
+            return redirect()->route('checksheet-approvals.index')->with('warning', 'Part ' . (optional($part->product)->part_no ?? '') . ' belum masuk fase approval (status saat ini: ' . $part->status . ').');
+        }
 
         return view('tracking.checksheets.scan_options', compact('part', 'checksheet', 'canMgm', 'canApproval'));
     }
