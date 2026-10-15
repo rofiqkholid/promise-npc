@@ -222,7 +222,7 @@
                                                         </div>
                                                     </td>
                                                     <td class="px-4 py-3 align-middle">
-                                                        <div class="flex items-start w-full min-w-[220px] pt-1">
+                                                        <div class="flex items-start w-full min-w-[260px] pt-1">
                                                             <template x-for="(step, sIdx) in getPartSteps(part)" :key="sIdx">
                                                                 <div class="flex flex-col items-center flex-1 min-w-0 basis-0 relative group">
                                                                     <template x-if="sIdx < 4">
@@ -248,6 +248,11 @@
                                                                     <div class="h-6 flex items-start justify-center mt-1.5 w-full">
                                                                         <span class="text-[9px] font-bold uppercase tracking-tight text-center leading-tight block" :class="step.textClass" x-html="step.title === 'Part Making' ? 'Part<br>Making' : step.title"></span>
                                                                     </div>
+                                                                    <template x-if="step.isFinished && step.dateFormatted">
+                                                                        <div class="mt-1 flex items-center justify-center">
+                                                                            <span class="inline-block px-1.5 py-0.5 text-[9px] font-semibold text-slate-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded shadow-xs whitespace-nowrap" x-text="step.dateFormatted"></span>
+                                                                        </div>
+                                                                    </template>
                                                                 </div>
                                                             </template>
                                                         </div>
@@ -496,6 +501,19 @@ function globalTrackingComponent() {
 
             const isLate = isPartLate(part);
 
+            const sortedProcesses = (part.processes || []).slice().sort((a,b) => (a.sequence_order || 0) - (b.sequence_order || 0));
+            const firstProcCreatedAt = sortedProcesses.length > 0 ? sortedProcesses[0].created_at : null;
+            const lastProc = sortedProcesses.length > 0 ? sortedProcesses[sortedProcesses.length - 1] : null;
+            const lastProcFinishedDate = lastProc ? (lastProc.actual_completion_date || lastProc.updated_at) : null;
+
+            const stepDates = [
+                firstProcCreatedAt || part.created_at,
+                part.actual_completion_date || lastProcFinishedDate,
+                part.checksheet ? (part.checksheet.qe_check_date || part.checksheet.qe_staff_date || part.checksheet.created_at) : null,
+                part.checksheet ? (part.checksheet.mgm_check_date || part.checksheet.mgm_mgr_date || part.checksheet.updated_at) : null,
+                part.actual_delivery || (part.status === 'CLOSED' ? part.updated_at : null)
+            ];
+
             return stepDefs.map((step, sIdx) => {
                 const isReached = pIndex >= sIdx;
                 const isActive = pIndex === sIdx;
@@ -515,6 +533,30 @@ function globalTrackingComponent() {
 
                 let textClass = isActive ? (isLate ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-amber-600 dark:text-amber-400 font-bold') : (isFinished ? 'text-emerald-700 dark:text-emerald-400 font-semibold' : 'text-slate-400 dark:text-gray-500 font-medium');
 
+                const rawDate = stepDates[sIdx];
+                let dateFormatted = null;
+                if (isFinished && rawDate) {
+                    try {
+                        if (typeof rawDate === 'string') {
+                            const match = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                            if (match) {
+                                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                const month = months[parseInt(match[2], 10) - 1];
+                                const day = String(parseInt(match[3], 10)).padStart(2, '0');
+                                dateFormatted = `${day} ${month}`;
+                            }
+                        }
+                        if (!dateFormatted) {
+                            const d = new Date(rawDate);
+                            if (!isNaN(d.getTime())) {
+                                dateFormatted = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+                            }
+                        }
+                    } catch (e) {
+                        dateFormatted = null;
+                    }
+                }
+
                 return {
                     ...step,
                     isReached,
@@ -522,7 +564,8 @@ function globalTrackingComponent() {
                     isPast,
                     isFinished,
                     circleClass,
-                    textClass
+                    textClass,
+                    dateFormatted
                 };
             });
         },

@@ -377,7 +377,40 @@ $(document).ready(function() {
                         { icon: 'fa-industry', title: 'Part Making' },
                         { icon: 'fa-microscope', title: 'QE' },
                         { icon: 'fa-user-tie', title: 'MGM' },
-                        { icon: 'fa-boxes-stacked', title: 'Stock' }
+                        { icon: 'fa-boxes-stacked', title: 'Delivery' }
+                    ];
+
+                    function formatStepDate(rawDate) {
+                        if (!rawDate) return null;
+                        try {
+                            if (typeof rawDate === 'string') {
+                                const match = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                                if (match) {
+                                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                    const month = months[parseInt(match[2], 10) - 1];
+                                    const day = String(parseInt(match[3], 10)).padStart(2, '0');
+                                    return `${day} ${month}`;
+                                }
+                            }
+                            const d = new Date(rawDate);
+                            if (isNaN(d.getTime())) return null;
+                            return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+                        } catch (e) {
+                            return null;
+                        }
+                    }
+
+                    const sortedProcesses = (row.processes || []).slice().sort((a,b) => (a.sequence_order || 0) - (b.sequence_order || 0));
+                    const firstProcCreatedAt = sortedProcesses.length > 0 ? sortedProcesses[0].created_at : null;
+                    const lastProc = sortedProcesses.length > 0 ? sortedProcesses[sortedProcesses.length - 1] : null;
+                    const lastProcFinishedDate = lastProc ? (lastProc.actual_completion_date || lastProc.updated_at) : null;
+
+                    const stepDates = [
+                        firstProcCreatedAt || row.created_at,
+                        row.actual_completion_date || lastProcFinishedDate,
+                        row.checksheet ? (row.checksheet.qe_check_date || row.checksheet.qe_staff_date || row.checksheet.created_at) : null,
+                        row.checksheet ? (row.checksheet.mgm_check_date || row.checksheet.mgm_mgr_date || row.checksheet.updated_at) : null,
+                        row.actual_delivery || (row.status === 'CLOSED' ? row.updated_at : null)
                     ];
                     
                     let html = '<div class="flex items-start justify-center w-full min-w-[300px] max-w-[380px] pt-1 pb-1 mx-auto group/stepper"><div class="flex w-full relative">';
@@ -405,6 +438,25 @@ $(document).ready(function() {
                         }
                         
                         const displayTitle = step.title === 'Part Making' ? 'Part<br>Making' : step.title;
+                        const dateFormatted = formatStepDate(stepDates[idx]);
+                        
+                        let dateBadgeHtml = '';
+                        if (isFinished && dateFormatted) {
+                            dateBadgeHtml = `<div class="mt-1 flex items-center justify-center">
+                                                <span class="inline-block px-1.5 py-0.5 text-[9px] font-semibold text-slate-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded shadow-xs whitespace-nowrap">
+                                                    ${dateFormatted}
+                                                </span>
+                                            </div>`;
+                        } else if (isFinished) {
+                            dateBadgeHtml = `<div class="mt-1 flex items-center justify-center">
+                                                <span class="inline-block px-1.5 py-0.5 text-[9px] font-semibold text-slate-400 dark:text-gray-500 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded shadow-xs whitespace-nowrap">
+                                                    -
+                                                </span>
+                                            </div>`;
+                        } else {
+                            dateBadgeHtml = `<div class="mt-1 min-h-[19px]"></div>`;
+                        }
+
                         html += `<div class="flex flex-col items-center flex-1 min-w-0 basis-0 relative group">`;
                         if (idx < steps.length - 1) {
                             html += `<div class="absolute w-full top-4 left-1/2 h-[2.5px] ${lineClass} transition-colors duration-300 z-0"></div>`;
@@ -420,6 +472,7 @@ $(document).ready(function() {
                                 <div class="h-7 flex items-start justify-center mt-1.5 w-full">
                                     <span class="text-[9px] font-bold uppercase tracking-tight text-center ${titleClass} leading-tight block">${displayTitle}</span>
                                 </div>
+                                ${dateBadgeHtml}
                             </div>`;
                     });
                     
@@ -429,7 +482,7 @@ $(document).ready(function() {
                         const badgeClass = row.status === 'CLOSED' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-blue-100 text-blue-800 border-blue-200';
                         const iconClass = row.status === 'CLOSED' ? 'fa-flag-checkered' : 'fa-truck-fast';
                         const labelText = row.status === 'CLOSED' ? 'PROJECT CLOSED (DELIVERED)' : 'PARTIAL DELIVERY';
-                        html += `<div class="mt-4 text-center">
+                        html += `<div class="mt-3 text-center">
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1 ${badgeClass} text-[10px] font-bold tracking-wide shadow-sm">
                                         <i class="fa-solid ${iconClass}"></i> 
                                         ${labelText}
