@@ -482,10 +482,23 @@ $(document).ready(function() {
                         const badgeClass = row.status === 'CLOSED' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-blue-100 text-blue-800 border-blue-200';
                         const iconClass = row.status === 'CLOSED' ? 'fa-flag-checkered' : 'fa-truck-fast';
                         const labelText = row.status === 'CLOSED' ? 'PROJECT CLOSED (DELIVERED)' : 'PARTIAL DELIVERY';
+                        
+                        let durationBadge = '';
+                        if (row.status === 'CLOSED' && row.created_at) {
+                            const endRaw = row.actual_delivery || row.updated_at;
+                            if (endRaw) {
+                                const s = new Date(row.created_at.split('T')[0] + 'T00:00:00');
+                                const e = new Date(endRaw.split('T')[0] + 'T00:00:00');
+                                const diffLead = Math.round((e.getTime() - s.getTime()) / (1000 * 3600 * 24));
+                                const leadDaysText = diffLead <= 1 ? '1 DAY' : (diffLead + ' DAYS');
+                                durationBadge = ` &bull; ${leadDaysText}`;
+                            }
+                        }
+
                         html += `<div class="mt-3 text-center">
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1 ${badgeClass} text-[10px] font-bold tracking-wide shadow-sm">
                                         <i class="fa-solid ${iconClass}"></i> 
-                                        ${labelText}
+                                        ${labelText}${durationBadge}
                                     </span>
                                 </div>`;
                     }
