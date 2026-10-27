@@ -743,6 +743,66 @@ document.addEventListener('DOMContentLoaded', function() {
         Chart.register(ChartDataLabels);
     }
 
+    // Helper to wrap long labels into multiple lines to avoid overlap on the x-axis
+    function wrapChartLabel(label, maxLen = 14, maxLines = 3) {
+        if (!label) return [];
+        if (Array.isArray(label)) {
+            let res = [];
+            label.forEach(part => {
+                if (typeof part === 'string') {
+                    res.push(...wrapChartLabel(part, maxLen, maxLines));
+                } else if (Array.isArray(part)) {
+                    res.push(...wrapChartLabel(part, maxLen, maxLines));
+                } else if (part !== null && part !== undefined) {
+                    res.push(String(part));
+                }
+            });
+            return res;
+        }
+        const text = String(label).trim();
+        if (text.length <= maxLen) return [text];
+
+        const tokens = text.split(/(?<=[ \-_/])|(?=[(])/).filter(Boolean);
+        const lines = [];
+        let currentLine = '';
+
+        for (let token of tokens) {
+            let subToken = token;
+            while (subToken.length > maxLen) {
+                const take = subToken.slice(0, maxLen);
+                subToken = subToken.slice(maxLen);
+                if (currentLine !== '') {
+                    lines.push(currentLine.trim());
+                    currentLine = '';
+                }
+                lines.push(take.trim());
+            }
+
+            if (currentLine === '') {
+                currentLine = subToken;
+            } else if ((currentLine + subToken).length <= maxLen) {
+                currentLine += subToken;
+            } else {
+                lines.push(currentLine.trim());
+                currentLine = subToken;
+            }
+        }
+        if (currentLine !== '') {
+            lines.push(currentLine.trim());
+        }
+
+        if (lines.length > maxLines) {
+            let lastLine = lines.slice(maxLines - 1).join(' ');
+            lines.length = maxLines - 1;
+            if (lastLine.length > maxLen) {
+                lastLine = lastLine.slice(0, maxLen - 2) + '..';
+            }
+            lines.push(lastLine);
+        }
+
+        return lines;
+    }
+
     // 1. Trend Chart (Grouped Stacked Bar for Plan vs Actual)
     const poChunks = @json($poChunks);
     
@@ -763,7 +823,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
 
         poChunks.forEach((chunk, index) => {
-            const labels = chunk.map(po => po.chartLabel);
+            const labels = chunk.map(po => wrapChartLabel(po.chartLabel, 14, 2));
             const ctx = document.getElementById('trendChart-' + index);
             
             if (ctx) {
@@ -850,8 +910,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 onClick: null,
                                 labels: { 
                                     usePointStyle: true, 
-                                    boxWidth: 8, 
-                                    font: { size: 10 },
+                                    boxWidth: 6, 
+                                    font: { size: 9 },
                                     generateLabels: function(chart) {
                                         return [
                                             {
@@ -930,14 +990,20 @@ document.addEventListener('DOMContentLoaded', function() {
                             x: { 
                                 stacked: true,
                                 grid: { display: false }, 
-                                ticks: { autoSkip: false, font: { size: 9 }, maxRotation: 0, minRotation: 0 }
+                                ticks: { autoSkip: false, font: { size: 9, lineHeight: 1.15 }, maxRotation: 0, minRotation: 0 },
+                                afterFit: function(scale) {
+                                    scale.height = 42;
+                                }
                             },
                             y: { 
                                 stacked: true,
                                 type: 'linear', display: true, position: 'left',
                                 grid: { color: gridColor }, beginAtZero: true,
                                 max: 105,
-                                ticks: { stepSize: 25, font: { size: 9 }, callback: function(value) { return value <= 100 ? value + '%' : ''; } }
+                                ticks: { stepSize: 25, font: { size: 9 }, callback: function(value) { return value <= 100 ? value + '%' : ''; } },
+                                afterFit: function(scale) {
+                                    scale.width = 32;
+                                }
                             }
                         }
                     }
@@ -951,7 +1017,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (progressChunks && progressChunks.length > 0) {
         progressChunks.forEach((chunk, index) => {
-            const labels = chunk.map(po => po.chartLabel);
+            const labels = chunk.map(po => wrapChartLabel(po.chartLabel, 14, 3));
             const ctxProg = document.getElementById('progressChart-' + index);
             if (ctxProg) {
                 const deptColors = {
@@ -988,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         datasets: datasetsProg
                     },
                     options: {
-                        layout: { padding: { top: 25, right: 5 } },
+                        layout: { padding: { top: 5, right: 5 } },
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
@@ -1036,13 +1102,19 @@ document.addEventListener('DOMContentLoaded', function() {
                             x: { 
                                 stacked: true,
                                 grid: { display: false }, 
-                                ticks: { autoSkip: false, font: { size: 9 }, maxRotation: 0, minRotation: 0 }
+                                ticks: { autoSkip: false, font: { size: 9, lineHeight: 1.15 }, maxRotation: 0, minRotation: 0 },
+                                afterFit: function(scale) {
+                                    scale.height = 42;
+                                }
                             },
                             y: { 
                                 stacked: true,
                                 type: 'linear', display: true, position: 'left',
                                 grid: { color: gridColor }, beginAtZero: true,
-                                ticks: { stepSize: 1, font: { size: 9 } }
+                                ticks: { stepSize: 1, font: { size: 9 } },
+                                afterFit: function(scale) {
+                                    scale.width = 32;
+                                }
                             }
                         }
                     }

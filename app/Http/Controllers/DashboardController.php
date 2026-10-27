@@ -427,7 +427,8 @@ class DashboardController extends Controller
             }
             
             // X-Axis label (Array for multiline, let Chart.js handle it)
-            $chartLabel = [$poLabel, $group['gr_name']];
+            $fullLabel = trim($poLabel . ' ' . $group['gr_name']);
+            $chartLabel = $this->wrapChartLabel($fullLabel, 14, 3);
             
             $totalItems = count($group['parts']);
             $finishedItems = 0;
@@ -627,7 +628,7 @@ class DashboardController extends Controller
             $custData = [
                 'id' => $group['key'],
                 'po_no' => $group['chartLabel'],
-                'chartLabel' => $group['chartLabel'],
+                'chartLabel' => $this->wrapChartLabel($group['chartLabel'], 14, 2),
                 'chartTooltip' => $chartTooltip,
                 'totalItems' => $totalItems,
                 'categories' => $catData
@@ -646,5 +647,59 @@ class DashboardController extends Controller
         }
         
         return $chunks;
+    }
+
+    /**
+     * Wrap label into multiple lines so that it does not overflow horizontally in charts.
+     */
+    private function wrapChartLabel(string $text, int $maxLen = 14, int $maxLines = 3): array
+    {
+        $text = trim($text);
+        if (empty($text)) {
+            return [];
+        }
+        if (mb_strlen($text) <= $maxLen) {
+            return [$text];
+        }
+
+        // Split on space, hyphen, underscore, slash, or before '('
+        $tokens = preg_split('/(?<=[ \-_\\/])|(?=[(])/', $text, -1, PREG_SPLIT_NO_EMPTY);
+        $lines = [];
+        $currentLine = '';
+
+        foreach ($tokens as $token) {
+            while (mb_strlen($token) > $maxLen) {
+                $take = mb_substr($token, 0, $maxLen);
+                $token = mb_substr($token, $maxLen);
+                if ($currentLine !== '') {
+                    $lines[] = trim($currentLine);
+                    $currentLine = '';
+                }
+                $lines[] = trim($take);
+            }
+
+            if ($currentLine === '') {
+                $currentLine = $token;
+            } elseif (mb_strlen($currentLine . $token) <= $maxLen) {
+                $currentLine .= $token;
+            } else {
+                $lines[] = trim($currentLine);
+                $currentLine = $token;
+            }
+        }
+        if ($currentLine !== '') {
+            $lines[] = trim($currentLine);
+        }
+
+        if (count($lines) > $maxLines) {
+            $lastLine = implode(' ', array_slice($lines, $maxLines - 1));
+            $lines = array_slice($lines, 0, $maxLines - 1);
+            if (mb_strlen($lastLine) > $maxLen) {
+                $lastLine = mb_substr($lastLine, 0, $maxLen - 2) . '..';
+            }
+            $lines[] = $lastLine;
+        }
+
+        return $lines;
     }
 }
