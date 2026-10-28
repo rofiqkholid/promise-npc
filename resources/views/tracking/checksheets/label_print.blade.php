@@ -110,12 +110,13 @@
             background: white;
             border: 2px solid #111;
             border-radius: 6px;
-            padding: 14px;
+            padding: 10px 12px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 380px;
+            min-height: 380px;
+            height: auto;
             break-inside: avoid;
             page-break-inside: avoid;
         }
@@ -125,8 +126,8 @@
             justify-content: space-between;
             align-items: flex-start;
             border-bottom: 2px solid #111;
-            padding-bottom: 8px;
-            margin-bottom: 8px;
+            padding-bottom: 6px;
+            margin-bottom: 6px;
         }
 
         .label-header h1 {
@@ -173,7 +174,7 @@
             font-size: 11px;
             font-weight: 600;
             color: #374151;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -205,8 +206,8 @@
 
         .label-footer {
             border-top: 2px solid #111;
-            padding-top: 8px;
-            margin-top: 8px;
+            padding-top: 6px;
+            margin-top: 6px;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
@@ -230,19 +231,19 @@
         .img-wrapper {
             width: 100%;
             text-align: center;
-            margin: 6px 0;
-            min-height: 75px;
+            margin: 4px 0;
+            min-height: 105px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
-            padding: 0 16px;
+            gap: 18px;
+            padding: 0 4px;
             box-sizing: border-box;
         }
 
         .part-img {
-            max-height: 70px;
-            max-width: calc(100% - 90px);
+            max-height: 100px;
+            max-width: calc(100% - 130px);
             object-fit: contain;
             display: inline-block;
             flex-shrink: 1;
@@ -250,17 +251,17 @@
         }
 
         .qr-code-img {
-            width: 70px;
-            height: 70px;
-            max-height: 70px;
-            max-width: 70px;
+            width: 105px;
+            height: 105px;
+            max-height: 105px;
+            max-width: 105px;
             flex-shrink: 0;
             object-fit: contain;
             display: inline-block;
         }
 
         /* ===== SCALING FOR 3 & 4 COLUMNS ===== */
-        .cols-3 .label-card { padding: 10px; height: 290px; }
+        .cols-3 .label-card { padding: 8px 10px; min-height: 290px; height: auto; }
         .cols-3 .label-header h1 { font-size: 12px; }
         .cols-3 .label-header .company { font-size: 7px; }
         .cols-3 .label-badge { font-size: 9px; padding: 3px 6px; }
@@ -270,26 +271,26 @@
         .cols-3 .field-value { font-size: 8px; }
         .cols-3 .piece-no { font-size: 14px; }
         .cols-3 .piece-total { font-size: 8px; }
-        .cols-3 .signature-box { width: 90px !important; height: 50px !important; }
-        .cols-3 .img-wrapper { min-height: 45px !important; margin: 2px 0 !important; }
-        .cols-3 .part-img { max-height: 40px !important; }
-        .cols-3 .qr-code-img { width: 45px !important; height: 45px !important; max-height: 45px !important; max-width: 45px !important; }
+        .cols-3 .signature-box { width: 85px !important; height: 42px !important; }
+        .cols-3 .img-wrapper { min-height: 85px !important; margin: 2px 0 !important; gap: 12px !important; }
+        .cols-3 .part-img { max-height: 80px !important; max-width: calc(100% - 100px) !important; }
+        .cols-3 .qr-code-img { width: 85px !important; height: 85px !important; max-height: 85px !important; max-width: 85px !important; }
 
-        .cols-4 .label-card { padding: 8px; height: 250px; }
+        .cols-4 .label-card { padding: 6px 8px; min-height: 260px; height: auto; }
         .cols-4 .label-header h1 { font-size: 10px; }
         .cols-4 .label-header .company { font-size: 6px; }
         .cols-4 .label-badge { font-size: 8px; padding: 2px 4px; }
         .cols-4 .part-no { font-size: 13px; }
-        .cols-4 .part-name { font-size: 8px; margin-bottom: 4px; }
+        .cols-4 .part-name { font-size: 8px; margin-bottom: 3px; }
         .cols-4 .field-label { font-size: 5px; }
         .cols-4 .field-value { font-size: 7px; }
         .cols-4 .piece-no { font-size: 12px; }
         .cols-4 .piece-total { font-size: 7px; }
-        .cols-4 .signature-box { width: 70px !important; height: 40px !important; }
+        .cols-4 .signature-box { width: 65px !important; height: 35px !important; }
         .cols-4 .signature-box span { font-size: 5px !important; }
-        .cols-4 .img-wrapper { min-height: 35px !important; margin: 2px 0 !important; }
-        .cols-4 .part-img { max-height: 30px !important; }
-        .cols-4 .qr-code-img { width: 35px !important; height: 35px !important; max-height: 35px !important; max-width: 35px !important; }
+        .cols-4 .img-wrapper { min-height: 72px !important; margin: 2px 0 !important; gap: 6px !important; padding: 0 2px !important; }
+        .cols-4 .part-img { max-height: 65px !important; max-width: calc(100% - 78px) !important; }
+        .cols-4 .qr-code-img { width: 70px !important; height: 70px !important; max-height: 70px !important; max-width: 70px !important; }
 
         /* ===== PRINT STYLES ===== */
         @media print {
@@ -405,7 +406,7 @@
                 @endphp
                 <div class="img-wrapper">
                     @if($labelImgUrl)
-                    <img src="{{ $labelImgUrl }}" class="part-img" alt="Part Image">
+                    <img src="{{ $labelImgUrl }}" class="part-img" alt="Part Image" onerror="this.style.display='none'">
                     @endif
                     <img src="{{ $qrCode }}" class="qr-code-img" alt="QR Code Checksheet" title="Scan to fill checksheet">
                 </div>
@@ -443,10 +444,10 @@
                         {{ optional($part->checksheet)->qe_check_date ? \Carbon\Carbon::parse($part->checksheet->qe_check_date)->format('d M Y') : \Carbon\Carbon::now()->format('d M Y') }}
                     </span>
                     <div style="display: flex; gap: 8px;">
-                        <div class="signature-box" style="border: 1px solid #94a3b8; width: 120px; height: 75px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px 4px; background: #f8fafc;">
+                        <div class="signature-box" style="border: 1px solid #94a3b8; width: 105px; height: 50px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px 4px; background: #f8fafc;">
                             <span style="font-size: 7px; font-weight: bold; color: #64748b; text-transform: uppercase;">QC</span>
                         </div>
-                        <div class="signature-box" style="border: 1px solid #94a3b8; width: 120px; height: 75px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px 4px; background: #f8fafc;">
+                        <div class="signature-box" style="border: 1px solid #94a3b8; width: 105px; height: 50px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px 4px; background: #f8fafc;">
                             <span style="font-size: 7px; font-weight: bold; color: #64748b; text-transform: uppercase;">NPC</span>
                         </div>
                     </div>
