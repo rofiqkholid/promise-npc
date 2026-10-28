@@ -110,7 +110,7 @@
             background: white;
             border: 2px solid #111;
             border-radius: 6px;
-            padding: 14px;
+            padding: 12px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -230,19 +230,19 @@
         .img-wrapper {
             width: 100%;
             text-align: center;
-            margin: 6px 0;
-            min-height: 75px;
+            margin: 4px 0;
+            min-height: 120px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
-            padding: 0 16px;
+            gap: 20px;
+            padding: 0 4px;
             box-sizing: border-box;
         }
 
         .part-img {
-            max-height: 70px;
-            max-width: calc(100% - 90px);
+            max-height: 115px;
+            max-width: calc(100% - 145px);
             object-fit: contain;
             display: inline-block;
             flex-shrink: 1;
@@ -250,10 +250,10 @@
         }
 
         .qr-code-img {
-            width: 70px;
-            height: 70px;
-            max-height: 70px;
-            max-width: 70px;
+            width: 120px;
+            height: 120px;
+            max-height: 120px;
+            max-width: 120px;
             flex-shrink: 0;
             object-fit: contain;
             display: inline-block;
@@ -271,9 +271,9 @@
         .cols-3 .piece-no { font-size: 14px; }
         .cols-3 .piece-total { font-size: 8px; }
         .cols-3 .signature-box { width: 90px !important; height: 50px !important; }
-        .cols-3 .img-wrapper { min-height: 45px !important; margin: 2px 0 !important; }
-        .cols-3 .part-img { max-height: 40px !important; }
-        .cols-3 .qr-code-img { width: 45px !important; height: 45px !important; max-height: 45px !important; max-width: 45px !important; }
+        .cols-3 .img-wrapper { min-height: 95px !important; margin: 2px 0 !important; gap: 14px !important; padding: 0 4px !important; }
+        .cols-3 .part-img { max-height: 90px !important; max-width: calc(100% - 110px) !important; }
+        .cols-3 .qr-code-img { width: 95px !important; height: 95px !important; max-height: 95px !important; max-width: 95px !important; }
 
         .cols-4 .label-card { padding: 8px; height: 250px; }
         .cols-4 .label-header h1 { font-size: 10px; }
@@ -287,9 +287,9 @@
         .cols-4 .piece-total { font-size: 7px; }
         .cols-4 .signature-box { width: 70px !important; height: 40px !important; }
         .cols-4 .signature-box span { font-size: 5px !important; }
-        .cols-4 .img-wrapper { min-height: 35px !important; margin: 2px 0 !important; }
-        .cols-4 .part-img { max-height: 30px !important; }
-        .cols-4 .qr-code-img { width: 35px !important; height: 35px !important; max-height: 35px !important; max-width: 35px !important; }
+        .cols-4 .img-wrapper { min-height: 72px !important; margin: 2px 0 !important; gap: 8px !important; padding: 0 2px !important; }
+        .cols-4 .part-img { max-height: 68px !important; max-width: calc(100% - 80px) !important; }
+        .cols-4 .qr-code-img { width: 72px !important; height: 72px !important; max-height: 72px !important; max-width: 72px !important; }
 
         /* ===== PRINT STYLES ===== */
         @media print {
@@ -443,10 +443,10 @@
                         {{ optional($part->checksheet)->qe_check_date ? \Carbon\Carbon::parse($part->checksheet->qe_check_date)->format('d M Y') : \Carbon\Carbon::now()->format('d M Y') }}
                     </span>
                     <div style="display: flex; gap: 8px;">
-                        <div class="signature-box" style="border: 1px solid #94a3b8; width: 120px; height: 75px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px 4px; background: #f8fafc;">
+                        <div class="signature-box" style="border: 1px solid #94a3b8; width: 120px; height: 68px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px 4px; background: #f8fafc;">
                             <span style="font-size: 7px; font-weight: bold; color: #64748b; text-transform: uppercase;">QC</span>
                         </div>
-                        <div class="signature-box" style="border: 1px solid #94a3b8; width: 120px; height: 75px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px 4px; background: #f8fafc;">
+                        <div class="signature-box" style="border: 1px solid #94a3b8; width: 120px; height: 68px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px 4px; background: #f8fafc;">
                             <span style="font-size: 7px; font-weight: bold; color: #64748b; text-transform: uppercase;">NPC</span>
                         </div>
                     </div>
