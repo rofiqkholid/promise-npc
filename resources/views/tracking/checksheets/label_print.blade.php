@@ -228,69 +228,107 @@
             color: #6b7280;
         }
 
-        .img-wrapper {
-            width: 100%;
-            text-align: center;
-            margin: 4px 0;
-            min-height: 105px;
+        .label-main-content {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 18px;
-            padding: 0 4px;
-            box-sizing: border-box;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 2px 0 6px 0;
+            flex: 1;
         }
 
-        .part-img {
-            max-height: 100px;
-            max-width: calc(100% - 130px);
-            object-fit: contain;
-            display: inline-block;
-            flex-shrink: 1;
+        .part-info-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
             min-width: 0;
         }
 
+        .part-no {
+            font-size: 18px;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 2px;
+            letter-spacing: 0.3px;
+            word-break: break-word;
+        }
+
+        .part-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .part-img-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2px;
+            min-height: 80px;
+        }
+
+        .part-img {
+            max-height: 95px;
+            max-width: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .qr-col {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .qr-code-img {
-            width: 105px;
-            height: 105px;
-            max-height: 105px;
-            max-width: 105px;
+            width: 160px;
+            height: 160px;
+            max-height: 160px;
+            max-width: 160px;
             flex-shrink: 0;
             object-fit: contain;
-            display: inline-block;
+            display: block;
         }
 
         /* ===== SCALING FOR 3 & 4 COLUMNS ===== */
-        .cols-3 .label-card { padding: 8px 10px; min-height: 290px; height: auto; }
+        .cols-3 .label-card { padding: 6px 8px; min-height: 255px; height: auto; }
         .cols-3 .label-header h1 { font-size: 12px; }
         .cols-3 .label-header .company { font-size: 7px; }
         .cols-3 .label-badge { font-size: 9px; padding: 3px 6px; }
-        .cols-3 .part-no { font-size: 16px; }
-        .cols-3 .part-name { font-size: 9px; }
+        .cols-3 .label-main-content { gap: 8px; margin: 2px 0 4px 0; }
+        .cols-3 .part-no { font-size: 14px; }
+        .cols-3 .part-name { font-size: 9px; margin-bottom: 2px; }
+        .cols-3 .part-img-box { min-height: 70px; margin-top: 2px; }
+        .cols-3 .part-img { max-height: 70px; }
+        .cols-3 .qr-code-img { width: 115px !important; height: 115px !important; max-height: 115px !important; max-width: 115px !important; }
         .cols-3 .field-label { font-size: 6px; }
         .cols-3 .field-value { font-size: 8px; }
         .cols-3 .piece-no { font-size: 14px; }
         .cols-3 .piece-total { font-size: 8px; }
         .cols-3 .signature-box { width: 85px !important; height: 42px !important; }
-        .cols-3 .img-wrapper { min-height: 85px !important; margin: 2px 0 !important; gap: 12px !important; }
-        .cols-3 .part-img { max-height: 80px !important; max-width: calc(100% - 100px) !important; }
-        .cols-3 .qr-code-img { width: 85px !important; height: 85px !important; max-height: 85px !important; max-width: 85px !important; }
 
-        .cols-4 .label-card { padding: 6px 8px; min-height: 260px; height: auto; }
+        .cols-4 .label-card { padding: 5px 6px; min-height: 220px; height: auto; }
         .cols-4 .label-header h1 { font-size: 10px; }
         .cols-4 .label-header .company { font-size: 6px; }
         .cols-4 .label-badge { font-size: 8px; padding: 2px 4px; }
-        .cols-4 .part-no { font-size: 13px; }
-        .cols-4 .part-name { font-size: 8px; margin-bottom: 3px; }
+        .cols-4 .label-main-content { gap: 6px; margin: 2px 0 2px 0; }
+        .cols-4 .part-no { font-size: 11px; letter-spacing: 0; }
+        .cols-4 .part-name { font-size: 8px; margin-bottom: 2px; }
+        .cols-4 .part-img-box { min-height: 55px; margin-top: 2px; }
+        .cols-4 .part-img { max-height: 55px; }
+        .cols-4 .qr-code-img { width: 95px !important; height: 95px !important; max-height: 95px !important; max-width: 95px !important; }
         .cols-4 .field-label { font-size: 5px; }
         .cols-4 .field-value { font-size: 7px; }
         .cols-4 .piece-no { font-size: 12px; }
         .cols-4 .piece-total { font-size: 7px; }
         .cols-4 .signature-box { width: 65px !important; height: 35px !important; }
         .cols-4 .signature-box span { font-size: 5px !important; }
-        .cols-4 .img-wrapper { min-height: 72px !important; margin: 2px 0 !important; gap: 6px !important; padding: 0 2px !important; }
-        .cols-4 .part-img { max-height: 65px !important; max-width: calc(100% - 78px) !important; }
-        .cols-4 .qr-code-img { width: 70px !important; height: 70px !important; max-height: 70px !important; max-width: 70px !important; }
 
         /* ===== PRINT STYLES ===== */
         @media print {
@@ -390,10 +428,6 @@
 
             <!-- Body -->
             <div class="label-body">
-                <div class="part-no">{{ optional($part->product)->part_no ?? '-' }}</div>
-                <div class="part-name" title="{{ optional($part->product)->part_name ?? '-' }}">{{ optional($part->product)->part_name ?? '-' }}</div>
-
-                {{-- Label Image --}}
                 @php
                     $effectiveDetail = optional($part->product)->getEffectiveProductDetail();
                     $labelImgPath = optional($effectiveDetail)->label_image_path;
@@ -404,11 +438,20 @@
                     $qrData = route('tracking.scan', ['part' => $part->hashed_id]);
                     $qrCode = (new \chillerlan\QRCode\QRCode)->render($qrData);
                 @endphp
-                <div class="img-wrapper">
-                    @if($labelImgUrl)
-                    <img src="{{ $labelImgUrl }}" class="part-img" alt="Part Image" onerror="this.style.display='none'">
-                    @endif
-                    <img src="{{ $qrCode }}" class="qr-code-img" alt="QR Code Checksheet" title="Scan to fill checksheet">
+
+                <div class="label-main-content">
+                    <div class="part-info-col">
+                        <div class="part-no">{{ optional($part->product)->part_no ?? '-' }}</div>
+                        <div class="part-name" title="{{ optional($part->product)->part_name ?? '-' }}">{{ optional($part->product)->part_name ?? '-' }}</div>
+                        @if($labelImgUrl)
+                        <div class="part-img-box">
+                            <img src="{{ $labelImgUrl }}" class="part-img" alt="Part Image" onerror="this.parentElement.style.display='none'">
+                        </div>
+                        @endif
+                    </div>
+                    <div class="qr-col">
+                        <img src="{{ $qrCode }}" class="qr-code-img" alt="QR Code Checksheet" title="Scan to fill checksheet">
+                    </div>
                 </div>
 
                 <div class="label-fields">

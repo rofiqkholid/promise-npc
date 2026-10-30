@@ -5,25 +5,27 @@
 
 @section('css')
 <style>
-    /* Prevent body scroll to enforce single page view */
-    body { overflow: hidden; }
+    /* Prevent body scroll to enforce single page view on desktop */
+    @media (min-width: 1280px) {
+        body { overflow: hidden; }
+    }
 </style>
 @endsection
 
 @section('content')
 <!-- Dashboard Wrapper to dynamically fill space seamlessly -->
-<div class="flex flex-col gap-4 h-[calc(100vh-10rem)] overflow-hidden">
+<div class="flex flex-col gap-3 sm:gap-4 min-h-0 xl:h-[calc(100vh-10rem)] xl:overflow-hidden">
 
     <!-- KPI Cards (Row 1) -->
-    <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4 flex-none">
+    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2.5 sm:gap-4 flex-none">
         <!-- Total Active Projects -->
         <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-            <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
-                <div>
-                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Total Active Projects</p>
-                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['active_models'] }}</h3>
+            <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 sm:p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
+                <div class="min-w-0 pr-2">
+                    <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 truncate">Total Active Projects</p>
+                    <h3 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['active_models'] }}</h3>
                 </div>
-                <div class="w-10 h-10 bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-teal-600 dark:text-teal-400 text-lg">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 shrink-0 bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-teal-600 dark:text-teal-400 text-base sm:text-lg">
                     <i class="fa-solid fa-car"></i>
                 </div>
             </div>
@@ -52,12 +54,12 @@
 
         <!-- Total PO -->
         <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-            <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
-                <div>
-                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">PO On Hand</p>
-                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['total_po'] }}</h3>
+            <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 sm:p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
+                <div class="min-w-0 pr-2">
+                    <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 truncate">PO On Hand</p>
+                    <h3 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['total_po'] }}</h3>
                 </div>
-                <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-lg">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 shrink-0 bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-base sm:text-lg">
                     <i class="fa-solid fa-file-invoice"></i>
                 </div>
             </div>
@@ -89,12 +91,12 @@
 
         <!-- PO on hand -->
         <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-            <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
-                <div>
-                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">PO Active</p>
-                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['po_on_hand'] }}</h3>
+            <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 sm:p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
+                <div class="min-w-0 pr-2">
+                    <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 truncate">PO Active</p>
+                    <h3 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['po_on_hand'] }}</h3>
                 </div>
-                <div class="w-10 h-10 bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 text-lg">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 shrink-0 bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 text-base sm:text-lg">
                     <i class="fa-solid fa-clipboard-list"></i>
                 </div>
             </div>
@@ -126,12 +128,12 @@
 
         <!-- PO Complete -->
         <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-            <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
-                <div>
-                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">PO Complete</p>
-                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['po_complete'] }}</h3>
+            <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 sm:p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
+                <div class="min-w-0 pr-2">
+                    <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 truncate">PO Complete</p>
+                    <h3 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['po_complete'] }}</h3>
                 </div>
-                <div class="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 text-lg">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 shrink-0 bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 text-base sm:text-lg">
                     <i class="fa-solid fa-file-circle-check"></i>
                 </div>
             </div>
@@ -162,13 +164,13 @@
         </div>
 
         <!-- Stock -->
-        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-            <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
-                <div>
-                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Remain PO</p>
-                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['stock'] }}</h3>
+        <div class="relative col-span-2 sm:col-span-1 xl:col-span-1" x-data="{ open: false }" @click.outside="open = false">
+            <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 sm:p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
+                <div class="min-w-0 pr-2">
+                    <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 truncate">Remain PO</p>
+                    <h3 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white leading-none">{{ $metrics['stock'] }}</h3>
                 </div>
-                <div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-lg">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 shrink-0 bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-base sm:text-lg">
                     <i class="fa-solid fa-boxes-stacked"></i>
                 </div>
             </div>
@@ -200,17 +202,17 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col gap-4 min-h-0 overflow-hidden">
+    <div class="flex-1 flex flex-col gap-4 min-h-0 xl:overflow-hidden">
         
         <!-- Top Row: Charts Container -->
-        <div class="flex-1 flex gap-4 min-h-0">
+        <div class="flex-none lg:flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
             
             @php 
                 $hasFilter = ($filterYear != date('Y') || $filterMonth || $filterCustomer || !empty($filterPo) || !empty($filterModel)); 
             @endphp
             
             <!-- Left Widget: Plan vs Actual -->
-            <div class="w-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 rounded overflow-hidden" x-data="{ currentSlide: 0, maxSlide: {{ count($poChunks) > 0 ? count($poChunks) - 1 : 0 }} }">
+            <div class="w-full lg:w-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-[300px] sm:min-h-[320px] lg:min-h-0 h-[300px] sm:h-[320px] lg:h-auto rounded overflow-hidden" x-data="{ currentSlide: 0, maxSlide: {{ count($poChunks) > 0 ? count($poChunks) - 1 : 0 }} }">
                 <!-- Header & Controls -->
                 <div class="p-2.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex justify-between items-center flex-none">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
@@ -303,7 +305,7 @@
                 <div class="flex-1 relative overflow-hidden flex flex-col min-h-0 bg-slate-50/50 dark:bg-slate-900/20">
                     @if(count($poChunks) > 0)
                         @foreach($poChunks as $index => $chunk)
-                        <div :class="currentSlide === {{ $index }} ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'" class="absolute inset-0 flex flex-col min-h-0 w-full h-full p-4 transition-opacity duration-300">
+                        <div :class="currentSlide === {{ $index }} ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'" class="absolute inset-0 flex flex-col min-h-0 w-full h-full p-2 sm:p-4 transition-opacity duration-300">
                             <canvas id="trendChart-{{ $index }}"></canvas>
                         </div>
                         @endforeach
@@ -317,7 +319,7 @@
             </div>
 
             <!-- Right Widget: PO Progress -->
-            <div class="w-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 rounded overflow-hidden" x-data="{ currentSlide: 0, maxSlide: {{ count($progressChunks) > 0 ? count($progressChunks) - 1 : 0 }} }">
+            <div class="w-full lg:w-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-[300px] sm:min-h-[320px] lg:min-h-0 h-[300px] sm:h-[320px] lg:h-auto rounded overflow-hidden" x-data="{ currentSlide: 0, maxSlide: {{ count($progressChunks) > 0 ? count($progressChunks) - 1 : 0 }} }">
                 <!-- Header -->
                 <div class="p-2.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex justify-between items-center flex-none">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
@@ -413,7 +415,7 @@
                 <div class="flex-1 relative overflow-hidden flex flex-col min-h-0 bg-slate-50/50 dark:bg-slate-900/20">
                     @if(count($progressChunks) > 0)
                         @foreach($progressChunks as $index => $chunk)
-                        <div :class="currentSlide === {{ $index }} ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'" class="absolute inset-0 flex flex-col min-h-0 w-full h-full p-4 transition-opacity duration-300">
+                        <div :class="currentSlide === {{ $index }} ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'" class="absolute inset-0 flex flex-col min-h-0 w-full h-full p-2 sm:p-4 transition-opacity duration-300">
                             <canvas id="progressChart-{{ $index }}"></canvas>
                         </div>
                         @endforeach
@@ -428,10 +430,10 @@
         </div>
             
         <!-- Bottom Row: Lists & Tables -->
-        <div class="h-[220px] flex-none flex gap-4 min-h-0">
+        <div class="flex-none flex flex-col lg:flex-row gap-4 min-h-0 lg:h-[220px]">
             
             <!-- Nearest Events -->
-            <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col min-h-0">
+            <div class="w-full lg:flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col min-h-0 h-[250px] lg:h-full">
                 <div class="py-1.5 px-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between flex-none">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white"><i class="fa-regular fa-calendar-check text-slate-400 mr-1.5"></i> Upcoming Events</h3>
                     <a href="{{ route('events.index') }}" class="text-[9px] text-primary-600 font-medium">View All</a>
@@ -439,33 +441,33 @@
                 
                 <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar relative">
                     @if($nearestEvents->count() > 0)
-                        <table class="w-full table-fixed text-left border-collapse">
+                        <table class="w-full table-fixed text-left border-collapse min-w-[320px]">
                             <thead class="bg-slate-50 dark:bg-slate-800">
                                 <tr>
-                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[24%] py-1 px-1 pl-2 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Customer</th>
-                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[22%] py-1 px-1 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Model</th>
-                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[15%] py-1 px-1 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Event</th>
-                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[15%] py-1 px-1 text-[8px] font-semibold text-slate-500 uppercase tracking-tighter">Batch</th>
-                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[24%] py-1 px-1 pr-2 text-[8px] font-semibold text-slate-500 uppercase text-right tracking-tighter">Delv Date</th>
+                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[24%] py-1 px-1 pl-2 text-[8px] sm:text-[9px] font-semibold text-slate-500 uppercase tracking-tighter">Customer</th>
+                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[22%] py-1 px-1 text-[8px] sm:text-[9px] font-semibold text-slate-500 uppercase tracking-tighter">Model</th>
+                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[15%] py-1 px-1 text-[8px] sm:text-[9px] font-semibold text-slate-500 uppercase tracking-tighter">Event</th>
+                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[15%] py-1 px-1 text-[8px] sm:text-[9px] font-semibold text-slate-500 uppercase tracking-tighter">Batch</th>
+                                    <th class="sticky top-0 bg-slate-50 dark:bg-slate-800 z-20 pt-1.5 border-b border-slate-100 dark:border-slate-700 w-[24%] py-1 px-1 pr-2 text-[8px] sm:text-[9px] font-semibold text-slate-500 uppercase text-right tracking-tighter">Delv Date</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
                                 @foreach($nearestEvents as $evt)
                                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors" onclick="window.location.href='{{ route('tracking.index', ['search' => $evt->po_no, 'open_event' => $evt->id, 'from_dashboard' => 1]) }}'">
                                         <td class="py-1.5 px-1 pl-2 overflow-hidden">
-                                            <p class="text-[9px] font-semibold text-slate-800 dark:text-white truncate" title="{{ $evt->vehicleModel->customer->code ?? '-' }}">{{ $evt->vehicleModel->customer->code ?? '-' }}</p>
+                                            <p class="text-[9px] sm:text-[10px] font-semibold text-slate-800 dark:text-white truncate" title="{{ $evt->vehicleModel->customer->code ?? '-' }}">{{ $evt->vehicleModel->customer->code ?? '-' }}</p>
                                         </td>
                                         <td class="py-1.5 px-1 overflow-hidden">
-                                            <p class="text-[9px] text-slate-600 dark:text-slate-400 truncate" title="{{ $evt->vehicleModel->name ?? '-' }}">{{ $evt->vehicleModel->name ?? '-' }}</p>
+                                            <p class="text-[9px] sm:text-[10px] text-slate-600 dark:text-slate-400 truncate" title="{{ $evt->vehicleModel->name ?? '-' }}">{{ $evt->vehicleModel->name ?? '-' }}</p>
                                         </td>
                                         <td class="py-1.5 px-1">
-                                            <p class="text-[9px] text-slate-600 dark:text-slate-400" title="{{ $evt->customerCategory->name ?? '-' }}">{{ $evt->customerCategory->name ?? '-' }}</p>
+                                            <p class="text-[9px] sm:text-[10px] text-slate-600 dark:text-slate-400 truncate" title="{{ $evt->customerCategory->name ?? '-' }}">{{ $evt->customerCategory->name ?? '-' }}</p>
                                         </td>
                                         <td class="py-1.5 px-1">
-                                            <span class="text-[8px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-1 py-0.5 rounded whitespace-nowrap" title="{{ $evt->deliveryGroup->name ?? '-' }}">{{ $evt->deliveryGroup->name ?? '-' }}</span>
+                                            <span class="text-[8px] sm:text-[9px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-1 py-0.5 rounded whitespace-nowrap" title="{{ $evt->deliveryGroup->name ?? '-' }}">{{ $evt->deliveryGroup->name ?? '-' }}</span>
                                         </td>
                                         <td class="py-1.5 px-1 pr-2 text-right">
-                                            <span class="text-[9px] font-bold whitespace-nowrap {{ \Carbon\Carbon::parse($evt->nearest_delivery_date)->isPast() ? 'text-rose-500' : 'text-slate-700 dark:text-slate-300' }}">
+                                            <span class="text-[9px] sm:text-[10px] font-bold whitespace-nowrap {{ \Carbon\Carbon::parse($evt->nearest_delivery_date)->isPast() ? 'text-rose-500' : 'text-slate-700 dark:text-slate-300' }}">
                                                 {{ \Carbon\Carbon::parse($evt->nearest_delivery_date)->format('d M y') }}
                                             </span>
                                         </td>
@@ -483,7 +485,7 @@
             </div>
 
             <!-- Action Required: ECN & Stagnant -->
-            <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden">
+            <div class="w-full lg:flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden h-[250px] lg:h-full">
                 <div class="py-1.5 px-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex-none flex justify-between items-center">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
                         <span class="w-1.5 h-1.5 bg-rose-500 rounded-full mr-1.5 animate-pulse"></span> Action Required
@@ -671,7 +673,7 @@
             </div>
 
             <!-- Achievment Delivery -->
-            <div class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden">
+            <div class="w-full lg:flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden h-[250px] lg:h-full">
                 <div class="py-1.5 px-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex-none flex justify-between items-center">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
                         <i class="fa-solid fa-truck-ramp-box text-emerald-500 mr-1.5"></i> Achievment Delivery
@@ -698,7 +700,7 @@
                                     @endphp
                                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer" onclick="window.location.href='{{ route('tracking.index', ['search' => $deliv->po_no ?? '', 'open_event' => $deliv->id, 'from_dashboard' => 1]) }}'">
                                         <td class="py-1.5 px-3">
-                                            <p class="text-[10px] font-bold text-slate-800 dark:text-white truncate max-w-[120px]" title="{{ $modelStr }}">{{ $modelStr }}</p>
+                                            <p class="text-[10px] font-bold text-slate-800 dark:text-white truncate max-w-[180px] sm:max-w-xs" title="{{ $modelStr }}">{{ $modelStr }}</p>
                                             <div class="flex items-center flex-wrap gap-1 mt-0.5">
                                                 <span class="text-[9px] font-medium text-slate-500 dark:text-slate-400">PO: {{ $deliv->po_no ?? '-' }}</span>
                                                 <span class="text-[8px] text-slate-400">&bull;</span>
