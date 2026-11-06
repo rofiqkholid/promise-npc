@@ -19,7 +19,7 @@ class NpcEventController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = \App\Models\NpcEvent::with(['customerCategory.customer', 'deliveryGroup', 'vehicleModel']);
+            $query = \App\Models\NpcEvent::with(['customerCategory.customer', 'deliveryGroup', 'vehicleModel', 'parts.product.vehicleModel']);
 
             if ($request->has('customer_id') && $request->customer_id != '') {
                 $query->whereHas('customerCategory', function ($q) use ($request) {
@@ -46,7 +46,18 @@ class NpcEventController extends Controller
                     return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium">' . (optional(optional($event->customerCategory)->customer)->code ?? '-') . '</span>';
                 })
                 ->addColumn('model', function ($event) {
-                    return '<span class="text-gray-600 dark:text-gray-400 text-sm font-medium">' . (optional($event->vehicleModel)->name ?? '-') . '</span>';
+                    $modelName = optional($event->vehicleModel)->name;
+                    if (!$modelName) {
+                        $firstPart = $event->parts->first();
+                        if ($firstPart && $firstPart->product && $firstPart->product->vehicleModel) {
+                            $modelName = $firstPart->product->vehicleModel->name;
+                            if (!empty($firstPart->product->model_id)) {
+                                $event->model_id = $firstPart->product->model_id;
+                                $event->saveQuietly();
+                            }
+                        }
+                    }
+                    return '<span class="text-gray-600 dark:text-gray-400 text-sm font-medium">' . ($modelName ?? '-') . '</span>';
                 })
                 ->addColumn('category', function ($event) {
                     return '<span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">' . (optional($event->customerCategory)->name ?? '-') . '</span>';
@@ -96,6 +107,19 @@ class NpcEventController extends Controller
                 ->make(true);
         }
         
+        // Auto-heal any events with null model_id that have parts
+        \App\Models\NpcEvent::whereNull('model_id')->whereHas('parts.product', function($q) {
+            $q->whereNotNull('model_id');
+        })->with(['parts.product'])->chunk(50, function($events) {
+            foreach ($events as $ev) {
+                $firstPart = $ev->parts->first();
+                if ($firstPart && $firstPart->product && $firstPart->product->model_id) {
+                    $ev->model_id = $firstPart->product->model_id;
+                    $ev->saveQuietly();
+                }
+            }
+        });
+
         $customers = \App\Models\Customer::orderBy('name')->get();
         $models = \App\Models\VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
         $poList = \App\Models\NpcEvent::select('po_no')->whereNotNull('po_no')->distinct()->orderBy('po_no')->get();
@@ -436,7 +460,7 @@ class NpcEventController extends Controller
                 $deliveryDateRaw = $row[6] ?? null;
                 $partName = trim($row[8] ?? '');
                 $qty = (int) ($row[9] ?? 1);
-                $isMainModel = strtoupper(trim($row[10] ?? '')) === 'Y';
+                $rawMainModel = trim((string)($row[10] ?? ''));
 
                 if (empty($custCode) || empty($catName) || empty($groupName)) {
                     $rowErrors[] = "Row {$actualRowNumber}: CUSTOMER CODE, EVENT CATEGORY, and DELIVERY GROUP are required.";
@@ -464,7 +488,7 @@ class NpcEventController extends Controller
                 }
 
                 // Cari product, prioritaskan model name jika diisi
-                $productQuery = \App\Models\Product::with('docPackage')->where('part_no', $partNo);
+                $productQuery = \App\Models\Product::with(['docPackage', 'vehicleModel'])->where('part_no', $partNo);
                 if (!empty($modelName)) {
                     $productQuery->whereHas('vehicleModel', function($q) use ($modelName) {
                         $q->where('name', $modelName);
@@ -482,6 +506,12 @@ class NpcEventController extends Controller
                     $rowErrors[] = "Row {$actualRowNumber}: Product Part No '{$partNo}' has incomplete Master Data. Missing: " . implode(', ', $missing);
                     continue;
                 }
+
+                // Cek apakah baris ini ditandai sebagai main model (dukung Y, YES, YA, TRUE, 1, V, atau nama modelnya)
+                $upperMainModel = strtoupper($rawMainModel);
+                $isMainModel = in_array($upperMainModel, ['Y', 'YES', 'YA', 'TRUE', '1', 'V'], true)
+                    || (!empty($rawMainModel) && !empty($modelName) && strcasecmp($rawMainModel, $modelName) === 0)
+                    || (!empty($rawMainModel) && $product->vehicleModel && strcasecmp($rawMainModel, $product->vehicleModel->name) === 0);
 
                 // Parse Delivery Date first
                 $deliveryDate = null;
@@ -510,6 +540,11 @@ class NpcEventController extends Controller
                         ->first();
                         
                     if ($existingEvent) {
+                        // Fallback: Jika event sudah ada di DB tapi model_id masih kosong, isi dari model part ini
+                        if (empty($existingEvent->model_id) && !empty($modelId)) {
+                            $existingEvent->model_id = $modelId;
+                            $existingEvent->save();
+                        }
                         $eventsCreated[$eventKey] = $existingEvent;
                     } else {
                         $eventsCreated[$eventKey] = NpcEvent::create([
@@ -517,14 +552,19 @@ class NpcEventController extends Controller
                             'customer_category_id' => $category->id,
                             'delivery_group_id' => $delivGroup->id,
                             'delivery_to' => $deliveryTo ?: null,
-                            'model_id' => null,
+                            'model_id' => $modelId ?: null, // Default gunakan model dari part pertama
                         ]);
                     }
                 }
                 
                 $event = $eventsCreated[$eventKey];
                 
-                if ($isMainModel && $event->model_id != $modelId) {
+                // Fallback: Jika event belum memiliki model_id, isi dengan model part ini
+                if (empty($event->model_id) && !empty($modelId)) {
+                    $event->model_id = $modelId;
+                    $event->save();
+                } elseif ($isMainModel && !empty($modelId) && $event->model_id != $modelId) {
+                    // Jika baris ini secara eksplisit ditentukan sebagai Main Model, perbarui model_id event
                     $event->model_id = $modelId;
                     $event->save();
                 }
