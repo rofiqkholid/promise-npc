@@ -546,6 +546,17 @@ class NpcChecksheetController extends Controller
                 }
             }
 
+            // Kirim notifikasi email ke Approver tahap pertama (MGM Staff) bahwa Checksheet masuk fase approval
+            try {
+                $recipients = \App\Services\NotificationRecipientService::getRecipientsForApproval($checksheet, 'WAITING_MGM_STAFF');
+                if (!empty($recipients)) {
+                    \Illuminate\Support\Facades\Mail::to($recipients)
+                        ->queue(new \App\Mail\PoApprovalNotificationMail($checksheet, 'REQUESTED', null));
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Failed sending initial checksheet approval email: ' . $e->getMessage());
+            }
+
             $redirectUrl = $request->input('previous_url') ? base64_decode($request->input('previous_url')) : route('tracking.index');
             if ($redirectUrl === false || !filter_var($redirectUrl, FILTER_VALIDATE_URL)) {
                 $redirectUrl = route('tracking.index');

@@ -93,11 +93,15 @@ class AppServiceProvider extends ServiceProvider
             $userRoleCode = 'guest';
 
             if ($user) {
-                // Tentukan userRoleCode untuk UI jika diperlukan (misal: ambil role pertama)
+                $isAdmin = $user->roles->contains('code', 'admin') 
+                    || $user->roles->contains('code', 'npc_admin') 
+                    || $user->roles->contains('role_name', 'admin')
+                    || $user->roles->contains('name', 'Admin NPC');
+
                 $firstRole = $user->roles->first();
                 $userRoleCode = $firstRole ? $firstRole->code : 'user';
 
-                if ($userRoleCode === 'admin') {
+                if ($isAdmin) {
                     // Admin melihat semua menu aktif
                     $sidebarMenus = \App\Models\NpcMenu::whereNull('parent_id')
                         ->with(['children' => function ($q) {

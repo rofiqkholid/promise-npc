@@ -88,18 +88,41 @@ class NotificationRecipientService
     {
         $emails = [];
 
-        // Query users based on role matching stage (e.g. SECTION_HEAD, DEPT_HEAD, DIV_HEAD, QA_QC)
-        $roles = \App\Models\NpcRole::where('name', 'like', "%{$stage}%")->pluck('id');
-        if ($roles->isNotEmpty()) {
-            $userNiks = \Illuminate\Support\Facades\DB::table('user_scope_roles')
-                ->whereIn('role_id', $roles)
-                ->pluck('user_id');
+        // Pemetaan stage approval ke variasi kode / kata kunci role (fleksibel spasi, underscore, kapital)
+        $stageRoleMap = [
+            'WAITING_QE_STAFF'   => ['qe_staff', 'qe staff'],
+            'WAITING_MGM_STAFF'  => ['npc_staff', 'npc staff', 'mgm_staff', 'mgm staff'],
+            'WAITING_QE_SPV'     => ['qe_spv', 'qe spv', 'qe_staff', 'qe staff'],
+            'WAITING_MGM_SPV'    => ['npc_spv', 'npc spv', 'npc_staff', 'npc staff', 'mgm_spv', 'mgm spv'],
+            'WAITING_QE_ASSMAN'  => ['qe_asst_mgr', 'qe asst mgr', 'qe_assman', 'qe assman'],
+            'WAITING_MGM_ASSMAN' => ['npc_asst_mgr', 'npc asst mgr', 'npc_assman', 'npc assman'],
+            'WAITING_QE_MGR'     => ['qe_mgr', 'qe mgr'],
+            'WAITING_MGM_MGR'    => ['npc_mgr', 'npc mgr', 'mgm_mgr', 'mgm mgr'],
+        ];
 
-            $emails = User::whereIn('nik', $userNiks)
-                ->whereNotNull('email')
-                ->where('email', '!=', '')
-                ->pluck('email')
-                ->toArray();
+        $targetKeywords = $stageRoleMap[$stage] ?? [];
+
+        if (!empty($targetKeywords)) {
+            $roles = \App\Models\NpcRole::where(function($q) use ($targetKeywords) {
+                foreach ($targetKeywords as $kw) {
+                    $cleanPattern = '%' . str_replace([' ', '_', '-'], '%', $kw) . '%';
+                    $q->orWhere('code', 'like', $cleanPattern)
+                      ->orWhere('role_name', 'like', $cleanPattern)
+                      ->orWhere('name', 'like', $cleanPattern);
+                }
+            })->pluck('id');
+
+            if ($roles->isNotEmpty()) {
+                $userIds = \Illuminate\Support\Facades\DB::table('user_scope_roles')
+                    ->whereIn('role_id', $roles)
+                    ->pluck('user_id');
+
+                $emails = User::whereIn('id', $userIds)
+                    ->whereNotNull('email')
+                    ->where('email', '!=', '')
+                    ->pluck('email')
+                    ->toArray();
+            }
         }
 
         return array_values(array_unique(array_filter($emails, function ($email) {

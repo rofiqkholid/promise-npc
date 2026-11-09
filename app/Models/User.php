@@ -207,14 +207,14 @@ class User extends Authenticatable
 
         // 2. Lapis Kedua: Pastikan Job Title role sesuai dengan tahapan (stage)
         $stageRoleMap = [
-            'WAITING_QE_STAFF'   => 'qe_staff',
-            'WAITING_MGM_STAFF'  => 'npc_staff',
-            'WAITING_QE_SPV'     => 'qe_spv',
-            'WAITING_MGM_SPV'    => 'npc_spv',
-            'WAITING_QE_ASSMAN'  => 'qe_asst_mgr',
-            'WAITING_MGM_ASSMAN' => 'npc_asst_mgr',
-            'WAITING_QE_MGR'     => 'qe_mgr',
-            'WAITING_MGM_MGR'    => 'npc_mgr',
+            'WAITING_QE_STAFF'   => ['qe_staff', 'qestaff'],
+            'WAITING_MGM_STAFF'  => ['npc_staff', 'npcstaff', 'mgm_staff', 'mgmstaff'],
+            'WAITING_QE_SPV'     => ['qe_spv', 'qespv', 'qe_staff', 'qestaff'],
+            'WAITING_MGM_SPV'    => ['npc_spv', 'npcspv', 'npc_staff', 'npcstaff', 'mgm_spv', 'mgmspv'],
+            'WAITING_QE_ASSMAN'  => ['qe_asst_mgr', 'qeasstmgr', 'qe_assman', 'qeassman'],
+            'WAITING_MGM_ASSMAN' => ['npc_asst_mgr', 'npcasstmgr', 'npc_assman', 'npcassman'],
+            'WAITING_QE_MGR'     => ['qe_mgr', 'qemgr'],
+            'WAITING_MGM_MGR'    => ['npc_mgr', 'npcmgr', 'mgm_mgr', 'mgmmgr'],
         ];
 
         // Jika stage tidak ada di map, kembalikan false demi keamanan
@@ -222,8 +222,18 @@ class User extends Authenticatable
             return false;
         }
 
-        $requiredRoleCode = $stageRoleMap[$stage];
+        $targets = (array) $stageRoleMap[$stage];
         
-        return $this->roles->contains('code', $requiredRoleCode);
+        return $this->roles->contains(function ($role) use ($targets) {
+            $codeNorm = strtolower(str_replace([' ', '_', '-'], '', $role->code ?? ''));
+            $nameNorm = strtolower(str_replace([' ', '_', '-'], '', $role->name ?? $role->role_name ?? ''));
+            foreach ($targets as $target) {
+                $targetNorm = strtolower(str_replace([' ', '_', '-'], '', $target));
+                if (str_contains($codeNorm, $targetNorm) || str_contains($nameNorm, $targetNorm)) {
+                    return true;
+                }
+            }
+            return false;
+        });
     }
 }
