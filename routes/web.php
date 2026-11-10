@@ -235,7 +235,7 @@ Route::middleware(['auth'])->group(function () {
     // Quality Checksheet Routes
     Route::get('/tracking/products/{product}/checksheet-setup', [ProductChecksheetSetupController::class, 'edit'])->name('checksheets.setup.edit')->middleware('menu.access:master.checksheets.index,update');
     Route::post('/tracking/products/{product}/checksheet-setup', [ProductChecksheetSetupController::class, 'update'])->name('checksheets.setup.update')->middleware('menu.access:master.checksheets.index,update');
-    Route::get('/tracking/products/{product}/checksheet-setup/preview', [ProductChecksheetSetupController::class, 'preview'])->name('checksheets.setup.preview')->middleware('menu.access:master.checksheets.index,view');
+    Route::get('/tracking/products/{product}/checksheet-setup/preview', [ProductChecksheetSetupController::class, 'preview'])->name('checksheets.setup.preview')->middleware('menu.access:master.checksheets.index|master.checksheet_approvals.index|checksheet-approvals.index,view');
     
     Route::get('/tracking/{part}/scan', [NpcChecksheetController::class, 'scan'])->name('tracking.scan');
     Route::get('/tracking/{part}/checksheet/create', [NpcChecksheetController::class, 'create'])->name('checksheets.create')->middleware('menu.access:tracking.qc|tracking.mgm,create');

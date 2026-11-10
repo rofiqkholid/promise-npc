@@ -184,7 +184,19 @@ class User extends Authenticatable
         }
 
         $property = 'can_' . $action;
-        return $menu->combined_pivot->$property ?? false;
+        if ($menu->combined_pivot->$property ?? false) {
+            return true;
+        }
+
+        // If checking for 'view', having any higher permission (approve, update, create, delete) implicitly grants view
+        if ($action === 'view') {
+            return ($menu->combined_pivot->can_approve ?? false)
+                || ($menu->combined_pivot->can_update ?? false)
+                || ($menu->combined_pivot->can_create ?? false)
+                || ($menu->combined_pivot->can_delete ?? false);
+        }
+
+        return false;
     }
 
     /**
