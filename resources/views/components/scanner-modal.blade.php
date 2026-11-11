@@ -20,6 +20,9 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-1">
+                    <button type="button" id="toggleTorch" class="w-8 h-8 rounded-lg hidden flex items-center justify-center text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition" title="Nyalakan Lampu Flash">
+                        <i class="fa-solid fa-bolt text-xs"></i>
+                    </button>
                     <button type="button" id="toggleMirror" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-gray-700 transition" title="Mirror Camera">
                         <i class="fa-solid fa-arrows-left-right text-xs"></i>
                     </button>
@@ -33,7 +36,12 @@
             <div class="p-4">
                 <!-- Camera Select if multiple available -->
                 <div id="cameraSelectWrapper" class="mb-3 hidden">
-                    <label for="cameraSelection" class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 mb-1">Pilih Kamera:</label>
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="cameraSelection" class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400">
+                            <i class="fa-solid fa-camera-rotate mr-1 text-blue-500"></i> Pilih Kamera:
+                        </label>
+                        <span class="text-[10px] text-gray-400 dark:text-gray-500">Pilih kamera belakang utama</span>
+                    </div>
                     <select id="cameraSelection" class="w-full text-xs py-1.5 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-md shadow-xs">
                     </select>
                 </div>
@@ -54,17 +62,37 @@
                             <div class="w-6 h-6 border-b-2 border-r-2 border-blue-400"></div>
                         </div>
                     </div>
+
+                    <!-- Floating Zoom Controls -->
+                    <div id="zoomControls" class="hidden absolute bottom-3 right-3 z-30 flex items-center gap-1 bg-black/70 backdrop-blur-xs p-1 rounded-lg border border-white/20 shadow-md">
+                        <span class="text-[10px] text-white/70 px-1 font-semibold"><i class="fa-solid fa-magnifying-glass-plus text-[9px] mr-0.5"></i>Zoom</span>
+                        <button type="button" data-zoom="1" class="btn-zoom active px-2 py-0.5 rounded text-[11px] font-bold text-white bg-blue-600 transition">1x</button>
+                        <button type="button" data-zoom="2" class="btn-zoom px-2 py-0.5 rounded text-[11px] font-bold text-white/80 hover:text-white hover:bg-white/20 transition">2x</button>
+                        <button type="button" data-zoom="3" class="btn-zoom hidden px-2 py-0.5 rounded text-[11px] font-bold text-white/80 hover:text-white hover:bg-white/20 transition">3x</button>
+                    </div>
                 </div>
 
                 <!-- Status indicator -->
                 <div id="qr-status" class="mt-3 flex items-center justify-center gap-2 py-2 px-3 text-xs font-semibold rounded-md border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 text-slate-700 dark:text-gray-300">
                     <i class="fa-solid fa-circle-notch fa-spin text-xs text-blue-500"></i> 
-                    <span>Menyiapkan Engine Kamera...</span>
+                    <span>Membuka Kamera...</span>
                 </div>
 
-                <p class="mt-2.5 text-[11px] text-gray-400 dark:text-gray-500 font-medium text-center">
-                    Posisikan QR Code pada Quality Label tepat di dalam area bidik.
-                </p>
+                <!-- Fallback: Take or Upload Photo directly -->
+                <div class="mt-2.5 flex items-center gap-2">
+                    <label for="qrFileInput" class="flex-1 cursor-pointer flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-slate-100 dark:hover:bg-gray-600 text-xs font-semibold text-slate-700 dark:text-gray-200 transition shadow-xs">
+                        <i class="fa-solid fa-camera text-blue-500"></i>
+                        <span>Ambil / Upload Foto Label</span>
+                    </label>
+                    <input type="file" id="qrFileInput" accept="image/*" class="hidden">
+                </div>
+
+                <div class="mt-2 text-[11px] text-gray-500 dark:text-gray-400 space-y-0.5 text-center">
+                    <p class="flex items-center gap-1 justify-center">
+                        <i class="fa-solid fa-circle-info text-blue-500 text-[10px]"></i>
+                        <span>Jaga jarak ~20-30 cm agar fokus tajam, gunakan <b>zoom 2x</b> jika label kecil.</span>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -72,17 +100,28 @@
 
 @push('style')
 <style>
+    #qr-reader {
+        border: none !important;
+        width: 100% !important;
+        height: 100% !important;
+        position: relative;
+    }
     #qr-reader video {
+        width: 100% !important;
+        height: 100% !important;
         object-fit: cover !important;
         border-radius: 6px !important;
         z-index: 10;
         position: relative;
     }
-    #qr-reader {
-        border: none !important;
-    }
     #qr-reader__scan_region {
         background: black !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+    #qr-reader__dashboard_section,
+    #qr-reader__dashboard {
+        display: none !important;
     }
 </style>
 @endpush
@@ -97,6 +136,9 @@
             this.modalId = config.modalId || '{{ $modalId }}';
             this.html5QrCode = null;
             this.isMirrored = false;
+            this.isTorchOn = false;
+            this.currentZoom = 1;
+            this.zoomCapabilities = null;
             this.currentCameraId = null;
             this.isProcessing = false;
 
@@ -161,11 +203,25 @@
                 $('#toggleMirror').toggleClass('text-blue-600 dark:text-blue-400', this.isMirrored);
             });
 
+            $('#toggleTorch').on('click', () => {
+                this.toggleTorch();
+            });
+
+            $(document).on('click', '.btn-zoom', (e) => {
+                const targetZoom = Number($(e.currentTarget).data('zoom'));
+                if (targetZoom) {
+                    this.setZoom(targetZoom);
+                }
+            });
+
+            $('#qrFileInput').on('change', (e) => {
+                this.handleFileInput(e);
+            });
+
             $('#cameraSelection').on('change', (e) => {
                 const newCamId = $(e.target).val();
                 if (newCamId && newCamId !== this.currentCameraId) {
-                    this.currentCameraId = newCamId;
-                    this.restartCameraWithDevice(newCamId);
+                    this.switchCamera(newCamId);
                 }
             });
         }
@@ -185,7 +241,7 @@
 
             this.isProcessing = false;
             $(this.modalId).removeClass('hidden').addClass('flex');
-            $('#qr-status').html('<i class="fa-solid fa-circle-notch fa-spin text-xs mr-2 text-blue-500"></i> Menyiapkan Engine Kamera...');
+            $('#qr-status').html('<i class="fa-solid fa-circle-notch fa-spin text-xs mr-2 text-blue-500"></i> Membuka Kamera...');
             this.startCamera();
         }
 
@@ -194,94 +250,233 @@
                 this.html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
             }
 
-            Html5Qrcode.getCameras().then(cameras => {
-                if (cameras && cameras.length) {
-                    if (cameras.length > 1) {
-                        $('#cameraSelectWrapper').removeClass('hidden');
-                        let optionsHtml = '';
-                        cameras.forEach(cam => {
-                            const isBack = cam.label.toLowerCase().includes('back') || cam.label.toLowerCase().includes('rear') || cam.label.toLowerCase().includes('environment');
-                            optionsHtml += `<option value="${cam.id}" ${isBack ? 'selected' : ''}>${cam.label || 'Camera ' + cam.id}</option>`;
-                        });
-                        $('#cameraSelection').html(optionsHtml);
-                    }
-
-                    const backCam = cameras.find(c => c.label.toLowerCase().includes('back') || c.label.toLowerCase().includes('rear') || c.label.toLowerCase().includes('environment'));
-                    const selectedId = this.currentCameraId || (backCam ? backCam.id : cameras[0].id);
-                    this.currentCameraId = selectedId;
-                    this.startCameraWithDevice(selectedId);
-                } else {
-                    this.startCameraWithFacingMode();
-                }
-            }).catch(err => {
-                console.warn("Could not list cameras, falling back to facingMode:", err);
-                this.startCameraWithFacingMode();
-            });
-        }
-
-        startCameraWithDevice(cameraId) {
-            const config = {
-                fps: 20,
+            const scanConfig = {
+                fps: 10,
                 qrbox: (w, h) => {
                     const min = Math.min(w, h);
-                    const size = Math.floor(min * 0.85);
+                    const size = Math.floor(min * 0.82);
                     return { width: size, height: size };
                 },
-                aspectRatio: 1.0,
-                showTorchButtonIfSupported: true,
                 formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
             };
 
+            const cameraTarget = this.currentCameraId 
+                ? this.currentCameraId 
+                : { facingMode: "environment" };
+
             this.html5QrCode.start(
-                cameraId,
-                config,
+                cameraTarget,
+                scanConfig,
                 (decodedText) => this.onScanSuccess(decodedText),
                 () => {}
             ).then(() => {
                 $('#qr-status').html('<i class="fa-solid fa-expand fa-beat text-xs mr-2 text-emerald-500"></i> Kamera Aktif - Arahkan ke QR Label');
                 this.applyMirror();
+                this.detectCapabilities();
+                this.loadCameraList();
             }).catch(err => {
-                this.onCameraError(err);
-            });
-        }
+                console.warn("Primary camera start failed, attempting fallback:", err);
 
-        startCameraWithFacingMode() {
-            const config = {
-                fps: 20,
-                qrbox: (w, h) => {
-                    const min = Math.min(w, h);
-                    const size = Math.floor(min * 0.85);
-                    return { width: size, height: size };
-                },
-                aspectRatio: 1.0,
-                showTorchButtonIfSupported: true,
-                formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-                videoConstraints: {
-                    facingMode: "environment"
+                // Fallback for laptops/desktops where environment camera doesn't exist
+                if (typeof cameraTarget !== 'string') {
+                    this.html5QrCode.start(
+                        { facingMode: "user" },
+                        scanConfig,
+                        (decodedText) => this.onScanSuccess(decodedText),
+                        () => {}
+                    ).then(() => {
+                        $('#qr-status').html('<i class="fa-solid fa-expand fa-beat text-xs mr-2 text-emerald-500"></i> Kamera Aktif - Arahkan ke QR Label');
+                        this.applyMirror();
+                        this.detectCapabilities();
+                        this.loadCameraList();
+                    }).catch(err2 => {
+                        this.onCameraError(err2);
+                    });
+                } else {
+                    this.onCameraError(err);
                 }
-            };
-
-            this.html5QrCode.start(
-                { facingMode: "environment" },
-                config,
-                (decodedText) => this.onScanSuccess(decodedText),
-                () => {}
-            ).then(() => {
-                $('#qr-status').html('<i class="fa-solid fa-expand fa-beat text-xs mr-2 text-emerald-500"></i> Kamera Aktif - Arahkan ke QR Label');
-                this.applyMirror();
-            }).catch(err => {
-                this.onCameraError(err);
             });
         }
 
-        restartCameraWithDevice(cameraId) {
+        loadCameraList() {
+            Html5Qrcode.getCameras().then(cameras => {
+                if (cameras && cameras.length > 1) {
+                    $('#cameraSelectWrapper').removeClass('hidden');
+                    let optionsHtml = '';
+                    cameras.forEach(cam => {
+                        const isBack = cam.label.toLowerCase().includes('back') || 
+                                       cam.label.toLowerCase().includes('rear') || 
+                                       cam.label.toLowerCase().includes('environment') ||
+                                       cam.label.toLowerCase().includes('belakang');
+                        const isSelected = this.currentCameraId ? (cam.id === this.currentCameraId) : isBack;
+                        optionsHtml += `<option value="${cam.id}" ${isSelected ? 'selected' : ''}>${cam.label || 'Kamera ' + cam.id.substring(0, 8)}</option>`;
+                    });
+                    $('#cameraSelection').html(optionsHtml);
+                }
+            }).catch(() => {});
+        }
+
+        switchCamera(newCamId) {
+            if (!newCamId || newCamId === this.currentCameraId) return;
+            this.currentCameraId = newCamId;
+
+            $('#qr-status').html('<i class="fa-solid fa-circle-notch fa-spin text-xs mr-2 text-blue-500"></i> Mengganti Kamera...');
+
             if (this.html5QrCode && this.html5QrCode.isScanning) {
                 this.html5QrCode.stop().then(() => {
-                    this.startCameraWithDevice(cameraId);
-                }).catch(console.error);
+                    this.startCamera();
+                }).catch(() => {
+                    this.startCamera();
+                });
             } else {
-                this.startCameraWithDevice(cameraId);
+                this.startCamera();
             }
+        }
+
+        getTrack() {
+            try {
+                const video = document.querySelector('#qr-reader video');
+                if (video && video.srcObject && typeof video.srcObject.getVideoTracks === 'function') {
+                    const tracks = video.srcObject.getVideoTracks();
+                    if (tracks && tracks.length > 0) {
+                        return tracks[0];
+                    }
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        detectCapabilities() {
+            this.isTorchOn = false;
+            this.currentZoom = 1;
+            this.updateTorchUI();
+            this.updateZoomUI(1);
+
+            setTimeout(() => {
+                try {
+                    const track = this.getTrack();
+                    if (!track || typeof track.getCapabilities !== 'function') return;
+
+                    const caps = track.getCapabilities();
+
+                    // Check Torch
+                    if (caps.torch) {
+                        $('#toggleTorch').removeClass('hidden');
+                    } else {
+                        $('#toggleTorch').addClass('hidden');
+                    }
+
+                    // Check Zoom
+                    if (caps.zoom) {
+                        this.zoomCapabilities = caps.zoom;
+                        $('#zoomControls').removeClass('hidden');
+                        if (caps.zoom.max >= 3) {
+                            $('#zoomControls button[data-zoom="3"]').removeClass('hidden');
+                        } else {
+                            $('#zoomControls button[data-zoom="3"]').addClass('hidden');
+                        }
+                    } else {
+                        $('#zoomControls').addClass('hidden');
+                    }
+                } catch (e) {
+                    console.warn("Track capabilities query error:", e);
+                }
+            }, 300);
+        }
+
+        async toggleTorch() {
+            const track = this.getTrack();
+            if (!track) return;
+
+            this.isTorchOn = !this.isTorchOn;
+
+            try {
+                await track.applyConstraints({
+                    advanced: [{ torch: this.isTorchOn }]
+                });
+                this.updateTorchUI();
+            } catch (e) {
+                console.warn("Torch failed:", e);
+                this.isTorchOn = false;
+                this.updateTorchUI();
+            }
+        }
+
+        updateTorchUI() {
+            const btn = $('#toggleTorch');
+            if (this.isTorchOn) {
+                btn.addClass('text-amber-500 bg-amber-50 dark:bg-amber-950/40').removeClass('text-gray-400');
+                btn.attr('title', 'Matikan Lampu Flash');
+            } else {
+                btn.removeClass('text-amber-500 bg-amber-50 dark:bg-amber-950/40').addClass('text-gray-400');
+                btn.attr('title', 'Nyalakan Lampu Flash');
+            }
+        }
+
+        async setZoom(level) {
+            const track = this.getTrack();
+            if (!track || !this.zoomCapabilities) return;
+
+            const min = this.zoomCapabilities.min || 1;
+            const max = this.zoomCapabilities.max || 1;
+            const targetZoom = Math.min(Math.max(level, min), max);
+
+            try {
+                await track.applyConstraints({
+                    advanced: [{ zoom: targetZoom }]
+                });
+                this.currentZoom = level;
+                this.updateZoomUI(level);
+            } catch (e) {
+                console.warn("Zoom constraint failed:", e);
+            }
+        }
+
+        updateZoomUI(level) {
+            $('.btn-zoom').removeClass('bg-blue-600 text-white').addClass('text-white/80 hover:text-white hover:bg-white/20');
+            $(`.btn-zoom[data-zoom="${level}"]`).addClass('bg-blue-600 text-white').removeClass('text-white/80 hover:text-white hover:bg-white/20');
+        }
+
+        handleFileInput(e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+
+            this.scanFile(file);
+            e.target.value = '';
+        }
+
+        async scanFile(file) {
+            if (this.isProcessing) return;
+
+            $('#qr-status').html('<i class="fa-solid fa-spinner fa-spin text-xs text-blue-500 mr-2"></i> Menganalisis gambar...');
+
+            if (this.html5QrCode && this.html5QrCode.isScanning) {
+                try {
+                    await this.html5QrCode.stop();
+                } catch (e) {}
+            }
+
+            if (!this.html5QrCode) {
+                this.html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
+            }
+
+            this.html5QrCode.scanFile(file, true)
+                .then(decodedText => {
+                    this.onScanSuccess(decodedText);
+                })
+                .catch(err => {
+                    console.error("Scan file error:", err);
+                    $('#qr-status').html('<i class="fa-solid fa-triangle-exclamation text-xs text-amber-500 mr-2"></i> QR Code tidak terdeteksi pada gambar.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'QR Code Tidak Terdeteksi',
+                        text: 'Pastikan foto label tajam (tidak buram), pencahayaan cukup, dan seluruh kotak QR Code terlihat jelas.',
+                        confirmButtonColor: '#3b82f6',
+                        confirmButtonText: 'Buka Kamera Kembali'
+                    }).then(() => {
+                        this.startCamera();
+                    });
+                });
         }
 
         onCameraError(err) {
@@ -296,7 +491,12 @@
         }
 
         stopCamera() {
+            this.isTorchOn = false;
+            this.updateTorchUI();
+            $('#zoomControls').addClass('hidden');
+            $('#toggleTorch').addClass('hidden');
             $(this.modalId).addClass('hidden').removeClass('flex');
+            
             if (this.html5QrCode && this.html5QrCode.isScanning) {
                 this.html5QrCode.stop().catch(() => {});
             }
@@ -330,7 +530,7 @@
             qrText = qrText.trim();
 
             // 1. URL pattern: /tracking/{hash}/scan or /tracking/{hash}
-            const urlMatch = qrText.match(/\/tracking\/([a-zA-Z0-9_-]+)(?:\/scan)?/);
+            const urlMatch = qrText.match(/\/tracking\/([a-zA-Z0-9_-]+)(?:\/scan)?(?:[?#]|$)/);
             if (urlMatch && urlMatch[1]) {
                 return urlMatch[1];
             }

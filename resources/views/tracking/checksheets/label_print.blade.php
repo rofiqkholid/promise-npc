@@ -436,7 +436,15 @@
                         : null;
                     
                     $qrData = route('tracking.scan', ['part' => $part->hashed_id]);
-                    $qrCode = (new \chillerlan\QRCode\QRCode)->render($qrData);
+                    $qrOptions = new \chillerlan\QRCode\QROptions([
+                        'version'             => \chillerlan\QRCode\Common\Version::AUTO,
+                        'eccLevel'            => \chillerlan\QRCode\Common\EccLevel::M,
+                        'addQuietzone'        => true,
+                        'quietzoneSize'       => 4,
+                        'outputInterface'     => \chillerlan\QRCode\Output\QRMarkupSVG::class,
+                        'svgConnectPaths'     => true,
+                    ]);
+                    $qrCode = (new \chillerlan\QRCode\QRCode($qrOptions))->render($qrData);
                 @endphp
 
                 <div class="label-main-content">
