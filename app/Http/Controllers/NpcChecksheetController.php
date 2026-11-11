@@ -31,10 +31,10 @@ class NpcChecksheetController extends Controller
             if ($request->expectsJson() || $request->query('format') === 'json') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda tidak memiliki akses ke halaman ini (MGM Check / Checksheet Approval).'
+                    'message' => 'You do not have access to this page (MGM Check / Checksheet Approval).'
                 ], 403);
             }
-            abort(403, 'Anda tidak memiliki akses ke halaman ini (MGM Check / Checksheet Approval).');
+            abort(403, 'You do not have access to this page (MGM Check / Checksheet Approval).');
         }
 
         $checksheet = $part->checksheet;
@@ -62,19 +62,19 @@ class NpcChecksheetController extends Controller
 
         if ($request->query('action') === 'mgm') {
             if (!$canMgm) {
-                return redirect()->route('tracking.mgm')->with('error', 'Anda tidak memiliki akses untuk Input MGM Check.');
+                return redirect()->route('tracking.mgm')->with('error', 'You do not have access to input MGM Check.');
             }
             return redirect()->route('checksheets.create', $part->hashed_id);
         }
 
         if ($request->query('action') === 'approval') {
             if (!$canApproval) {
-                return redirect()->route('checksheet-approvals.index')->with('error', 'Anda tidak memiliki akses untuk Checksheet Approval.');
+                return redirect()->route('checksheet-approvals.index')->with('error', 'You do not have access to Checksheet Approval.');
             }
             if ($checksheet && $isInApprovalPhase) {
                 return redirect()->route('checksheet-approvals.show', $checksheet->hashed_id);
             }
-            return redirect()->route('checksheet-approvals.index')->with('warning', 'Part ' . (optional($part->product)->part_no ?? '') . ' belum masuk fase approval (status saat ini: ' . $part->status . ').');
+            return redirect()->route('checksheet-approvals.index')->with('warning', 'Part ' . (optional($part->product)->part_no ?? '') . ' is not yet in approval phase (current status: ' . $part->status . ').');
         }
 
         return view('tracking.checksheets.scan_options', compact('part', 'checksheet', 'canMgm', 'canApproval'));

@@ -16,17 +16,17 @@
                     </div>
                     <div>
                         <h3 class="text-sm font-bold text-gray-900 dark:text-white tracking-tight leading-tight">Scan Quality Label</h3>
-                        <p class="text-[11px] text-gray-500 dark:text-gray-400">Arahkan kamera ke QR Code label</p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400">Point camera at the label QR code</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-1">
-                    <button type="button" id="toggleTorch" class="w-8 h-8 rounded-lg hidden flex items-center justify-center text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition" title="Nyalakan Lampu Flash">
+                    <button type="button" id="toggleTorch" class="w-8 h-8 rounded-lg hidden flex items-center justify-center text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition" title="Toggle Flashlight">
                         <i class="fa-solid fa-bolt text-xs"></i>
                     </button>
                     <button type="button" id="toggleMirror" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-gray-700 transition" title="Mirror Camera">
                         <i class="fa-solid fa-arrows-left-right text-xs"></i>
                     </button>
-                    <button type="button" id="closeScanner" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
+                    <button type="button" id="closeScanner" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition" title="Close">
                         <i class="fa-solid fa-xmark text-base"></i>
                     </button>
                 </div>
@@ -38,9 +38,9 @@
                 <div id="cameraSelectWrapper" class="mb-3 hidden">
                     <div class="flex items-center justify-between mb-1">
                         <label for="cameraSelection" class="block text-[11px] font-semibold text-gray-600 dark:text-gray-400">
-                            <i class="fa-solid fa-camera-rotate mr-1 text-blue-500"></i> Pilih Kamera:
+                            <i class="fa-solid fa-camera-rotate mr-1 text-blue-500"></i> Select Camera:
                         </label>
-                        <span class="text-[10px] text-gray-400 dark:text-gray-500">Pilih kamera belakang utama</span>
+                        <span class="text-[10px] text-gray-400 dark:text-gray-500">Select main rear camera</span>
                     </div>
                     <select id="cameraSelection" class="w-full text-xs py-1.5 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-md shadow-xs">
                     </select>
@@ -64,25 +64,25 @@
                     </div>
 
                     <!-- Floating Zoom Controls -->
-                    <div id="zoomControls" class="hidden absolute bottom-3 right-3 z-30 flex items-center gap-1 bg-black/70 backdrop-blur-xs p-1 rounded-lg border border-white/20 shadow-md">
+                    <div id="zoomControls" class="absolute bottom-3 right-3 z-30 flex items-center gap-1 bg-black/70 backdrop-blur-xs p-1 rounded-lg border border-white/20 shadow-md">
                         <span class="text-[10px] text-white/70 px-1 font-semibold"><i class="fa-solid fa-magnifying-glass-plus text-[9px] mr-0.5"></i>Zoom</span>
                         <button type="button" data-zoom="1" class="btn-zoom active px-2 py-0.5 rounded text-[11px] font-bold text-white bg-blue-600 transition">1x</button>
                         <button type="button" data-zoom="2" class="btn-zoom px-2 py-0.5 rounded text-[11px] font-bold text-white/80 hover:text-white hover:bg-white/20 transition">2x</button>
-                        <button type="button" data-zoom="3" class="btn-zoom hidden px-2 py-0.5 rounded text-[11px] font-bold text-white/80 hover:text-white hover:bg-white/20 transition">3x</button>
+                        <button type="button" data-zoom="3" class="btn-zoom px-2 py-0.5 rounded text-[11px] font-bold text-white/80 hover:text-white hover:bg-white/20 transition">3x</button>
                     </div>
                 </div>
 
                 <!-- Status indicator -->
                 <div id="qr-status" class="mt-3 flex items-center justify-center gap-2 py-2 px-3 text-xs font-semibold rounded-md border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 text-slate-700 dark:text-gray-300">
                     <i class="fa-solid fa-circle-notch fa-spin text-xs text-blue-500"></i> 
-                    <span>Membuka Kamera...</span>
+                    <span>Starting Camera...</span>
                 </div>
 
                 <!-- Fallback: Take or Upload Photo directly -->
                 <div class="mt-2.5 flex items-center gap-2">
                     <label for="qrFileInput" class="flex-1 cursor-pointer flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-slate-100 dark:hover:bg-gray-600 text-xs font-semibold text-slate-700 dark:text-gray-200 transition shadow-xs">
                         <i class="fa-solid fa-camera text-blue-500"></i>
-                        <span>Ambil / Upload Foto Label</span>
+                        <span>Take Photo / Upload Label</span>
                     </label>
                     <input type="file" id="qrFileInput" accept="image/*" class="hidden">
                 </div>
@@ -90,7 +90,7 @@
                 <div class="mt-2 text-[11px] text-gray-500 dark:text-gray-400 space-y-0.5 text-center">
                     <p class="flex items-center gap-1 justify-center">
                         <i class="fa-solid fa-circle-info text-blue-500 text-[10px]"></i>
-                        <span>Jaga jarak ~20-30 cm agar fokus tajam, gunakan <b>zoom 2x</b> jika label kecil.</span>
+                        <span>Keep ~20-30 cm distance for sharp focus, use <b>2x zoom</b> if label is small.</span>
                     </p>
                 </div>
             </div>
@@ -139,6 +139,7 @@
             this.isTorchOn = false;
             this.currentZoom = 1;
             this.zoomCapabilities = null;
+            this.isSoftwareZoom = false;
             this.currentCameraId = null;
             this.isProcessing = false;
 
@@ -231,8 +232,8 @@
                 if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Koneksi HTTPS Diperlukan',
-                        text: 'Browser seluler memerlukan koneksi aman (HTTPS) untuk mengizinkan akses kamera.',
+                        title: 'HTTPS Connection Required',
+                        text: 'Mobile browsers require a secure connection (HTTPS) to allow camera access.',
                         confirmButtonColor: '#3b82f6'
                     });
                     return;
@@ -241,7 +242,7 @@
 
             this.isProcessing = false;
             $(this.modalId).removeClass('hidden').addClass('flex');
-            $('#qr-status').html('<i class="fa-solid fa-circle-notch fa-spin text-xs mr-2 text-blue-500"></i> Membuka Kamera...');
+            $('#qr-status').html('<i class="fa-solid fa-circle-notch fa-spin text-xs mr-2 text-blue-500"></i> Starting Camera...');
             this.startCamera();
         }
 
@@ -270,7 +271,7 @@
                 (decodedText) => this.onScanSuccess(decodedText),
                 () => {}
             ).then(() => {
-                $('#qr-status').html('<i class="fa-solid fa-expand fa-beat text-xs mr-2 text-emerald-500"></i> Kamera Aktif - Arahkan ke QR Label');
+                $('#qr-status').html('<i class="fa-solid fa-expand fa-beat text-xs mr-2 text-emerald-500"></i> Camera Active - Point at QR Label');
                 this.applyMirror();
                 this.detectCapabilities();
                 this.loadCameraList();
@@ -285,7 +286,7 @@
                         (decodedText) => this.onScanSuccess(decodedText),
                         () => {}
                     ).then(() => {
-                        $('#qr-status').html('<i class="fa-solid fa-expand fa-beat text-xs mr-2 text-emerald-500"></i> Kamera Aktif - Arahkan ke QR Label');
+                        $('#qr-status').html('<i class="fa-solid fa-expand fa-beat text-xs mr-2 text-emerald-500"></i> Camera Active - Point at QR Label');
                         this.applyMirror();
                         this.detectCapabilities();
                         this.loadCameraList();
@@ -309,7 +310,7 @@
                                        cam.label.toLowerCase().includes('environment') ||
                                        cam.label.toLowerCase().includes('belakang');
                         const isSelected = this.currentCameraId ? (cam.id === this.currentCameraId) : isBack;
-                        optionsHtml += `<option value="${cam.id}" ${isSelected ? 'selected' : ''}>${cam.label || 'Kamera ' + cam.id.substring(0, 8)}</option>`;
+                        optionsHtml += `<option value="${cam.id}" ${isSelected ? 'selected' : ''}>${cam.label || 'Camera ' + cam.id.substring(0, 8)}</option>`;
                     });
                     $('#cameraSelection').html(optionsHtml);
                 }
@@ -320,7 +321,7 @@
             if (!newCamId || newCamId === this.currentCameraId) return;
             this.currentCameraId = newCamId;
 
-            $('#qr-status').html('<i class="fa-solid fa-circle-notch fa-spin text-xs mr-2 text-blue-500"></i> Mengganti Kamera...');
+            $('#qr-status').html('<i class="fa-solid fa-circle-notch fa-spin text-xs mr-2 text-blue-500"></i> Switching Camera...');
 
             if (this.html5QrCode && this.html5QrCode.isScanning) {
                 this.html5QrCode.stop().then(() => {
@@ -349,37 +350,49 @@
         detectCapabilities() {
             this.isTorchOn = false;
             this.currentZoom = 1;
+            this.isSoftwareZoom = false;
             this.updateTorchUI();
             this.updateZoomUI(1);
+
+            // Always display zoom controls on both laptop and mobile
+            $('#zoomControls').removeClass('hidden');
 
             setTimeout(() => {
                 try {
                     const track = this.getTrack();
-                    if (!track || typeof track.getCapabilities !== 'function') return;
+                    if (!track || typeof track.getCapabilities !== 'function') {
+                        this.isSoftwareZoom = true;
+                        $('#zoomControls button[data-zoom="3"]').removeClass('hidden');
+                        return;
+                    }
 
                     const caps = track.getCapabilities();
 
-                    // Check Torch
+                    // Check Torch (only available if physical LED flash is present, e.g. phones)
                     if (caps.torch) {
                         $('#toggleTorch').removeClass('hidden');
                     } else {
                         $('#toggleTorch').addClass('hidden');
                     }
 
-                    // Check Zoom
+                    // Check Hardware Zoom
                     if (caps.zoom) {
                         this.zoomCapabilities = caps.zoom;
-                        $('#zoomControls').removeClass('hidden');
+                        this.isSoftwareZoom = false;
                         if (caps.zoom.max >= 3) {
                             $('#zoomControls button[data-zoom="3"]').removeClass('hidden');
                         } else {
                             $('#zoomControls button[data-zoom="3"]').addClass('hidden');
                         }
                     } else {
-                        $('#zoomControls').addClass('hidden');
+                        // Laptop / webcam without hardware zoom -> enable digital zoom!
+                        this.isSoftwareZoom = true;
+                        this.zoomCapabilities = { min: 1, max: 3 };
+                        $('#zoomControls button[data-zoom="3"]').removeClass('hidden');
                     }
                 } catch (e) {
-                    console.warn("Track capabilities query error:", e);
+                    this.isSoftwareZoom = true;
+                    $('#zoomControls button[data-zoom="3"]').removeClass('hidden');
                 }
             }, 300);
         }
@@ -406,30 +419,38 @@
             const btn = $('#toggleTorch');
             if (this.isTorchOn) {
                 btn.addClass('text-amber-500 bg-amber-50 dark:bg-amber-950/40').removeClass('text-gray-400');
-                btn.attr('title', 'Matikan Lampu Flash');
+                btn.attr('title', 'Turn Off Flashlight');
             } else {
                 btn.removeClass('text-amber-500 bg-amber-50 dark:bg-amber-950/40').addClass('text-gray-400');
-                btn.attr('title', 'Nyalakan Lampu Flash');
+                btn.attr('title', 'Turn On Flashlight');
             }
         }
 
         async setZoom(level) {
+            this.currentZoom = level;
+            this.updateZoomUI(level);
+
             const track = this.getTrack();
-            if (!track || !this.zoomCapabilities) return;
 
-            const min = this.zoomCapabilities.min || 1;
-            const max = this.zoomCapabilities.max || 1;
-            const targetZoom = Math.min(Math.max(level, min), max);
-
-            try {
-                await track.applyConstraints({
-                    advanced: [{ zoom: targetZoom }]
-                });
-                this.currentZoom = level;
-                this.updateZoomUI(level);
-            } catch (e) {
-                console.warn("Zoom constraint failed:", e);
+            // 1. Try hardware zoom first if supported (e.g. mobile camera sensor)
+            if (!this.isSoftwareZoom && this.zoomCapabilities && track) {
+                try {
+                    const min = this.zoomCapabilities.min || 1;
+                    const max = this.zoomCapabilities.max || 1;
+                    const targetZoom = Math.min(Math.max(level, min), max);
+                    await track.applyConstraints({
+                        advanced: [{ zoom: targetZoom }]
+                    });
+                    this.applyMirror();
+                    return;
+                } catch (e) {
+                    console.warn("Hardware zoom constraint failed, falling back to digital zoom:", e);
+                    this.isSoftwareZoom = true;
+                }
             }
+
+            // 2. Software Digital Zoom for laptops / fixed-focus webcams
+            this.applyMirror();
         }
 
         updateZoomUI(level) {
@@ -448,7 +469,7 @@
         async scanFile(file) {
             if (this.isProcessing) return;
 
-            $('#qr-status').html('<i class="fa-solid fa-spinner fa-spin text-xs text-blue-500 mr-2"></i> Menganalisis gambar...');
+            $('#qr-status').html('<i class="fa-solid fa-spinner fa-spin text-xs text-blue-500 mr-2"></i> Analyzing image...');
 
             if (this.html5QrCode && this.html5QrCode.isScanning) {
                 try {
@@ -466,13 +487,13 @@
                 })
                 .catch(err => {
                     console.error("Scan file error:", err);
-                    $('#qr-status').html('<i class="fa-solid fa-triangle-exclamation text-xs text-amber-500 mr-2"></i> QR Code tidak terdeteksi pada gambar.');
+                    $('#qr-status').html('<i class="fa-solid fa-triangle-exclamation text-xs text-amber-500 mr-2"></i> QR Code not detected in image.');
                     Swal.fire({
                         icon: 'warning',
-                        title: 'QR Code Tidak Terdeteksi',
-                        text: 'Pastikan foto label tajam (tidak buram), pencahayaan cukup, dan seluruh kotak QR Code terlihat jelas.',
+                        title: 'QR Code Not Detected',
+                        text: 'Ensure the label image is sharp (not blurry), well lit, and the full QR Code is clearly visible.',
                         confirmButtonColor: '#3b82f6',
-                        confirmButtonText: 'Buka Kamera Kembali'
+                        confirmButtonText: 'Reopen Camera'
                     }).then(() => {
                         this.startCamera();
                     });
@@ -483,8 +504,8 @@
             console.error("Camera start error:", err);
             Swal.fire({
                 icon: 'error',
-                title: 'Gagal Membuka Kamera',
-                text: 'Pastikan Anda telah memberikan izin akses kamera pada browser Anda.',
+                title: 'Failed to Open Camera',
+                text: 'Please make sure camera permissions are granted in your browser.',
                 confirmButtonColor: '#3b82f6'
             });
             this.stopCamera();
@@ -492,11 +513,19 @@
 
         stopCamera() {
             this.isTorchOn = false;
+            this.currentZoom = 1;
+            this.isSoftwareZoom = false;
             this.updateTorchUI();
+            this.updateZoomUI(1);
             $('#zoomControls').addClass('hidden');
             $('#toggleTorch').addClass('hidden');
             $(this.modalId).addClass('hidden').removeClass('flex');
             
+            const video = $('#qr-reader video')[0];
+            if (video) {
+                video.style.transform = '';
+            }
+
             if (this.html5QrCode && this.html5QrCode.isScanning) {
                 this.html5QrCode.stop().catch(() => {});
             }
@@ -505,7 +534,12 @@
         applyMirror() {
             const video = $('#qr-reader video')[0];
             if (video) {
-                video.style.transform = this.isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
+                const zoomFactor = this.isSoftwareZoom ? (this.currentZoom || 1) : 1;
+                const scaleX = (this.isMirrored ? -1 : 1) * zoomFactor;
+                const scaleY = zoomFactor;
+                video.style.transformOrigin = 'center center';
+                video.style.transition = 'transform 0.2s ease';
+                video.style.transform = `scale(${scaleX}, ${scaleY})`;
             }
         }
 
@@ -565,16 +599,16 @@
             if (!hashedId) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Format QR Tidak Dikenal',
-                    text: 'QR Code ini tidak sesuai dengan format Quality Label PROMISE NPC.',
+                    title: 'Unrecognized QR Format',
+                    text: 'This QR Code does not match the PROMISE NPC Quality Label format.',
                     confirmButtonColor: '#3b82f6'
                 });
                 return;
             }
 
             Swal.fire({
-                title: 'Memverifikasi Quality Label...',
-                html: '<div class="flex flex-col items-center gap-3 py-2"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500"></i><span class="text-sm text-gray-500">Memeriksa data part dan checksheet...</span></div>',
+                title: 'Verifying Quality Label...',
+                html: '<div class="flex flex-col items-center gap-3 py-2"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500"></i><span class="text-sm text-gray-500">Checking part and checksheet data...</span></div>',
                 allowOutsideClick: false,
                 showConfirmButton: false
             });
@@ -589,13 +623,13 @@
             })
             .then(res => {
                 if (!res.ok) {
-                    return res.json().then(data => { throw new Error(data.message || 'Gagal memverifikasi label'); });
+                    return res.json().then(data => { throw new Error(data.message || 'Failed to verify label'); });
                 }
                 return res.json();
             })
             .then(data => {
                 if (!data.success) {
-                    throw new Error(data.message || 'Label tidak valid');
+                    throw new Error(data.message || 'Invalid label');
                 }
 
                 if (this.mode === 'mgm') {
@@ -603,8 +637,8 @@
                     if (data.can_mgm && data.mgm_url) {
                         Swal.fire({
                             icon: 'success',
-                            title: 'Quality Label Ditemukan!',
-                            html: `Part: <b>${data.part.part_no}</b><br><small class="text-gray-500">Membuka form Part Event Delivery Checksheet...</small>`,
+                            title: 'Quality Label Found!',
+                            html: `Part: <b>${data.part.part_no}</b><br><small class="text-gray-500">Opening Part Event Delivery Checksheet form...</small>`,
                             timer: 1200,
                             showConfirmButton: false
                         }).then(() => {
@@ -613,8 +647,8 @@
                     } else {
                         Swal.fire({
                             icon: 'error',
-                            title: 'Akses Ditolak',
-                            text: 'Anda tidak memiliki hak akses untuk Input MGM Check pada part ini.',
+                            title: 'Access Denied',
+                            text: 'You do not have permission to input MGM Check for this part.',
                             confirmButtonColor: '#3b82f6'
                         });
                     }
@@ -623,15 +657,15 @@
                     if (!data.can_approval) {
                         Swal.fire({
                             icon: 'error',
-                            title: 'Akses Ditolak',
-                            text: 'Anda tidak memiliki hak akses untuk Checksheet Approval.',
+                            title: 'Access Denied',
+                            text: 'You do not have permission for Checksheet Approval.',
                             confirmButtonColor: '#3b82f6'
                         });
                     } else if (data.is_in_approval && data.approval_url) {
                         Swal.fire({
                             icon: 'success',
-                            title: 'Checksheet Ditemukan!',
-                            html: `Part: <b>${data.part.part_no}</b> (PO: ${data.part.po_no})<br><small class="text-gray-500">Membuka lembar approval checksheet...</small>`,
+                            title: 'Checksheet Found!',
+                            html: `Part: <b>${data.part.part_no}</b> (PO: ${data.part.po_no})<br><small class="text-gray-500">Opening checksheet approval sheet...</small>`,
                             timer: 1200,
                             showConfirmButton: false
                         }).then(() => {
@@ -640,8 +674,8 @@
                     } else {
                         Swal.fire({
                             icon: 'warning',
-                            title: 'Belum Masuk Fase Approval',
-                            html: `Part: <b>${data.part.part_no}</b> (PO: ${data.part.po_no})<br>Status saat ini: <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800">${data.part.status}</span><br><br><span class="text-xs text-gray-500">Part ini belum selesai proses MGM Check atau belum diajukan ke fase approval.</span>`,
+                            title: 'Not Yet in Approval Phase',
+                            html: `Part: <b>${data.part.part_no}</b> (PO: ${data.part.po_no})<br>Current status: <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800">${data.part.status}</span><br><br><span class="text-xs text-gray-500">This part has not completed the MGM Check process or has not been submitted for approval.</span>`,
                             confirmButtonColor: '#3b82f6'
                         });
                     }
@@ -654,8 +688,8 @@
                 console.error("Scan error:", err);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Quality Label Tidak Ditemukan',
-                    text: err.message || 'QR Code tidak terdaftar dalam sistem.',
+                    title: 'Quality Label Not Found',
+                    text: err.message || 'QR Code is not registered in the system.',
                     confirmButtonColor: '#3b82f6'
                 });
             });
