@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\NpcEvent;
 use App\Models\NpcPart;
+use App\Models\Product;
+use App\Models\NpcMasterRouting;
 use Illuminate\Http\Request;
 
 class NpcPartController extends Controller
@@ -362,5 +364,52 @@ class NpcPartController extends Controller
         $revText = $rev ? "Rev " . ($rev->revision_no ?? '-') . " (" . ($rev->ecn_no ?: 'No ECN') . ")" : '';
 
         return back()->with('success', 'Drawing revision for PO ' . optional($part->event)->po_no . ' successfully changed to ' . $revText);
+    }
+
+    /**
+     * Get products list for select2 / search.
+     */
+    public function selectProducts(Request $request)
+    {
+        $query = Product::with('vehicleModel.customer');
+
+        // HANYA tampilkan product yang sudah disetup routing (proses) ATAU checksheet-nya
+        if (!$request->boolean('all_products')) {
+            $query->where(function ($q) {
+                $q->whereIn('id', function ($sub) {
+                    $sub->select('part_id')->from('npc_master_routings');
+                })->orWhereHas('mappedCheckpoints');
+            });
+        }
+
+        // Filter by customer_id if provided
+        if ($request->filled('customer_id')) {
+            $query->where('customer_id', $request->customer_id);
+        }
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('part_no', 'like', '%' . $request->search . '%')
+                    ->orWhere('part_name', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $query->orderBy('part_no', 'asc');
+
+        $products = $query->limit(30)->get();
+
+        // Include default process_name from NpcMasterRouting mapping
+        foreach ($products as $prod) {
+            $routing = NpcMasterRouting::with('process')
+                ->where('part_id', $prod->id)
+                ->orderBy('sequence_order', 'asc')
+                ->first();
+
+            $prod->process_name = ($routing && $routing->process) ? $routing->process->process_name : null;
+            $prod->model_name = $prod->vehicleModel ? $prod->vehicleModel->name : 'N/A';
+            $prod->customer_name = ($prod->vehicleModel && $prod->vehicleModel->customer) ? $prod->vehicleModel->customer->code : 'N/A';
+        }
+
+        return response()->json(['results' => $products]);
     }
 }

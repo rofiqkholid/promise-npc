@@ -175,4 +175,20 @@ class NpcMasterStdPartController extends Controller
             return back()->with('error', 'Failed processing Excel: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Get active STD parts for select2 dropdown / search.
+     */
+    public function selectOptions(Request $request)
+    {
+        $query = NpcMasterStdPart::where('is_active', true);
+
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        $parts = $query->orderBy('name', 'asc')->limit(30)->get(['id', 'name as text']);
+
+        return response()->json(['results' => $parts]);
+    }
 }

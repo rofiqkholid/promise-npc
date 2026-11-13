@@ -83,4 +83,15 @@ class NpcCustomerCategoryController extends Controller
         $customerCategory->delete();
         return redirect()->route('master.customer-categories.index')->with('success', 'Customer Category Mapping successfully deleted.');
     }
+
+    /**
+     * Get customer categories for select dropdown.
+     */
+    public function selectOptions(Request $request)
+    {
+        $categories = NpcCustomerCategory::where('customer_id', $request->customer_id)
+            ->get(['id', 'name as text']);
+
+        return response()->json(['results' => $categories]);
+    }
 }

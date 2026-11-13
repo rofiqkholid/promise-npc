@@ -110,93 +110,15 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('menu.access:master.routings.index,update');
     });
 
-    // Dummy API Routes for Dashboard Filters
+    // API Routes for Dropdown Filters & Lookups
     Route::prefix('api')->name('api.')->group(function () {
-        Route::post('/data/models', function (\Illuminate\Http\Request $request) {
-            $models = \App\Models\VehicleModel::where('customer_id', $request->customer_id)
-                ->where('status_id', 3) // Only Project status
-                ->whereIn('id', function($q) {
-                    $q->selectRaw('MIN(id)')->from('models')->where('status_id', 3)->groupBy('name', 'customer_id');
-                })
-                ->orderBy('name')
-                ->get(['id', 'name as text']);
-            return response()->json(['results' => $models]);
-        })->name('data.models');
-
-        Route::post('/data/products', function (\Illuminate\Http\Request $request) {
-            $query = \App\Models\Product::with('vehicleModel.customer');
-            
-            // HANYA tampilkan product yang sudah disetup routing (proses) ATAU checksheet-nya
-            if (!$request->boolean('all_products')) {
-                $query->where(function($q) {
-                    $q->whereIn('id', function($sub) {
-                        $sub->select('part_id')->from('npc_master_routings');
-                    })->orWhereHas('mappedCheckpoints');
-                });
-            }
-            // Filter by customer_id if provided
-            if ($request->filled('customer_id')) {
-                $query->where('customer_id', $request->customer_id);
-            }
-
-            if ($request->filled('search')) {
-                $query->where(function ($q) use ($request) {
-                    $q->where('part_no', 'like', '%' . $request->search . '%')
-                        ->orWhere('part_name', 'like', '%' . $request->search . '%');
-                });
-            }
-            // Tambahkan order by untuk relevansi
-            $query->orderBy('part_no', 'asc');
-
-            $products = $query->limit(30)->get();
-
-            // Include default process_name from NpcMasterRouting mapping
-            foreach ($products as $prod) {
-                $routing = \App\Models\NpcMasterRouting::with('process')
-                    ->where('part_id', $prod->id)
-                    ->orderBy('sequence_order', 'asc')
-                    ->first();
-
-                $prod->process_name = ($routing && $routing->process) ? $routing->process->process_name : null;
-                $prod->model_name = $prod->vehicleModel ? $prod->vehicleModel->name : 'N/A';
-                $prod->customer_name = ($prod->vehicleModel && $prod->vehicleModel->customer) ? $prod->vehicleModel->customer->code : 'N/A';
-            }
-
-            return response()->json(['results' => $products]);
-        })->name('data.products');
-
-        Route::post('/data/customers', function () {
-            return response()->json(['results' => []]);
-        })->name('data.customers');
-        Route::get('/data/statuses', function () {
-            return response()->json(['results' => []]);
-        })->name('data.statuses');
-
-        Route::post('/data/customer-categories', function (\Illuminate\Http\Request $request) {
-            $categories = \App\Models\NpcCustomerCategory::where('customer_id', $request->customer_id)->get(['id', 'name as text']);
-            return response()->json(['results' => $categories]);
-        })->name('data.customer-categories');
-
-        Route::post('/data/inventory-materials', function (\Illuminate\Http\Request $request) {
-            $query = \Illuminate\Support\Facades\DB::table('inv_m_material_spec');
-            if ($request->filled('search')) {
-                $query->where('spec_name', 'like', '%' . $request->search . '%');
-            }
-            $materials = $query->limit(30)->get();
-            $mapped = $materials->map(function($m) {
-                return ['id' => $m->id, 'text' => $m->spec_name];
-            });
-            return response()->json(['results' => $mapped]);
-        })->name('data.inventory-materials');
-
-        Route::post('/data/std-parts', function (\Illuminate\Http\Request $request) {
-            $query = \App\Models\NpcMasterStdPart::where('is_active', true);
-            if ($request->filled('search')) {
-                $query->where('name', 'like', '%' . $request->search . '%');
-            }
-            $parts = $query->orderBy('name', 'asc')->limit(30)->get(['id', 'name as text']);
-            return response()->json(['results' => $parts]);
-        })->name('data.std-parts');
+        Route::post('/data/models', [DashboardController::class, 'selectModels'])->name('data.models');
+        Route::post('/data/products', [NpcPartController::class, 'selectProducts'])->name('data.products');
+        Route::post('/data/customers', [DashboardController::class, 'selectCustomers'])->name('data.customers');
+        Route::get('/data/statuses', [DashboardController::class, 'selectStatuses'])->name('data.statuses');
+        Route::post('/data/customer-categories', [NpcCustomerCategoryController::class, 'selectOptions'])->name('data.customer-categories');
+        Route::post('/data/inventory-materials', [ProductChecksheetSetupController::class, 'selectInventoryMaterials'])->name('data.inventory-materials');
+        Route::post('/data/std-parts', [NpcMasterStdPartController::class, 'selectOptions'])->name('data.std-parts');
     });
 
     // Part Routing Routes

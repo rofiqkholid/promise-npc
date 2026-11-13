@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\NpcPart;
 use App\Models\NpcEvent;
+use App\Models\VehicleModel;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -701,5 +702,37 @@ class DashboardController extends Controller
         }
 
         return $lines;
+    }
+
+    /**
+     * Get vehicle models for filter dropdown.
+     */
+    public function selectModels(Request $request)
+    {
+        $models = VehicleModel::where('customer_id', $request->customer_id)
+            ->where('status_id', 3) // Only Project status
+            ->whereIn('id', function ($q) {
+                $q->selectRaw('MIN(id)')->from('models')->where('status_id', 3)->groupBy('name', 'customer_id');
+            })
+            ->orderBy('name')
+            ->get(['id', 'name as text']);
+
+        return response()->json(['results' => $models]);
+    }
+
+    /**
+     * Get customers for filter dropdown.
+     */
+    public function selectCustomers()
+    {
+        return response()->json(['results' => []]);
+    }
+
+    /**
+     * Get statuses for filter dropdown.
+     */
+    public function selectStatuses()
+    {
+        return response()->json(['results' => []]);
     }
 }

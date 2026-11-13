@@ -500,4 +500,23 @@ class ProductChecksheetSetupController extends Controller
         }
     }
 
+    /**
+     * Get inventory materials for select2 dropdown / search.
+     */
+    public function selectInventoryMaterials(Request $request)
+    {
+        $query = DB::table('inv_m_material_spec');
+
+        if ($request->filled('search')) {
+            $query->where('spec_name', 'like', '%' . $request->search . '%');
+        }
+
+        $materials = $query->limit(30)->get();
+        $mapped = $materials->map(function ($m) {
+            return ['id' => $m->id, 'text' => $m->spec_name];
+        });
+
+        return response()->json(['results' => $mapped]);
+    }
+
 }
