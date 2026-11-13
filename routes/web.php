@@ -192,10 +192,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/data/std-parts', function (\Illuminate\Http\Request $request) {
             $query = \App\Models\NpcMasterStdPart::where('is_active', true);
             if ($request->filled('search')) {
-                $query->where('name', 'like', '%' . $request->search . '%')
-                      ->orWhere('spec', 'like', '%' . $request->search . '%');
+                $query->where('name', 'like', '%' . $request->search . '%');
             }
-            $parts = $query->limit(30)->get(['id', 'name as text']);
+            $parts = $query->orderBy('name', 'asc')->limit(30)->get(['id', 'name as text']);
             return response()->json(['results' => $parts]);
         })->name('data.std-parts');
     });
