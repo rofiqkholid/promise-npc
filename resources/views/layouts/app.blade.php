@@ -357,12 +357,17 @@
                 $submitBtn = $form.find('button[type="submit"]');
             }
 
+            const isBlankTarget = ($form.attr('target') || '').toLowerCase() === '_blank';
+
             $submitBtn.each(function() {
                 const $btn = $(this);
+                const originalHtml = $btn.html();
+                let $tempHidden = null;
                 
                 // Preserve the button's name and value by appending a hidden input before disabling
                 if ($btn.attr('name')) {
-                    $form.append('<input type="hidden" name="' + $btn.attr('name') + '" value="' + ($btn.attr('value') || '') + '">');
+                    $tempHidden = $('<input type="hidden" name="' + $btn.attr('name') + '" value="' + ($btn.attr('value') || '') + '">');
+                    $form.append($tempHidden);
                 }
 
                 // Disable button to prevent double-clicks
@@ -387,6 +392,19 @@
                             this.textContent = ' Saving...';
                         }
                     });
+                }
+
+                // If opening in a new tab (target="_blank"), the current page doesn't reload,
+                // so restore the button to its normal state after a brief delay so it can be clicked again.
+                if (isBlankTarget) {
+                    setTimeout(function() {
+                        $btn.prop('disabled', false).removeClass('opacity-75 cursor-not-allowed');
+                        $btn.html(originalHtml);
+                        if ($tempHidden) {
+                            $tempHidden.remove();
+                        }
+                        $form.removeData('clicked-btn');
+                    }, 1500);
                 }
             });
         });
