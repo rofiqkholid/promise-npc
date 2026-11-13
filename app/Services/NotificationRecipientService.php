@@ -78,6 +78,69 @@ class NotificationRecipientService
     }
 
     /**
+     * Resolve email recipients for Manager and/or Assistant Manager of a department.
+     *
+     * @param NpcDepartment|int $department
+     * @param bool $includeAssman
+     * @return array<string> Array of email addresses
+     */
+    public static function getManagerRecipientsForDepartment($department, bool $includeAssman = true): array
+    {
+        if (is_numeric($department)) {
+            $department = NpcDepartment::find($department);
+        }
+
+        if (!$department) {
+            return [];
+        }
+
+        $emails = [];
+
+        // 1. Ambil langsung dari kolom manager_id di master departemen
+        if ($department->manager && !empty($department->manager->email)) {
+            $emails[] = $department->manager->email;
+        }
+
+        // 2. Ambil dari kolom assman_id di master departemen jika diminta
+        if ($includeAssman && $department->assman && !empty($department->assman->email)) {
+            $emails[] = $department->assman->email;
+        }
+
+        // 3. Fallback: jika belum diset di master departemen, cari user dengan role Manager di departemen terkait
+        if (empty($emails) && !empty($department->sso_department_id)) {
+            $mgrRoleIds = \Illuminate\Support\Facades\DB::table('roles')
+                ->where(function ($q) {
+                    $q->where('role_name', 'like', '%mgr%')
+                      ->orWhere('role_name', 'like', '%manager%')
+                      ->orWhere('code', 'like', '%mgr%');
+                })
+                ->pluck('id')
+                ->toArray();
+
+            $mgrUserIds = \Illuminate\Support\Facades\DB::table('user_scope_roles')
+                ->where('scope_id', 'app_npc')
+                ->whereIn('role_id', $mgrRoleIds)
+                ->pluck('user_id')
+                ->toArray();
+
+            $deptColumn = \Illuminate\Support\Facades\Schema::hasColumn('users', 'id_dept') ? 'id_dept' : 'department_id';
+
+            $fallbackEmails = User::whereIn('id', $mgrUserIds)
+                ->where($deptColumn, $department->sso_department_id)
+                ->whereNotNull('email')
+                ->where('email', '!=', '')
+                ->pluck('email')
+                ->toArray();
+
+            $emails = array_merge($emails, $fallbackEmails);
+        }
+
+        return array_values(array_unique(array_filter($emails, function ($email) {
+            return filter_var($email, FILTER_VALIDATE_EMAIL);
+        })));
+    }
+
+    /**
      * Resolve email recipients for Checksheet Approval stages.
      *
      * @param NpcChecksheet $checksheet

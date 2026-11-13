@@ -13,12 +13,26 @@ class NpcMasterDepartmentController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = NpcDepartment::query();
+            $query = NpcDepartment::with(['manager', 'assman']);
             
             return \Yajra\DataTables\Facades\DataTables::of($query)
                 ->addIndexColumn()
                 ->editColumn('full_name', function ($dept) {
                     return $dept->full_name ?? '-';
+                })
+                ->addColumn('assman', function ($dept) {
+                    if ($dept->assman) {
+                        return '<div class="font-medium text-slate-800 dark:text-slate-200">' . htmlspecialchars($dept->assman->name) . '</div>' .
+                               ($dept->assman->email ? '<div class="text-[11px] text-slate-400">' . htmlspecialchars($dept->assman->email) . '</div>' : '');
+                    }
+                    return '<span class="text-slate-400 italic text-xs">Not Set</span>';
+                })
+                ->addColumn('manager', function ($dept) {
+                    if ($dept->manager) {
+                        return '<div class="font-medium text-slate-800 dark:text-slate-200">' . htmlspecialchars($dept->manager->name) . '</div>' .
+                               ($dept->manager->email ? '<div class="text-[11px] text-slate-400">' . htmlspecialchars($dept->manager->email) . '</div>' : '');
+                    }
+                    return '<span class="text-slate-400 italic text-xs">Not Set</span>';
                 })
                 ->editColumn('is_active', function ($dept) {
                     if ($dept->is_active) {
@@ -33,7 +47,7 @@ class NpcMasterDepartmentController extends Controller
                         'deleteMessage' => 'Permanently delete this department?'
                     ])->render();
                 })
-                ->rawColumns(['is_active', 'action'])
+                ->rawColumns(['assman', 'manager', 'is_active', 'action'])
                 ->make(true);
         }
 
@@ -46,7 +60,8 @@ class NpcMasterDepartmentController extends Controller
     public function create()
     {
         $ssoDepartments = \Illuminate\Support\Facades\DB::table('departments')->orderBy('name')->get();
-        return view('master.departments.create', compact('ssoDepartments'));
+        $users = \App\Models\User::orderBy('name')->get();
+        return view('master.departments.create', compact('ssoDepartments', 'users'));
     }
 
     /**
@@ -58,6 +73,8 @@ class NpcMasterDepartmentController extends Controller
             'name' => 'required|string|max:255|unique:npc_departments,name',
             'full_name' => 'nullable|string|max:255',
             'sso_department_id' => 'nullable|integer',
+            'manager_id' => 'nullable|integer',
+            'assman_id' => 'nullable|integer',
             'is_active' => 'boolean'
         ]);
 
@@ -80,7 +97,8 @@ class NpcMasterDepartmentController extends Controller
     public function edit(NpcDepartment $department)
     {
         $ssoDepartments = \Illuminate\Support\Facades\DB::table('departments')->orderBy('name')->get();
-        return view('master.departments.edit', compact('department', 'ssoDepartments'));
+        $users = \App\Models\User::orderBy('name')->get();
+        return view('master.departments.edit', compact('department', 'ssoDepartments', 'users'));
     }
 
     /**
@@ -92,6 +110,8 @@ class NpcMasterDepartmentController extends Controller
             'name' => 'required|string|max:255|unique:npc_departments,name,' . $department->id,
             'full_name' => 'nullable|string|max:255',
             'sso_department_id' => 'nullable|integer',
+            'manager_id' => 'nullable|integer',
+            'assman_id' => 'nullable|integer',
             'is_active' => 'nullable' // Checkbox might be missing
         ]);
 

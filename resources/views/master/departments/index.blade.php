@@ -23,7 +23,9 @@
                         <th scope="col" class="px-4 py-2 font-semibold w-16">No</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Code/Short Name</th>
                         <th scope="col" class="px-4 py-2 font-semibold">Full Name (Remarks)</th>
-                        <th scope="col" class="px-4 py-2 font-semibold w-32">Status</th>
+                        <th scope="col" class="px-4 py-2 font-semibold">Assman</th>
+                        <th scope="col" class="px-4 py-2 font-semibold">Manager</th>
+                        <th scope="col" class="px-4 py-2 font-semibold w-24 text-center">Status</th>
                         <th scope="col" class="px-4 py-2 font-semibold text-right w-24">Action</th>
                     </tr>
                 </thead>
@@ -45,7 +47,9 @@
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'px-4 py-2 font-medium text-slate-500 dark:text-slate-400' },
                 { data: 'name', name: 'name', className: 'px-4 py-2 font-bold text-slate-900 dark:text-white' },
                 { data: 'full_name', name: 'full_name', className: 'px-4 py-2 text-slate-700 dark:text-slate-300 font-medium' },
-                { data: 'is_active', name: 'is_active', className: 'px-4 py-2' },
+                { data: 'assman', name: 'assman.name', className: 'px-4 py-2' },
+                { data: 'manager', name: 'manager.name', className: 'px-4 py-2' },
+                { data: 'is_active', name: 'is_active', className: 'px-4 py-2 text-center' },
                 { data: 'action', name: 'action', orderable: false, searchable: false, className: 'px-4 py-2 text-right' }
             ]
         });

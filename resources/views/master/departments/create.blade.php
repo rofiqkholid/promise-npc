@@ -51,6 +51,50 @@
                         class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
                         style="padding-left: 2.5rem;" placeholder="Example: PUD (Painting etc.)">
                 </div>
+            </div>
+
+            <div class="space-y-1">
+                <label for="assman_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Assistant Manager (Assman)
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <i class="fa-solid fa-user-tie text-xs"></i>
+                    </div>
+                    <select id="assman_id" name="assman_id"
+                        class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                        style="padding-left: 2.5rem;">
+                        <option value="">-- Select Assman (Optional) --</option>
+                        @foreach($users as $user)
+                            <option value="{{ $user->id }}" {{ old('assman_id') == $user->id ? 'selected' : '' }}>
+                                {{ $user->name }} {{ $user->nik ? "({$user->nik})" : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <label for="manager_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Department Manager
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <i class="fa-solid fa-user-shield text-xs"></i>
+                    </div>
+                    <select id="manager_id" name="manager_id"
+                        class="w-full border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+                        style="padding-left: 2.5rem;">
+                        <option value="">-- Select Manager (Optional) --</option>
+                        @foreach($users as $user)
+                            <option value="{{ $user->id }}" {{ old('manager_id') == $user->id ? 'selected' : '' }}>
+                                {{ $user->name }} {{ $user->nik ? "({$user->nik})" : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
             <div class="space-y-1">
                 <label for="sso_department_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Mapped SSO User Department <span class="text-xs text-gray-500">(Automatic Email Recipient Mapping)</span>

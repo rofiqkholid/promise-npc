@@ -24,7 +24,17 @@ class NpcDepartment extends Model
 
     use HasHashedId;
 
-    protected $fillable = ['name', 'full_name', 'is_active', 'sso_department_id'];
+    protected $fillable = ['name', 'full_name', 'is_active', 'sso_department_id', 'manager_id', 'assman_id'];
+
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id', 'id');
+    }
+
+    public function assman()
+    {
+        return $this->belongsTo(User::class, 'assman_id', 'id');
+    }
 
     public function processes()
     {
