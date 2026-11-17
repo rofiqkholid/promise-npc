@@ -755,10 +755,16 @@ $(document).ready(function() {
                         const procName = p.process?.process_name || 'Unknown Process';
                         const deptName = p.department?.name || 'Unknown Department';
                         let targetStr = '-';
+                        let isOverdue = false;
                         if (p.target_completion_date) {
                             const d = new Date(p.target_completion_date.split('T')[0] + 'T00:00:00');
                             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                             targetStr = `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]}`;
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            if (!isFinished && d < today) {
+                                isOverdue = true;
+                            }
                         }
                         
                         html += `<div class="relative flex items-center gap-3">
@@ -769,7 +775,10 @@ $(document).ready(function() {
                                 <span class="text-[11px] font-bold ${textColor} transition-colors">${procName}</span>
                                 <div class="flex items-center gap-2">
                                     <span class="text-[9px] text-gray-500 ${isFinished ? 'opacity-50' : ''}"><i class="fa-solid fa-building-user text-[8px] mr-0.5"></i> ${deptName}</span>
-                                    <span class="text-[9px] text-gray-500 ${isFinished ? 'opacity-50' : ''}"><i class="fa-regular fa-calendar-check text-[8px] mr-0.5"></i> Target: ${targetStr}</span>
+                                    ${isOverdue 
+                                        ? `<span class="text-[9px] text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/40 px-1 py-0.5 rounded border border-red-200 dark:border-red-800"><i class="fa-solid fa-triangle-exclamation text-[8px] mr-0.5"></i> Target: ${targetStr} (Overdue)</span>`
+                                        : `<span class="text-[9px] text-gray-500 ${isFinished ? 'opacity-50' : ''}"><i class="fa-regular fa-calendar-check text-[8px] mr-0.5"></i> Target: ${targetStr}</span>`
+                                    }
                                     ${p.production_notes && isFinished ? `<span class="text-[9px] text-gray-500 dark:text-gray-400 italic truncate max-w-[150px]" title="${p.production_notes.replace(/</g, '&lt;').replace(/>/g, '&gt;')}"><i class="fa-solid fa-note-sticky text-[8px] mr-0.5"></i> ${p.production_notes.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>` : ''}
                                     ${p.hold_reason && isHold ? `<span class="text-[9px] text-red-500 dark:text-red-400 italic truncate max-w-[150px]" title="${p.hold_reason.replace(/</g, '&lt;').replace(/>/g, '&gt;')}"><i class="fa-solid fa-triangle-exclamation text-[8px] mr-0.5"></i> ${p.hold_reason.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>` : ''}
                                 </div>

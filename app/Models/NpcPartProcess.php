@@ -43,6 +43,13 @@ class NpcPartProcess extends Model
         'sequence_order',
         'production_notes',
         'hold_reason',
+        'overdue_notified_at',
+    ];
+
+    protected $casts = [
+        'target_completion_date' => 'date',
+        'actual_completion_date' => 'date',
+        'overdue_notified_at' => 'datetime',
     ];
 
     public function part()
