@@ -227,9 +227,13 @@
                         <span class="text-2xl font-black text-blue-600 dark:text-blue-400">{{ $checksheet->accuracy_percentage ?? 'N/A' }}%</span>
                     </div>
                     @if($checksheet->attachment_path)
+                    @php
+                        $ext = strtolower(pathinfo($checksheet->attachment_path, PATHINFO_EXTENSION));
+                        $isImage = in_array($ext, ['png', 'jpg', 'jpeg', 'webp']);
+                    @endphp
                     <div class="flex items-center">
                         <a href="{{ url('file/storage/' . ltrim(str_replace('public/', '', $checksheet->attachment_path), '/')) }}" target="_blank" data-bypass-loader="true" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-sm text-[13px] font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                            <i class="fa-solid fa-file-pdf text-red-500"></i> View Attachment QC
+                            <i class="fa-solid {{ $isImage ? 'fa-file-image text-blue-500' : 'fa-file-pdf text-red-500' }}"></i> View Attachment QC
                         </a>
                     </div>
                     @else
