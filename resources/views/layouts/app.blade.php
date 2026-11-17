@@ -154,8 +154,12 @@
         /**
          * Global SweetAlert Confirmation Wrapper
          */
-        window.confirmAction = function(event, message) {
-            const targetElement = event.currentTarget;
+        window.confirmAction = function(event, message, options = {}) {
+            if (typeof options === 'string') {
+                options = { confirmButtonColor: options };
+            }
+
+            const targetElement = event.currentTarget || event.target;
             const form = targetElement.tagName === 'FORM' ? targetElement : targetElement.closest('form');
             
             if (form && form.dataset.confirmed === 'true') {
@@ -163,16 +167,23 @@
             }
 
             event.preventDefault();
+
+            // Detect if this action is an approval or positive action
+            const isApprove = (targetElement && targetElement.getAttribute && (targetElement.getAttribute('value') === 'approve' || targetElement.name === 'approve'))
+                || (typeof message === 'string' && /approve|setujui/i.test(message));
+
+            const confirmButtonColor = options.confirmButtonColor || (isApprove ? '#10b981' : '#ef4444');
+            const icon = options.icon || (isApprove ? 'question' : 'warning');
             
             Swal.fire({
-                title: 'Confirmation',
+                title: options.title || 'Confirmation',
                 text: message,
-                icon: 'warning',
+                icon: icon,
                 showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#9ca3af',
-                confirmButtonText: '<i class="fa-solid fa-check mr-1"></i> Yes, Proceed',
-                cancelButtonText: 'Cancel',
+                confirmButtonColor: confirmButtonColor,
+                cancelButtonColor: options.cancelButtonColor || '#9ca3af',
+                confirmButtonText: options.confirmButtonText || '<i class="fa-solid fa-check mr-1"></i> Yes, Proceed',
+                cancelButtonText: options.cancelButtonText || 'Cancel',
                 reverseButtons: true,
                 background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
                 color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
