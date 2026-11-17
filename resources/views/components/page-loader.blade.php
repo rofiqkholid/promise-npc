@@ -153,15 +153,22 @@
         // Fungsi pengecekan link export / download
         function isDownloadOrExportLink(link) {
             if (!link) return false;
+            // Abaikan link yang membuka di tab baru (target="_blank"), bypass loader, atau file storage (attachment/photo/pdf)
+            if (link.getAttribute('target') === '_blank' || link.hasAttribute('data-bypass-loader') || link.dataset.bypassLoader === 'true') {
+                return false;
+            }
+            const href = (link.getAttribute('href') || '').toLowerCase();
+            if (href.includes('file/storage/')) {
+                return false;
+            }
             if (link.hasAttribute('download') || link.hasAttribute('data-no-loader') || link.classList.contains('no-loader')) {
                 return true;
             }
-            const href = (link.getAttribute('href') || '').toLowerCase();
-            if (/(export|download|\.xlsx|\.xls|\.csv|\.pdf|\.zip|\.doc|\.docx)($|\?|\/)/i.test(href)) {
+            if (/(export|download|\.xlsx|\.xls|\.csv)($|\?|\/)/i.test(href)) {
                 return true;
             }
             const text = (link.textContent || '').trim().toLowerCase();
-            if (/^(export|download)\b/i.test(text) || text.includes('export excel') || text.includes('export pdf') || text.includes('download')) {
+            if (/^(export|download)\b/i.test(text) || text.includes('export excel') || text.includes('download')) {
                 return true;
             }
             return false;
@@ -170,19 +177,22 @@
         // Pengecekan spesifik apakah link ini merupakan unduhan file/export yang valid
         function isActualExportDownload(link) {
             if (!link) return false;
-            // Abaikan link temporary bypass yang sengaja dibuat untuk memicu unduhan browser
-            if (link.hasAttribute('data-bypass-loader') || link.dataset.bypassLoader === 'true') {
+            // Abaikan link yang membuka di tab baru (target="_blank"), bypass loader, atau file storage
+            if (link.getAttribute('target') === '_blank' || link.hasAttribute('data-bypass-loader') || link.dataset.bypassLoader === 'true') {
                 return false;
             }
             const href = link.getAttribute('href');
             if (!href || href === '#' || href.startsWith('#') || href.startsWith('javascript:')) {
                 return false;
             }
+            const hrefLower = href.toLowerCase();
+            if (hrefLower.includes('file/storage/')) {
+                return false;
+            }
             if (link.hasAttribute('download')) {
                 return true;
             }
-            const hrefLower = href.toLowerCase();
-            if (/(export|download|\.xlsx|\.xls|\.csv|\.pdf|\.zip|\.doc|\.docx)($|\?|\/)/i.test(hrefLower)) {
+            if (/(export|download|\.xlsx|\.xls|\.csv)($|\?|\/)/i.test(hrefLower)) {
                 return true;
             }
             const textLower = (link.textContent || '').trim().toLowerCase();
@@ -252,6 +262,15 @@
                     if (matches != null && matches[1]) {
                         filename = matches[1].replace(/['"]/g, '').trim();
                     }
+                }
+                if (!filename) {
+                    try {
+                        const parsedUrl = new URL(link.href, window.location.origin);
+                        const urlFile = parsedUrl.pathname.split('/').pop();
+                        if (urlFile && urlFile.includes('.')) {
+                            filename = urlFile;
+                        }
+                    } catch (err) {}
                 }
                 if (!filename) {
                     filename = link.getAttribute('download') || ('Checksheet_Export_' + Date.now() + '.xlsx');
