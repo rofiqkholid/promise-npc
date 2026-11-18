@@ -12,6 +12,6 @@ Artisan::command('inspire', function () {
 // Mengirimkan eskalasi email ke Manager & Assman departemen terkait 2 kali sehari:
 // 1. Pukul 08:00 pagi (pembukaan hari kerja)
 // 2. Pukul 15:00 sore (follow-up sebelum akhir jam kerja)
-Schedule::command('npc:check-overdue-processes')->dailyAt('08:00');
-Schedule::command('npc:check-overdue-processes')->dailyAt('15:00');
+Schedule::command('npc:check-overdue-processes')->dailyAt('08:00')->timezone('Asia/Jakarta');
+Schedule::command('npc:check-overdue-processes')->dailyAt('15:00')->timezone('Asia/Jakarta');
 
