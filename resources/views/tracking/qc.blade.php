@@ -262,6 +262,18 @@ style="display: none;">
 
 @push('scripts')
 <script>
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+
     function qcTrackingData() {
         return {
             selectedParts: [],
@@ -352,6 +364,74 @@ style="display: none;">
 
     window.openProductionReportModal = function(row) {
         window.dispatchEvent(new CustomEvent('open-report-modal', { detail: row }));
+    };
+
+    window.openRejectNoteModal = function(row) {
+        if (!row) return;
+        const reason = row.reject_reason || '-';
+        const stage = row.rejected_from_stage_label || 'Approver';
+        const by = row.rejected_by_name || 'Approver';
+        const date = row.rejected_at_formatted || '-';
+        const photoUrl = row.reject_photo_url;
+        const partNo = row.product?.part_no || '-';
+        const poNo = row.event?.po_no || '-';
+
+        let photoHtml = '';
+        if (photoUrl) {
+            photoHtml = `
+                <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 text-left">
+                    <span class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                        <i class="fa-solid fa-camera text-rose-500 mr-1"></i> Attached Rejection Evidence:
+                    </span>
+                    <a href="${photoUrl}" target="_blank" class="inline-block group relative rounded overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition">
+                        <img src="${photoUrl}" alt="Reject Photo" class="max-h-56 max-w-full rounded object-contain bg-black/5">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i> View Full Image
+                        </div>
+                    </a>
+                </div>
+            `;
+        }
+
+        Swal.fire({
+            title: '<div class="flex items-center justify-center gap-2 text-rose-600 text-base font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Checksheet Rejection Note</div>',
+            html: `
+                <div class="text-left space-y-3 text-xs text-gray-600 dark:text-gray-300 pt-1">
+                    <div class="p-2.5 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 flex items-center justify-between flex-wrap gap-2">
+                        <div>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Part & PO:</span>
+                            <span class="font-bold text-gray-800 dark:text-gray-200 text-xs">${escapeHtml(partNo)}</span>
+                            <span class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold ml-1">(PO: ${escapeHtml(poNo)})</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Rejected From:</span>
+                            <span class="px-2 py-0.5 bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-[10px] font-bold rounded border border-rose-200 dark:border-rose-800">${escapeHtml(stage)}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 px-1">
+                        <span>Rejected by: <strong class="text-gray-700 dark:text-gray-300">${escapeHtml(by)}</strong></span>
+                        ${date !== '-' ? `<span><i class="fa-regular fa-clock mr-1"></i> ${escapeHtml(date)}</span>` : ''}
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-300 mb-1">Reason / Note:</label>
+                        <div class="p-3 bg-rose-50/80 dark:bg-rose-950/40 border-l-4 border-rose-500 text-rose-900 dark:text-rose-200 rounded-r font-medium text-xs whitespace-pre-wrap leading-relaxed shadow-2xs">
+                            "${escapeHtml(reason)}"
+                        </div>
+                    </div>
+
+                    ${photoHtml}
+                </div>
+            `,
+            showConfirmButton: true,
+            confirmButtonText: 'Close',
+            confirmButtonColor: '#e11d48',
+            customClass: {
+                popup: 'rounded-xl',
+                confirmButton: 'px-6 py-2 text-xs font-bold shadow-sm'
+            }
+        });
     };
 
     $(document).ready(function() {
@@ -525,6 +605,18 @@ style="display: none;">
                             return `<div class="text-[10px] text-gray-400 italic font-medium">Waiting for Parts Registration</div>`;
                         }
                         if (row.status === 'WAITING_QE_CHECK') {
+                            if (row.is_rejected) {
+                                const rowJson = JSON.stringify(row).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+                                const stageText = row.rejected_from_stage_label ? `FROM ${escapeHtml(row.rejected_from_stage_label)}` : 'TO QC';
+                                return `<div class="flex flex-col items-center gap-1">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-100 border border-rose-300 text-rose-800 dark:bg-rose-950/50 dark:border-rose-800 dark:text-rose-300 text-[10px] font-bold shadow-sm uppercase">
+                                        <i class="fa-solid fa-rotate-left text-rose-600 dark:text-rose-400"></i> REJECTED ${stageText}
+                                    </span>
+                                    <button type="button" onclick='openRejectNoteModal(${rowJson})' class="mt-0.5 px-2 py-0.5 bg-white dark:bg-gray-700 border border-rose-300 dark:border-rose-800 hover:bg-rose-50 dark:hover:bg-gray-600 text-rose-700 dark:text-rose-300 text-[10px] font-bold shadow-2xs transition flex items-center gap-1 rounded cursor-pointer">
+                                        <i class="fa-solid fa-file-lines text-rose-500 text-[9px]"></i> View Note
+                                    </button>
+                                </div>`;
+                            }
                             return row.has_checksheet ? 
                                 `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 border border-blue-200 text-blue-800 text-[10px] font-bold shadow-sm"><i class="fa-solid fa-pen-to-square"></i> FILLED & BEING CHECKED</span>` :
                                 `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-orange-100 border border-orange-200 text-orange-800 text-[10px] font-bold shadow-sm"><i class="fa-solid fa-triangle-exclamation animate-pulse"></i> NOT YET INPUT BY QC</span>`;
@@ -612,16 +704,23 @@ style="display: none;">
                                 </form>`;
                             }
                             
-                            const btnText = row.has_checksheet ? 'Edit Quality Check (QC)' : 'Input Quality (QC)';
-                            const btnIcon = row.has_checksheet ? 'fa-solid fa-pen-to-square' : 'fa-regular fa-clipboard';
-                            const btnBgStyle = row.has_checksheet ? 'background-color: #2563eb;' : 'background-color: #f97316;';
-                            const btnHelpText = row.has_checksheet ? 'Update quality parameters & pass to MGM' : 'Fill quality parameter form & pass to MGM';
+                            let btnText = row.has_checksheet ? 'Edit Quality Check (QC)' : 'Input Quality (QC)';
+                            let btnIcon = row.has_checksheet ? 'fa-solid fa-pen-to-square' : 'fa-regular fa-clipboard';
+                            let btnBgStyle = row.has_checksheet ? 'background-color: #2563eb;' : 'background-color: #f97316;';
+                            let btnHelpText = row.has_checksheet ? 'Update quality parameters & pass to MGM' : 'Fill quality parameter form & pass to MGM';
                             
+                            if (row.is_rejected) {
+                                btnText = 'Revise Quality Check (QC)';
+                                btnIcon = 'fa-solid fa-wrench';
+                                btnBgStyle = 'background-color: #e11d48;';
+                                btnHelpText = 'Checksheet rejected: revise & resubmit to MGM';
+                            }
+
                             return `<div class="flex flex-col items-end w-full">
-                                <a href="${row.create_checksheet_url}" class="inline-flex px-4 py-2 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full" style="${btnBgStyle}">
+                                <a href="${row.create_checksheet_url}" class="inline-flex px-4 py-2 text-white shadow-sm font-bold transition items-center justify-center gap-2 text-[11px] w-full hover:opacity-90" style="${btnBgStyle}">
                                     <i class="${btnIcon}"></i> ${btnText}
                                 </a>
-                                <p class="text-[9px] text-gray-400 mt-1 italic text-right max-w-[150px] text-balance">${btnHelpText}</p>
+                                <p class="text-[9px] ${row.is_rejected ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-gray-400'} mt-1 italic text-right max-w-[150px] text-balance">${btnHelpText}</p>
                                 ${rollbackBtn}
                             </div>`;
                         }

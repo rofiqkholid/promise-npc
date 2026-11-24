@@ -321,6 +321,111 @@ class NpcChecksheetApprovalController extends Controller
             return redirect()->route('checksheet-approvals.show', $checksheet->hashed_id)->with('success', $msg);
         }
         
+        if ($action === 'reject_to_qc') {
+            if (!auth()->user()->canRejectChecksheetToQc($checksheet)) {
+                abort(403, 'You do not have permission to reject this checksheet directly to QC.');
+            }
+
+            if ($part && $part->delivered_qty > 0) {
+                $msg = 'Cannot reject to QC because part delivery has already started.';
+                if ($request->expectsJson()) {
+                    $request->session()->flash('error', $msg);
+                    return response()->json(['redirect' => route('checksheet-approvals.show', $checksheet->hashed_id)]);
+                }
+                return redirect()->back()->with('error', $msg);
+            }
+
+            $request->validate([
+                'reject_reason' => 'required|string|max:1000'
+            ]);
+
+            $updateData['reject_reason'] = $request->reject_reason;
+            $updateData['rejected_by_id'] = $userId;
+            $updateData['rejected_from_stage'] = $status;
+            $updateData['rejected_at'] = $now;
+            $updateData['resubmitted_by_id'] = null;
+            $updateData['resubmitted_at'] = null;
+
+            if ($request->hasFile('reject_photo')) {
+                $file = $request->file('reject_photo');
+                $filename = 'reject_' . $checksheet->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('checksheets/rejects', $filename, 'public');
+                $updateData['reject_photo_path'] = $path;
+            } elseif ($request->filled('reject_photo_base64')) {
+                $base64Data = $request->input('reject_photo_base64');
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+                    $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+                    $type = strtolower($type[1]);
+                    if (!in_array($type, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                        $type = 'jpg';
+                    }
+                    $base64Data = base64_decode($base64Data);
+                    if ($base64Data !== false) {
+                        $filename = 'reject_' . $checksheet->id . '_' . time() . '.' . $type;
+                        $path = 'checksheets/rejects/' . $filename;
+                        \Illuminate\Support\Facades\Storage::disk('public')->put($path, $base64Data);
+                        $updateData['reject_photo_path'] = $path;
+                    }
+                }
+            }
+
+            // Direct reset to QC
+            $updateData['approval_status'] = 'WAITING_QE_STAFF';
+            $updateData['mgm_checked_by'] = null;
+            $updateData['mgm_check_date'] = null;
+            $updateData['qe_staff_id'] = null;
+            $updateData['qe_staff_date'] = null;
+            $updateData['mgm_staff_id'] = null;
+            $updateData['mgm_staff_date'] = null;
+            $updateData['qe_spv_id'] = null;
+            $updateData['qe_spv_date'] = null;
+            $updateData['mgm_spv_id'] = null;
+            $updateData['mgm_spv_date'] = null;
+            $updateData['qe_assman_id'] = null;
+            $updateData['qe_assman_date'] = null;
+            $updateData['mgm_assman_id'] = null;
+            $updateData['mgm_assman_date'] = null;
+            $updateData['qe_mgr_id'] = null;
+            $updateData['qe_mgr_date'] = null;
+            $updateData['mgm_mgr_id'] = null;
+            $updateData['mgm_mgr_date'] = null;
+
+            $checksheet->update($updateData);
+
+            if ($part) {
+                $part->update([
+                    'status' => 'WAITING_QE_CHECK',
+                    'rollback_reason' => $request->reject_reason,
+                    'mgm_target_date' => null,
+                ]);
+
+                if (function_exists('activity')) {
+                    activity()
+                        ->performedOn($part)
+                        ->causedBy(auth()->user())
+                        ->log('Reject to QC: ' . $request->reject_reason);
+                }
+            }
+
+            try {
+                $recipients = \App\Services\NotificationRecipientService::getRecipientsForApproval($checksheet, 'WAITING_QE_STAFF');
+                if (!empty($recipients)) {
+                    \Illuminate\Support\Facades\Mail::to($recipients)
+                        ->queue(new \App\Mail\PoApprovalNotificationMail($checksheet, 'REJECTED', $request->reject_reason));
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Failed sending reject to QC email notification: ' . $e->getMessage());
+            }
+
+            $successMsg = 'Checksheet successfully rejected and returned directly to Quality Check (QC).';
+            if ($request->expectsJson()) {
+                $request->session()->flash('success', $successMsg);
+                return response()->json(['redirect' => $redirectUrl]);
+            }
+
+            return redirect($redirectUrl)->with('success', $successMsg);
+        }
+
         if (!auth()->user()->canApproveChecksheetStage($status)) {
             abort(403, 'You do not have the required Role or Permission to approve/reject at this stage.');
         }

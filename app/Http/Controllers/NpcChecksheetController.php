@@ -177,7 +177,7 @@ class NpcChecksheetController extends Controller
      */
     public function edit(NpcChecksheet $checksheet)
     {
-        $checksheet->load('details', 'npcPart.checkpoints', 'qeChecker', 'mgmChecker', 'npcPart.product.historyProblems');
+        $checksheet->load('details', 'npcPart.checkpoints', 'qeChecker', 'mgmChecker', 'npcPart.product.historyProblems', 'rejectedBy', 'resubmittedBy');
         $part = $checksheet->npcPart;
 
         // Ensure all product history problems exist in checksheet details
@@ -455,10 +455,18 @@ class NpcChecksheetController extends Controller
                 $updateData['attachment_path'] = $newFileName;
             }
 
+            if ($checksheet->reject_reason) {
+                $updateData['resubmitted_by_id'] = auth()->id();
+                $updateData['resubmitted_at'] = now();
+            }
+
             $checksheet->update($updateData);
 
             if ($part && $part->status === 'WAITING_QE_CHECK') {
-                $part->update(['status' => 'WAITING_MGM_CHECK']);
+                $part->update([
+                    'status' => 'WAITING_MGM_CHECK',
+                    'rollback_reason' => null,
+                ]);
             }
 
             $redirectUrl = $request->input('previous_url') ? base64_decode($request->input('previous_url')) : route('tracking.index');

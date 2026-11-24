@@ -151,9 +151,11 @@ class User extends Authenticatable
         return $menus->map(function ($menu) use ($menuPerms) {
             $combinedPivot = new \stdClass();
             $perms = $menuPerms[$menu->id] ?? [];
+            $combinedPivot->permissions = $perms;
             $combinedPivot->can_view = in_array('view', $perms);
             $combinedPivot->can_create = in_array('create', $perms);
-            $combinedPivot->can_update = in_array('update', $perms);
+            $combinedPivot->can_update = in_array('update', $perms) || in_array('edit', $perms);
+            $combinedPivot->can_edit = in_array('edit', $perms) || in_array('update', $perms);
             $combinedPivot->can_delete = in_array('delete', $perms);
             $combinedPivot->can_approve = in_array('approve', $perms);
             
@@ -179,12 +181,27 @@ class User extends Authenticatable
         $menu = $menus->firstWhere('route', $routeName);
 
         if (!$menu) {
-            // Also try old route_name if fallback is needed, but we renamed the column to route
+            $menu = $menus->firstWhere('route_name', $routeName);
+        }
+
+        if (!$menu) {
+            $menu = $menus->first(function($m) use ($routeName) {
+                return ($m->route ?? $m->route_name ?? '') === $routeName 
+                    || str_contains(strtolower($m->title ?? ''), strtolower($routeName));
+            });
+        }
+
+        if (!$menu) {
             return false;
         }
 
         $property = 'can_' . $action;
         if ($menu->combined_pivot->$property ?? false) {
+            return true;
+        }
+
+        // Direct check in raw permissions array (supports 'edit', 'delete', 'upload', 'download', etc.)
+        if (!empty($menu->combined_pivot->permissions) && in_array($action, $menu->combined_pivot->permissions, true)) {
             return true;
         }
 
@@ -247,5 +264,44 @@ class User extends Authenticatable
             }
             return false;
         });
+    }
+
+    /**
+     * Helper to check if user has admin privileges.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->roles->contains(function ($role) {
+            $code = strtolower(str_replace([' ', '_', '-'], '', $role->code ?? ''));
+            $name = strtolower(str_replace([' ', '_', '-'], '', $role->name ?? $role->role_name ?? ''));
+            return in_array($code, ['admin', 'npcadmin', 'administrator'])
+                || str_contains($code, 'admin')
+                || str_contains($name, 'admin');
+        });
+    }
+
+    /**
+     * Check if user is authorized to reject a checksheet directly to Quality Check (QC).
+     *
+     * 1. Default: Administrator selalu diizinkan.
+     * 2. User lain: Diatur izinnya melalui Promise Admin (Override Permissions) pada menu Checksheet Approvals.
+     *    Secara default dicek dari permission 'delete' pada menu Checksheet Approvals (bisa disesuaikan via REJECT_TO_QC_ACTION).
+     *
+     * @param \App\Models\NpcChecksheet|null $checksheet
+     * @return bool
+     */
+    public function canRejectChecksheetToQc(?\App\Models\NpcChecksheet $checksheet = null): bool
+    {
+        // 1. Default: Administrator selalu memiliki akses
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        // 2. Berdasarkan izin menu Checksheet Approvals yang diatur di Promise Admin (Override Permissions)
+        $action = config('npc.reject_to_qc.action', 'delete');
+
+        return $this->hasMenuAccess('checksheet-approvals.index', $action);
     }
 }

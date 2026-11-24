@@ -29,6 +29,15 @@ class CheckMenuAccess
         // Use explicitly provided menu route or attempt to resolve the base route automatically
         $checkRoute = $menuRoute ?: $this->resolveBaseRoute($routeName);
         
+        // Special handling for checksheet approval submissions
+        if ($routeName === 'checksheet-approvals.store') {
+            if (auth()->user()->hasMenuAccess('checksheet-approvals.index', 'approve') 
+                || auth()->user()->hasMenuAccess('checksheet-approvals.index', 'create')
+                || (method_exists(auth()->user(), 'canRejectChecksheetToQc') && auth()->user()->canRejectChecksheetToQc())) {
+                return $next($request);
+            }
+        }
+
         // Auto resolve action if not explicitly specified
         if (empty($action)) {
             $action = $this->resolveAction($routeName);

@@ -8,7 +8,7 @@ class ProductionTrackingController extends Controller
 {
     private function buildQuery($statusParam, $search = null)
     {
-        $query = \App\Models\NpcPart::with(['event.customerCategory', 'event.deliveryGroup', 'processes.process', 'processes.department', 'checkpoints', 'checksheet', 'product.vehicleModel.customer', 'drawingRevision']);
+        $query = \App\Models\NpcPart::with(['event.customerCategory', 'event.deliveryGroup', 'processes.process', 'processes.department', 'checkpoints', 'checksheet.rejectedBy', 'product.vehicleModel.customer', 'drawingRevision']);
 
         if ($statusParam !== 'all') {
             if ($statusParam === 'CLOSED') {
@@ -139,6 +139,47 @@ class ProductionTrackingController extends Controller
                 })
                 ->addColumn('can_rollback', function ($part) {
                     return $part->status === 'WAITING_MGM_CHECK' && (!$part->checksheet || !$part->checksheet->mgm_checked_by);
+                })
+                ->addColumn('is_rejected', function ($part) {
+                    return (bool) (($part->checksheet && $part->checksheet->reject_reason && !$part->checksheet->resubmitted_at) || ($part->rollback_reason && $part->status === 'WAITING_QE_CHECK'));
+                })
+                ->addColumn('reject_reason', function ($part) {
+                    return ($part->checksheet && $part->checksheet->reject_reason && !$part->checksheet->resubmitted_at)
+                        ? $part->checksheet->reject_reason
+                        : ($part->rollback_reason ?? null);
+                })
+                ->addColumn('rejected_by_name', function ($part) {
+                    return optional(optional($part->checksheet)->rejectedBy)->name ?? null;
+                })
+                ->addColumn('rejected_from_stage', function ($part) {
+                    return optional($part->checksheet)->rejected_from_stage ?? null;
+                })
+                ->addColumn('rejected_from_stage_label', function ($part) {
+                    if (!$part->checksheet || !$part->checksheet->rejected_from_stage) {
+                        return null;
+                    }
+                    $stage = $part->checksheet->rejected_from_stage;
+                    $levelMap = [
+                        'WAITING_QE_STAFF'   => 'QE Staff',
+                        'WAITING_MGM_STAFF'  => 'NPC Staff',
+                        'WAITING_QE_SPV'     => 'QE SPV',
+                        'WAITING_MGM_SPV'    => 'NPC SPV',
+                        'WAITING_QE_ASSMAN'  => 'QE Asst Mgr',
+                        'WAITING_MGM_ASSMAN' => 'NPC Asst Mgr',
+                        'WAITING_QE_MGR'     => 'QE Mgr',
+                        'WAITING_MGM_MGR'    => 'NPC Mgr',
+                        'APPROVED'           => 'Fully Approved',
+                    ];
+                    return $levelMap[$stage] ?? str_replace('WAITING_', '', $stage);
+                })
+                ->addColumn('rejected_at_formatted', function ($part) {
+                    return optional($part->checksheet)->rejected_at ? \Carbon\Carbon::parse($part->checksheet->rejected_at)->format('d M Y, H:i') : null;
+                })
+                ->addColumn('reject_photo_url', function ($part) {
+                    if ($part->checksheet && $part->checksheet->reject_photo_path) {
+                        return url('file/storage/' . ltrim(str_replace('public/', '', $part->checksheet->reject_photo_path), '/'));
+                    }
+                    return null;
                 });
             } elseif ($viewFile === 'tracking.production') {
                 $dt->addColumn('complete_process_url', function ($part) {
