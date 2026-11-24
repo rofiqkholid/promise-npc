@@ -267,41 +267,84 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is the root system administrator.
+     *
+     * @return bool
+     */
+    public function isSuperAdmin(): bool
+    {
+        $identifier = strtolower(trim($this->nik ?? $this->username ?? $this->name ?? ''));
+        return $identifier === 'administrator' || $this->id === 1;
+    }
+
+    /**
      * Helper to check if user has admin privileges.
      *
      * @return bool
      */
     public function isAdmin(): bool
     {
-        return $this->roles->contains(function ($role) {
-            $code = strtolower(str_replace([' ', '_', '-'], '', $role->code ?? ''));
-            $name = strtolower(str_replace([' ', '_', '-'], '', $role->name ?? $role->role_name ?? ''));
-            return in_array($code, ['admin', 'npcadmin', 'administrator'])
-                || str_contains($code, 'admin')
-                || str_contains($name, 'admin');
-        });
+        return $this->isSuperAdmin();
+    }
+
+    /**
+     * Check if user has explicit permission for a route and action strictly
+     * based on their role/user override permissions without role-bypass.
+     *
+     * @param string $routeName
+     * @param string $action (view, create, update, delete, approve, etc.)
+     * @return bool
+     */
+    public function hasMenuPermissionStrict(string $routeName, string $action = 'delete'): bool
+    {
+        $menus = $this->getAllAccessibleMenus();
+        $menu = $menus->firstWhere('route', $routeName);
+
+        if (!$menu) {
+            $menu = $menus->firstWhere('route_name', $routeName);
+        }
+
+        if (!$menu) {
+            $menu = $menus->first(function($m) use ($routeName) {
+                return ($m->route ?? $m->route_name ?? '') === $routeName 
+                    || str_contains(strtolower($m->title ?? ''), strtolower($routeName));
+            });
+        }
+
+        if (!$menu || !isset($menu->combined_pivot)) {
+            return false;
+        }
+
+        // 1. Direct check in raw permissions array (supports 'edit', 'delete', 'upload', 'download', etc.)
+        if (!empty($menu->combined_pivot->permissions) && in_array($action, $menu->combined_pivot->permissions, true)) {
+            return true;
+        }
+
+        // 2. Check in named property (can_delete, can_update, can_create, can_approve, can_view)
+        $property = 'can_' . $action;
+        return (bool) ($menu->combined_pivot->$property ?? false);
     }
 
     /**
      * Check if user is authorized to reject a checksheet directly to Quality Check (QC).
      *
-     * 1. Default: Administrator selalu diizinkan.
-     * 2. User lain: Diatur izinnya melalui Promise Admin (Override Permissions) pada menu Checksheet Approvals.
-     *    Secara default dicek dari permission 'delete' pada menu Checksheet Approvals (bisa disesuaikan via REJECT_TO_QC_ACTION).
+     * 1. Default: Hanya akun Super Administrator sistem (username/nik 'administrator') yang otomatis memiliki akses.
+     * 2. User lain (termasuk role Admin NPC, SPV, Mgr, Staff, dsb): Wajib dicek hak aksesnya dari
+     *    Override Permissions pada menu Checksheet Approvals dengan action 'delete'.
      *
      * @param \App\Models\NpcChecksheet|null $checksheet
      * @return bool
      */
     public function canRejectChecksheetToQc(?\App\Models\NpcChecksheet $checksheet = null): bool
     {
-        // 1. Default: Administrator selalu memiliki akses
-        if ($this->isAdmin()) {
+        // 1. Default: Hanya akun Administrator utama sistem yang bypass
+        if ($this->isSuperAdmin()) {
             return true;
         }
 
-        // 2. Berdasarkan izin menu Checksheet Approvals yang diatur di Promise Admin (Override Permissions)
+        // 2. Untuk user lain (termasuk role Admin NPC), dicek secara ketat dari Override Permissions di Promise Admin
         $action = config('npc.reject_to_qc.action', 'delete');
 
-        return $this->hasMenuAccess('checksheet-approvals.index', $action);
+        return $this->hasMenuPermissionStrict('checksheet-approvals.index', $action);
     }
 }
