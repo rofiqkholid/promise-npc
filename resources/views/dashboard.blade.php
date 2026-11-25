@@ -9,6 +9,52 @@
     @media (min-width: 1280px) {
         body { overflow: hidden; }
     }
+
+    /* ─── Dashboard entry animations ─────────────────────────────── */
+    @keyframes dashFadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(14px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes dashFadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+
+    .dash-animate {
+        opacity: 0; /* hidden before JS kicks in */
+        animation: dashFadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* Stagger delays for KPI cards (5 cards) */
+    .dash-animate.d-0  { animation-delay: 0.05s; }
+    .dash-animate.d-1  { animation-delay: 0.12s; }
+    .dash-animate.d-2  { animation-delay: 0.19s; }
+    .dash-animate.d-3  { animation-delay: 0.26s; }
+    .dash-animate.d-4  { animation-delay: 0.33s; }
+
+    /* Chart panels */
+    .dash-animate.d-panel-l { animation-delay: 0.38s; }
+    .dash-animate.d-panel-r { animation-delay: 0.46s; }
+
+    /* Bottom cards */
+    .dash-animate.d-bot-0 { animation-delay: 0.52s; }
+    .dash-animate.d-bot-1 { animation-delay: 0.59s; }
+    .dash-animate.d-bot-2 { animation-delay: 0.66s; }
+
+    /* Respect reduced-motion preference */
+    @media (prefers-reduced-motion: reduce) {
+        .dash-animate {
+            opacity: 1;
+            animation: none;
+        }
+    }
 </style>
 @endsection
 
@@ -19,7 +65,7 @@
     <!-- KPI Cards (Row 1) -->
     <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2.5 sm:gap-4 flex-none">
         <!-- Total Active Projects -->
-        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+        <div class="relative dash-animate d-0" x-data="{ open: false }" @click.outside="open = false">
             <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 sm:p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
                 <div class="min-w-0 pr-2">
                     <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 truncate">Total Active Projects</p>
@@ -53,7 +99,7 @@
         </div>
 
         <!-- Total PO -->
-        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+        <div class="relative dash-animate d-1" x-data="{ open: false }" @click.outside="open = false">
             <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 sm:p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
                 <div class="min-w-0 pr-2">
                     <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 truncate">PO On Hand</p>
@@ -90,7 +136,7 @@
         </div>
 
         <!-- PO on hand -->
-        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+        <div class="relative dash-animate d-2" x-data="{ open: false }" @click.outside="open = false">
             <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 sm:p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
                 <div class="min-w-0 pr-2">
                     <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 truncate">PO Active</p>
@@ -127,7 +173,7 @@
         </div>
 
         <!-- PO Complete -->
-        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+        <div class="relative dash-animate d-3" x-data="{ open: false }" @click.outside="open = false">
             <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 sm:p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
                 <div class="min-w-0 pr-2">
                     <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 truncate">PO Complete</p>
@@ -164,7 +210,7 @@
         </div>
 
         <!-- Stock -->
-        <div class="relative col-span-2 sm:col-span-1 xl:col-span-1" x-data="{ open: false }" @click.outside="open = false">
+        <div class="relative col-span-2 sm:col-span-1 xl:col-span-1 dash-animate d-4" x-data="{ open: false }" @click.outside="open = false">
             <div @click="open = !open" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 sm:p-4 shadow-sm flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors h-full">
                 <div class="min-w-0 pr-2">
                     <p class="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 truncate">Remain PO</p>
@@ -212,7 +258,7 @@
             @endphp
             
             <!-- Left Widget: Plan vs Actual -->
-            <div class="w-full lg:w-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-[300px] sm:min-h-[320px] lg:min-h-0 h-[300px] sm:h-[320px] lg:h-auto rounded overflow-hidden" x-data="{ currentSlide: 0, maxSlide: {{ count($poChunks) > 0 ? count($poChunks) - 1 : 0 }} }">
+            <div class="w-full lg:w-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-[300px] sm:min-h-[320px] lg:min-h-0 h-[300px] sm:h-[320px] lg:h-auto rounded overflow-hidden dash-animate d-panel-l" x-data="{ currentSlide: 0, maxSlide: {{ count($poChunks) > 0 ? count($poChunks) - 1 : 0 }} }">
                 <!-- Header & Controls -->
                 <div class="p-2.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex justify-between items-center flex-none">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
@@ -319,7 +365,7 @@
             </div>
 
             <!-- Right Widget: PO Progress -->
-            <div class="w-full lg:w-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-[300px] sm:min-h-[320px] lg:min-h-0 h-[300px] sm:h-[320px] lg:h-auto rounded overflow-hidden" x-data="{ currentSlide: 0, maxSlide: {{ count($progressChunks) > 0 ? count($progressChunks) - 1 : 0 }} }">
+            <div class="w-full lg:w-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-[300px] sm:min-h-[320px] lg:min-h-0 h-[300px] sm:h-[320px] lg:h-auto rounded overflow-hidden dash-animate d-panel-r" x-data="{ currentSlide: 0, maxSlide: {{ count($progressChunks) > 0 ? count($progressChunks) - 1 : 0 }} }">
                 <!-- Header -->
                 <div class="p-2.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex justify-between items-center flex-none">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
@@ -433,7 +479,7 @@
         <div class="flex-none flex flex-col lg:flex-row gap-4 min-h-0 lg:h-[220px]">
             
             <!-- Nearest Events -->
-            <div class="w-full lg:flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col min-h-0 h-[250px] lg:h-full">
+            <div class="w-full lg:flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col min-h-0 h-[250px] lg:h-full dash-animate d-bot-0">
                 <div class="py-1.5 px-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between flex-none">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white"><i class="fa-regular fa-calendar-check text-slate-400 mr-1.5"></i> Upcoming Events</h3>
                     <a href="{{ route('events.index') }}" class="text-[9px] text-primary-600 font-medium">View All</a>
@@ -485,7 +531,7 @@
             </div>
 
             <!-- Action Required: ECN & Stagnant -->
-            <div class="w-full lg:flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden h-[250px] lg:h-full">
+            <div class="w-full lg:flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden h-[250px] lg:h-full dash-animate d-bot-1">
                 <div class="py-1.5 px-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex-none flex justify-between items-center">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
                         <span class="w-1.5 h-1.5 bg-rose-500 rounded-full mr-1.5 animate-pulse"></span> Action Required
@@ -673,7 +719,7 @@
             </div>
 
             <!-- Achievment Delivery -->
-            <div class="w-full lg:flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden h-[250px] lg:h-full">
+            <div class="w-full lg:flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col min-h-0 overflow-hidden h-[250px] lg:h-full dash-animate d-bot-2">
                 <div class="py-1.5 px-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex-none flex justify-between items-center">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-white flex items-center">
                         <i class="fa-solid fa-truck-ramp-box text-emerald-500 mr-1.5"></i> Achievment Delivery
@@ -745,6 +791,11 @@ document.addEventListener('DOMContentLoaded', function() {
         Chart.register(ChartDataLabels);
     }
 
+    // Delay chart initialisation until after entry animations finish (~700ms)
+    // This prevents the "zombie/glitch" effect caused by Chart.js measuring
+    // container dimensions while CSS animations are still running.
+    const CHART_INIT_DELAY = 700;
+
     // Helper to wrap long labels into multiple lines to avoid overlap on the x-axis
     function wrapChartLabel(label, maxLen = 14, maxLines = 3) {
         if (!label) return [];
@@ -804,6 +855,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         return lines;
     }
+
+    // ─── Initialise all charts inside a setTimeout so they render AFTER
+    //     the CSS entry animations have finished (avoids the "glitch/zombie"
+    //     effect that happens when Chart.js measures a container that is
+    //     still being animated and gets wrong dimensions).
+    setTimeout(function initCharts() {
 
     // 1. Trend Chart (Grouped Stacked Bar for Plan vs Actual)
     const poChunks = @json($poChunks);
@@ -879,6 +936,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         datasets: datasets
                     },
                     options: {
+                        animation: { duration: 400, easing: 'easeOutQuart' },
                         layout: { padding: { top: 5, right: 5 } },
                         responsive: true,
                         maintainAspectRatio: false,
@@ -1056,6 +1114,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         datasets: datasetsProg
                     },
                     options: {
+                        animation: { duration: 400, easing: 'easeOutQuart' },
                         layout: { padding: { top: 5, right: 5 } },
                         responsive: true,
                         maintainAspectRatio: false,
@@ -1209,6 +1268,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    }, CHART_INIT_DELAY); // end setTimeout initCharts
 
     // Dynamic dark mode listener
     const observer = new MutationObserver(function(mutations) {
