@@ -456,7 +456,7 @@ class NpcChecksheetController extends Controller
             }
 
             if ($checksheet->reject_reason) {
-                $updateData['resubmitted_by_id'] = auth()->id();
+                $updateData['resubmitted_by_id'] = $userId;
                 $updateData['resubmitted_at'] = now();
             }
 
