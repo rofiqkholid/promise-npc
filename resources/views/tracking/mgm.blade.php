@@ -55,6 +55,13 @@
             <div class="w-full sm:w-auto">
                 <input type="date" id="targetDateFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm" value="{{ request('target_date_filter') }}" title="Filter by Target Delivery Date">
             </div>
+            <div class="w-full sm:w-auto">
+                <select id="workStatusFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-44 rounded-md shadow-sm">
+                    <option value="all">All Status</option>
+                    <option value="pending" {{ request('work_status_filter') == 'pending' ? 'selected' : '' }}>Not Yet Done</option>
+                    <option value="done" {{ request('work_status_filter') == 'done' ? 'selected' : '' }}>Done</option>
+                </select>
+            </div>
             <div class="flex items-end w-full sm:w-auto">
                 <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center min-w-[100px]">
                     <i class="fa-solid fa-rotate-left"></i> Reset
@@ -136,6 +143,7 @@ $(document).ready(function() {
                 d.model_filter = $('#modelFilter').val() === 'all' ? '' : $('#modelFilter').val();
                 d.po_filter = $('#poFilter').val() === 'all' ? '' : $('#poFilter').val();
                 d.target_date_filter = $('#targetDateFilter').val();
+                d.work_status_filter = $('#workStatusFilter').val() === 'all' ? '' : $('#workStatusFilter').val();
             }
         },
         stateSaveParams: function (settings, data) {
@@ -143,7 +151,8 @@ $(document).ready(function() {
                 customer: $('#customerFilter').val(),
                 model: $('#modelFilter').val(),
                 po: $('#poFilter').val(),
-                targetDate: $('#targetDateFilter').val()
+                targetDate: $('#targetDateFilter').val(),
+                workStatus: $('#workStatusFilter').val()
             };
         },
         stateLoadParams: function (settings, data) {
@@ -163,6 +172,9 @@ $(document).ready(function() {
                 }
                 if (data.customFilters.targetDate !== undefined) {
                     $('#targetDateFilter').val(data.customFilters.targetDate);
+                }
+                if (data.customFilters.workStatus !== undefined) {
+                    $('#workStatusFilter').val(data.customFilters.workStatus);
                 }
             }
         },
@@ -454,6 +466,10 @@ $(document).ready(function() {
         performSearch();
     });
 
+    $('#workStatusFilter').on('change', function(e) {
+        performSearch();
+    });
+
     $('#clearFiltersBtn').on('click', function(e) {
         e.preventDefault();
         
@@ -464,6 +480,7 @@ $(document).ready(function() {
         $('#poFilter').val('all').trigger('change.select2');
         $('#customerFilter').val('all').trigger('change.select2');
         $('#targetDateFilter').val('');
+        $('#workStatusFilter').val('all').trigger('change.select2');
         
         updateModelDropdown('all');
         $('#mgmTable').DataTable().search('').draw();

@@ -61,6 +61,24 @@ class ProductionTrackingController extends Controller
             $query->where('status', request('status_filter'));
         }
 
+        if (request()->filled('work_status_filter') && !in_array(request('work_status_filter'), ['all', 'null', ''])) {
+            $workStatus = request('work_status_filter');
+            $pendingMap = [
+                'PO_REGISTERED'        => ['PO_REGISTERED'],
+                'WAITING_DEPT_CONFIRM' => ['PO_REGISTERED', 'WAITING_DEPT_CONFIRM'],
+                'WAITING_QE_CHECK'     => ['PO_REGISTERED', 'WAITING_DEPT_CONFIRM', 'WAITING_QE_CHECK'],
+                'WAITING_MGM_CHECK'    => ['PO_REGISTERED', 'WAITING_DEPT_CONFIRM', 'WAITING_QE_CHECK', 'WAITING_MGM_CHECK'],
+            ];
+
+            if (isset($pendingMap[$statusParam])) {
+                if ($workStatus === 'pending') {
+                    $query->whereIn('status', $pendingMap[$statusParam]);
+                } elseif ($workStatus === 'done') {
+                    $query->whereNotIn('status', $pendingMap[$statusParam]);
+                }
+            }
+        }
+
         if (request()->filled('target_date_filter') && request('target_date_filter') !== 'null' && request('target_date_filter') !== '') {
             $targetDate = request('target_date_filter');
             if ($statusParam === 'WAITING_MGM_CHECK') {

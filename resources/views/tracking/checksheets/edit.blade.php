@@ -87,7 +87,7 @@
             <div class="text-red-500 text-xl font-bold mt-0.5"><i class="fa-solid fa-triangle-exclamation"></i></div>
             <div class="flex-1">
                 <h4 class="text-sm font-bold text-red-800 dark:text-red-300 uppercase tracking-wider flex items-center gap-2">
-                    Checksheet Returned / Rejected (Perlu Perbaikan)
+                    Checksheet Returned / Rejected (Needs Revision)
                     @if($fromStageName)
                         <span class="px-2 py-0.5 text-[11px] bg-red-200 dark:bg-red-800/60 text-red-900 dark:text-red-100 font-bold rounded">Returned from {{ $fromStageName }}</span>
                     @endif

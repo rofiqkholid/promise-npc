@@ -63,6 +63,13 @@
                     <div class="w-full sm:w-auto">
                         <input type="date" id="targetDateFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm" title="Filter by Target Delivery Date">
                     </div>
+                    <div class="w-full sm:w-auto">
+                        <select id="workStatusFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-44 rounded-md shadow-sm">
+                            <option value="">All Status</option>
+                            <option value="pending" {{ request('work_status_filter') == 'pending' ? 'selected' : '' }}>Not Yet Done</option>
+                            <option value="done" {{ request('work_status_filter') == 'done' ? 'selected' : '' }}>Done</option>
+                        </select>
+                    </div>
                     <div class="flex items-end w-full sm:w-auto">
                         <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center min-w-[100px]">
                             <i class="fa-solid fa-rotate-left"></i> Reset
@@ -291,6 +298,7 @@ style="display: none;">
                         const model = $('#modelFilter').val();
                         const po = $('#poFilter').val();
                         const targetDate = $('#targetDateFilter').val();
+                        const workStatus = $('#workStatusFilter').val();
                         
                         const url = new URL('{{ route('tracking.qc') }}', window.location.origin);
                         url.searchParams.append('fetch_all_ids', '1');
@@ -299,6 +307,7 @@ style="display: none;">
                         if (model) url.searchParams.append('model_filter', model);
                         if (po) url.searchParams.append('po_filter', po);
                         if (targetDate) url.searchParams.append('target_date_filter', targetDate);
+                        if (workStatus) url.searchParams.append('work_status_filter', workStatus);
                         
                         const response = await fetch(url.toString(), {
                             headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
@@ -447,6 +456,7 @@ style="display: none;">
                     d.model_filter = $('#modelFilter').val();
                     d.po_filter = $('#poFilter').val();
                     d.target_date_filter = $('#targetDateFilter').val();
+                    d.work_status_filter = $('#workStatusFilter').val();
                 }
             },
             responsive: true,
@@ -456,7 +466,8 @@ style="display: none;">
                     customer: $('#customerFilter').val(),
                     model: $('#modelFilter').val(),
                     po: $('#poFilter').val(),
-                    targetDate: $('#targetDateFilter').val()
+                    targetDate: $('#targetDateFilter').val(),
+                    workStatus: $('#workStatusFilter').val()
                 };
             },
             stateLoadParams: function (settings, data) {
@@ -476,6 +487,9 @@ style="display: none;">
                     }
                     if (data.customFilters.targetDate !== undefined) {
                         $('#targetDateFilter').val(data.customFilters.targetDate);
+                    }
+                    if (data.customFilters.workStatus !== undefined) {
+                        $('#workStatusFilter').val(data.customFilters.workStatus);
                     }
                 }
             },
@@ -833,6 +847,10 @@ style="display: none;">
             performSearch();
         });
 
+        $('#workStatusFilter').on('change', function(e) {
+            performSearch();
+        });
+
         $('#qcTable').on('draw.dt', function() {
             const hasChecked = $('.part-checkbox:checked').length > 0;
             if(!hasChecked) {
@@ -877,6 +895,7 @@ style="display: none;">
             $('#poFilter').val('').trigger('change.select2');
             $('#customerFilter').val('').trigger('change.select2');
             $('#targetDateFilter').val('');
+            $('#workStatusFilter').val('').trigger('change.select2');
             
             $('#qcTable').DataTable().search('').draw();
         });

@@ -27,6 +27,14 @@ class NpcChecksheetApprovalController extends Controller
                 $query->where('approval_status', $request->stage);
             }
 
+            if ($request->filled('work_status')) {
+                if ($request->work_status === 'pending') {
+                    $query->where('approval_status', '!=', 'APPROVED');
+                } elseif ($request->work_status === 'done') {
+                    $query->where('approval_status', 'APPROVED');
+                }
+            }
+
             if ($request->filled('customer')) {
                 $query->whereHas('npcPart.event.customerCategory.customer', function($q) use ($request) {
                     $q->where('id', $request->customer);

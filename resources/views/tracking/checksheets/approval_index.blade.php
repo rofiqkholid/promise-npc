@@ -58,6 +58,13 @@
                         <option value="APPROVED">Fully Approved</option>
                     </select>
                 </div>
+                <div class="w-full sm:w-auto">
+                    <select id="filterWorkStatus" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm">
+                        <option value="">All Status</option>
+                        <option value="pending">Not Yet Done</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
                 <div class="flex items-end w-full sm:w-auto">
                     <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center min-w-[100px]">
                         <i class="fa-solid fa-rotate-left"></i> Reset
@@ -129,6 +136,7 @@
                 url: "{{ route('checksheet-approvals.index') }}",
                 data: function (d) {
                     d.stage = $('#filterStage').val();
+                    d.work_status = $('#filterWorkStatus').val();
                     d.customer = $('#filterCustomer').val();
                     d.model = $('#filterModel').val();
                     d.po = $('#filterPo').val();
@@ -137,6 +145,7 @@
             stateSaveParams: function (settings, data) {
                 data.customFilters = {
                     stage: $('#filterStage').val(),
+                    workStatus: $('#filterWorkStatus').val(),
                     customer: $('#filterCustomer').val(),
                     model: $('#filterModel').val(),
                     po: $('#filterPo').val()
@@ -150,6 +159,9 @@
                 if (data.customFilters) {
                     if (data.customFilters.stage !== undefined) {
                         $('#filterStage').val(data.customFilters.stage);
+                    }
+                    if (data.customFilters.workStatus !== undefined) {
+                        $('#filterWorkStatus').val(data.customFilters.workStatus);
                     }
                     if (data.customFilters.customer !== undefined) {
                         $('#filterCustomer').val(data.customFilters.customer);
@@ -219,7 +231,7 @@
 
         let isResetting = false;
 
-        $('#filterStage, #filterCustomer, #filterModel, #filterPo').on('change', function() {
+        $('#filterStage, #filterWorkStatus, #filterCustomer, #filterModel, #filterPo').on('change', function() {
             if (!isResetting) {
                 $('#checksheetApprovalTable').DataTable().ajax.reload();
             }
@@ -259,6 +271,7 @@
             $('#clearSearchBtn').hide();
             
             $('#filterStage').val('').trigger('change.select2');
+            $('#filterWorkStatus').val('').trigger('change.select2');
             $('#filterCustomer').val('').trigger('change.select2');
             $('#filterModel').val('').trigger('change.select2');
             $('#filterPo').val('').trigger('change.select2');
