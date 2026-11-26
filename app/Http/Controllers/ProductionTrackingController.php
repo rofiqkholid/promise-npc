@@ -264,7 +264,7 @@ class ProductionTrackingController extends Controller
         
         $customers = \App\Models\Customer::orderBy('name')->get();
         $models = \App\Models\VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
-        $poList = \App\Models\NpcEvent::select('po_no')->whereNotNull('po_no')->distinct()->orderBy('po_no')->get();
+        $poList = \App\Models\NpcEvent::select('po_no')->whereNotNull('po_no')->where('po_no', '!=', '')->distinct()->orderBy('po_no')->get();
         
         // Conditional Status: only fetch statuses that are applicable for the current page
         $baseQuery = $this->buildQuery($statusParam, null);
@@ -384,7 +384,7 @@ class ProductionTrackingController extends Controller
 
         $customers = \App\Models\Customer::orderBy('name')->get();
         $models = \App\Models\VehicleModel::whereIn('id', function($q) { $q->selectRaw('MIN(id)')->from('models')->groupBy('name', 'customer_id'); })->orderBy('name')->get();
-        $poList = \App\Models\NpcEvent::select('po_no')->whereNotNull('po_no')->distinct()->orderBy('po_no')->get();
+        $poList = \App\Models\NpcEvent::select('po_no')->whereNotNull('po_no')->where('po_no', '!=', '')->distinct()->orderBy('po_no')->get();
         $status_options = collect([]);
 
         return view('tracking.global', [

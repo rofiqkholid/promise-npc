@@ -196,7 +196,7 @@ class NpcChecksheetApprovalController extends Controller
 
         $customers = \App\Models\Customer::orderBy('name')->get();
         $models = \App\Models\VehicleModel::orderBy('name')->get();
-        $poList = \App\Models\NpcEvent::select('po_no')->whereNotNull('po_no')->distinct()->orderBy('po_no')->get();
+        $poList = \App\Models\NpcEvent::select('po_no')->whereNotNull('po_no')->where('po_no', '!=', '')->distinct()->orderBy('po_no')->get();
 
         return view('tracking.checksheets.approval_index', compact('customers', 'models', 'poList'));
     }

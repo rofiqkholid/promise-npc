@@ -19,10 +19,10 @@
 
     <div class="p-6">
         <!-- Filters -->
-        <div class="mb-4 flex flex-col xl:flex-row justify-between gap-4 items-start xl:items-end">
-            <div class="flex flex-wrap items-center gap-4 w-full xl:w-auto">
+        <div class="mb-4 flex flex-col xl:flex-row justify-between gap-2.5 items-start xl:items-center">
+            <div class="flex flex-wrap items-center gap-2.5 w-full xl:w-auto">
                 <div class="w-full sm:w-auto">
-                    <select id="filterCustomer" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm">
+                    <select id="filterCustomer" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-36 rounded-md shadow-sm">
                         <option value="">All Customers</option>
                         @foreach($customers as $c)
                             <option value="{{ $c->id }}">{{ $c->code }}</option>
@@ -30,7 +30,7 @@
                     </select>
                 </div>
                 <div class="w-full sm:w-auto">
-                    <select id="filterModel" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm">
+                    <select id="filterModel" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-36 rounded-md shadow-sm">
                         <option value="">All Models</option>
                         @foreach($models as $m)
                             <option value="{{ $m->id }}">{{ $m->name }}</option>
@@ -38,7 +38,7 @@
                     </select>
                 </div>
                 <div class="w-full sm:w-auto">
-                    <select id="filterPo" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm">
+                    <select id="filterPo" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-36 rounded-md shadow-sm">
                         <option value="">All POs</option>
                         @foreach($poList ?? [] as $po)
                             <option value="{{ $po->po_no }}">{{ $po->po_no }}</option>
@@ -46,7 +46,7 @@
                     </select>
                 </div>
                 <div class="w-full sm:w-auto">
-                    <select id="filterStage" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm">
+                    <select id="filterStage" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-36 rounded-md shadow-sm">
                         <option value="">All Stages</option>
                         <option value="WAITING_QE_STAFF">Waiting QE Staff</option>
                         <option value="WAITING_MGM_STAFF">Waiting NPC Staff</option>
@@ -59,20 +59,20 @@
                     </select>
                 </div>
                 <div class="w-full sm:w-auto">
-                    <select id="filterWorkStatus" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm">
+                    <select id="filterWorkStatus" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-36 rounded-md shadow-sm">
                         <option value="">All Status</option>
                         <option value="pending">Not Yet Done</option>
                         <option value="done">Done</option>
                     </select>
                 </div>
                 <div class="flex items-end w-full sm:w-auto">
-                    <button type="button" id="clearFiltersBtn" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center min-w-[100px]">
+                    <button type="button" id="clearFiltersBtn" class="py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-1.5 w-full justify-center">
                         <i class="fa-solid fa-rotate-left"></i> Reset
                     </button>
                 </div>
             </div>
 
-            <div class="flex items-end w-full md:w-[350px] shrink-0">
+            <div class="flex items-end w-full xl:w-64 shrink-0">
                 <div class="relative w-full">
                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
                         <i class="fa-solid fa-magnifying-glass text-sm"></i>
@@ -157,21 +157,17 @@
                     data.search.search = urlParams.get('search');
                 }
                 if (data.customFilters) {
-                    if (data.customFilters.stage !== undefined) {
-                        $('#filterStage').val(data.customFilters.stage);
-                    }
-                    if (data.customFilters.workStatus !== undefined) {
-                        $('#filterWorkStatus').val(data.customFilters.workStatus);
-                    }
-                    if (data.customFilters.customer !== undefined) {
-                        $('#filterCustomer').val(data.customFilters.customer);
-                    }
-                    if (data.customFilters.model !== undefined) {
-                        $('#filterModel').val(data.customFilters.model);
-                    }
-                    if (data.customFilters.po !== undefined) {
-                        $('#filterPo').val(data.customFilters.po);
-                    }
+                    const setSelectIfValid = (selector, val, fallback = '') => {
+                        const $el = $(selector);
+                        const exists = val !== undefined && val !== null &&
+                            $el.find('option').filter((_, opt) => opt.value === String(val)).length > 0;
+                        $el.val(exists ? val : fallback);
+                    };
+                    setSelectIfValid('#filterStage', data.customFilters.stage);
+                    setSelectIfValid('#filterWorkStatus', data.customFilters.workStatus);
+                    setSelectIfValid('#filterCustomer', data.customFilters.customer);
+                    setSelectIfValid('#filterModel', data.customFilters.model);
+                    setSelectIfValid('#filterPo', data.customFilters.po);
                 }
             },
             initComplete: function(settings, json) {
@@ -187,6 +183,9 @@
                     }
                     if ($('#filterStage').hasClass('select2-hidden-accessible')) {
                         $('#filterStage').trigger('change.select2');
+                    }
+                    if ($('#filterWorkStatus').hasClass('select2-hidden-accessible')) {
+                        $('#filterWorkStatus').trigger('change.select2');
                     }
                     if ($('#filterCustomer').hasClass('select2-hidden-accessible')) {
                         $('#filterCustomer').trigger('change.select2');

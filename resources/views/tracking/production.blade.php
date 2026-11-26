@@ -15,10 +15,10 @@
     </div>
 
     <!-- Filters -->
-    <div class="px-6 pt-4 pb-4 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
-        <div class="flex flex-wrap items-center gap-4 w-full xl:w-auto">
+    <div class="px-6 pt-4 pb-4 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-2.5 w-full xl:w-auto">
             <div class="w-full sm:w-auto">
-                <select id="customerFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-48 rounded-md shadow-sm">
+                <select id="customerFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-36 rounded-md shadow-sm">
                     <option value="all">All Customers</option>
                     @foreach($customers ?? [] as $customer)
                         <option value="{{ $customer->id }}">{{ $customer->code }}</option>
@@ -26,7 +26,7 @@
                 </select>
             </div>
             <div class="w-full sm:w-auto">
-                <select id="modelFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-48 rounded-md shadow-sm">
+                <select id="modelFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-36 rounded-md shadow-sm">
                     <option value="all">All Models</option>
                     @foreach($models ?? [] as $mod)
                         <option value="{{ $mod->id }}" data-customer="{{ $mod->customer_id }}">{{ $mod->name }}</option>
@@ -34,7 +34,7 @@
                 </select>
             </div>
             <div class="w-full sm:w-auto">
-                <select id="poFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-48 rounded-md shadow-sm">
+                <select id="poFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-36 rounded-md shadow-sm">
                     <option value="all">All POs</option>
                     @foreach($poList ?? [] as $po)
                         <option value="{{ $po->po_no }}">{{ $po->po_no }}</option>
@@ -45,20 +45,20 @@
                 <input type="date" id="targetDateFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-40 rounded-md shadow-sm" title="Filter by Target Delivery Date">
             </div>
             <div class="w-full sm:w-auto">
-                <select id="workStatusFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-44 rounded-md shadow-sm">
+                <select id="workStatusFilter" class="py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full sm:w-36 rounded-md shadow-sm">
                     <option value="all">All Status</option>
                     <option value="pending" {{ request('work_status_filter') == 'pending' ? 'selected' : '' }}>Not Yet Done</option>
                     <option value="done" {{ request('work_status_filter') == 'done' ? 'selected' : '' }}>Done</option>
                 </select>
             </div>
             <div class="flex items-end w-full sm:w-auto">
-                <button id="clearFiltersBtn" type="button" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2 w-full justify-center min-w-[100px]">
+                <button id="clearFiltersBtn" type="button" class="py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-1.5 w-full justify-center">
                     <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
             </div>
         </div>
 
-        <div class="flex items-end w-full xl:w-[350px] shrink-0">
+        <div class="flex items-end w-full xl:w-64 shrink-0">
             <div class="relative w-full">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
                     <i class="fa-solid fa-magnifying-glass text-sm"></i>
@@ -620,21 +620,19 @@ $(document).ready(function() {
                 data.search.search = urlParams.get('search');
             }
             if (data.customFilters) {
-                if (data.customFilters.customer !== undefined) {
-                    $('#customerFilter').val(data.customFilters.customer);
-                }
-                if (data.customFilters.model !== undefined) {
-                    $('#modelFilter').val(data.customFilters.model);
-                }
-                if (data.customFilters.po !== undefined) {
-                    $('#poFilter').val(data.customFilters.po);
-                }
+                const setSelectIfValid = (selector, val, fallback = 'all') => {
+                    const $el = $(selector);
+                    const exists = val !== undefined && val !== null && val !== '' &&
+                        $el.find('option').filter((_, opt) => opt.value === String(val)).length > 0;
+                    $el.val(exists ? val : fallback);
+                };
+                setSelectIfValid('#customerFilter', data.customFilters.customer);
+                setSelectIfValid('#modelFilter', data.customFilters.model);
+                setSelectIfValid('#poFilter', data.customFilters.po);
                 if (data.customFilters.targetDate !== undefined) {
                     $('#targetDateFilter').val(data.customFilters.targetDate);
                 }
-                if (data.customFilters.workStatus !== undefined) {
-                    $('#workStatusFilter').val(data.customFilters.workStatus);
-                }
+                setSelectIfValid('#workStatusFilter', data.customFilters.workStatus);
             }
         },
         initComplete: function(settings, json) {
@@ -653,6 +651,7 @@ $(document).ready(function() {
                 $('#customerFilter').trigger('change.select2');
                 $('#modelFilter').trigger('change.select2');
                 $('#poFilter').trigger('change.select2');
+                $('#workStatusFilter').trigger('change.select2');
             }, 100);
         },
         pageLength: 10,
